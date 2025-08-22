@@ -1,0 +1,43 @@
+body {
+    margin: 0;
+    padding: 0;
+    /* Hide scrollbars */
+}
+
+.sticky {
+    position: fixed;
+    top: 0;
+}
+
+#projPics {
+    background-color: rgb(47, 47, 47);
+    width: 100%;
+    max-height: 100vh;
+    z-index: -5;
+    overflow: hidden;
+    /*position: fixed;*/
+    /*display: flex;*/
+    left: 0;
+    pointer-events: none;
+    /*opacity: 0*/
+    will-change: transform, opacity;
+}
+
+.proj {
+    z-index: -5;
+    width: 60vw;
+    /*transform: translateX(calc((-300% + 100vw)/2));*/
+    transform: translate(calc((-300% + 100vw)/2), calc((-300% + 100vh)/2));
+}
+
+.image_container1,
+.image_container2,
+.image_container3 {
+    z-index: -5;
+    display: flex;
+}
+
+#content {
+    min-height: 100vh;
+    background-color: rgb(47, 47, 47);
+}

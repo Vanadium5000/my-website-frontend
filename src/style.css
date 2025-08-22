@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+.box {
+    background: linear-gradient(to top, black 50%, rgb(163, 163, 163) 50%);
+    background-size: 100% 200%;
+    transition: background-position 0.25s;
+}
+
+@media (prefers-color-scheme: dark) {
+    .box {
+        background: linear-gradient(to top, black 50%, rgb(38, 38, 38) 50%);
+        background-size: 100% 200%;
+        transition: background-position 0.25s;
+    }
+}
+
+.box:hover {
+    background-position: 0 -100%;
+}
