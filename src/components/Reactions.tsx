@@ -1,11 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../api/client.js";
-import {
-  ThumbsUp,
-  ThumbsUpSolid,
-  ThumbsDown,
-  ThumbsDownSolid,
-} from "../icons/index.js";
+import * as FontAwesome from "react-icons/fa";
 
 interface Props {
   post_id: Number;
@@ -14,37 +9,121 @@ interface Props {
 }
 
 export function Reactions(Props: Props) {
-  const [likes, setLikes] = useState(Props.likes);
-  const [dislikes, setDislikes] = useState(Props.dislikes);
+  const [likes, setLikes] = useState(Props.likes.valueOf()); // "Number" into primitive "number"
+  const [dislikes, setDislikes] = useState(Props.dislikes.valueOf());
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    async function fetchReactionStatus() {
+      try {
+        // Fetch user's like & dislike status for the post
+        const response = await api.postReaction.postReactionCreate({
+          post_id: Props.post_id.valueOf(),
+        });
+        const data = await response.json(); // [liked, disliked]
+
+        setLiked(false || data[0]);
+        setDisliked(false || data[1]);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Fetching previous reactions failed";
+        setError(errorMessage);
+        console.error("Error:", error);
+      }
+    }
+
+    fetchReactionStatus();
+  }, [Props.post_id]);
+
+  async function react(is_like: boolean) {
+    try {
+      const input = {
+        post_id: Object(Props.post_id), // primitive "number" into "Number"
+      };
+      const response = await (is_like
+        ? api.postLike.postLikeCreate(input)
+        : api.postDislike.postDislikeCreate(input));
+      const data = await response.text;
+      console.log("data");
+
+      if (is_like) {
+        !liked ? setLikes(likes + 1) : setLikes(likes - 1);
+        if (disliked) {
+          setDislikes(dislikes - 1);
+          setDisliked(false);
+        }
+      } else {
+        !disliked ? setDislikes(dislikes + 1) : setDislikes(dislikes - 1);
+        if (liked) {
+          setLikes(likes - 1);
+          setLiked(false);
+        }
+      }
+
+      is_like ? setLiked(!liked) : setDisliked(!disliked);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Reacting failed";
+      setError(errorMessage);
+      console.error("Error:", error);
+    }
+  }
+
+  if (error) {
+    return (
+      <>
+        <div role="alert" className="alert alert-error">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 shrink-0 stroke-current"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{error}</span>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div class="pt-1">
-      <div class="inline mr-2">
+    <div class="pt-1 text-lg">
+      <div class="inline mr-4">
         <span>{likes}</span>
-        <i>{liked ? <ThumbsUp /> : <ThumbsUpSolid />}</i>
-        <i
-          class={`fa-thumbs-up fa-lg cursor-pointer py-4 px-2 text-green-500 hover:text-[#2196f3]${liked ? "fa-solid" : "fa-regular"}`}
+        <span
+          className="cursor-pointer px-2 text-green-500 hover:text-[#2196f3] inline-block"
           onClick={async () => {
             await react(true);
           }}
-        ></i>
+        >
+          {liked ? <FontAwesome.FaThumbsUp /> : <FontAwesome.FaRegThumbsUp />}
+        </span>
       </div>
-      <div class="inline mx-4">
+      <div class="inline">
         <span>{dislikes}</span>
-        <i
-          class={`fa-thumbs-down fa-lg cursor-pointer py-4 px-2 text-red-500 hover:text-[#2196f3]${disliked ? "fa-solid" : "fa-regular"}`}
+        <span
+          className="cursor-pointer px-2 text-red-500 hover:text-[#2196f3] inline-block"
           onClick={async () => {
             await react(false);
           }}
-        ></i>
+        >
+          {disliked ? (
+            <FontAwesome.FaThumbsDown />
+          ) : (
+            <FontAwesome.FaRegThumbsDown />
+          )}
+        </span>
       </div>
-      {/* <div class="inline ml-2">
-        <span id={`comments-${id}`}>{comments}</span>
-        <i class="fa-solid fa-comment-dots fa-lg py-4 px-2"></i>
-      </div> */}
     </div>
   );
 }

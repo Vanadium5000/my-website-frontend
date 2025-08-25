@@ -28,12 +28,33 @@ export interface Blog {
 }
 
 /**
+ * BlogCommentRequest
+ * Blog ID & comment content
+ */
+export interface BlogCommentRequest {
+  /** @format int64 */
+  post_id: number;
+  content: string;
+}
+
+/**
  * BlogGetRequest
  * Blog ID
  */
 export interface BlogGetRequest {
   /** @format int64 */
   post_id: number;
+}
+
+/**
+ * Comment
+ * Comment
+ */
+export interface Comment {
+  content: string;
+  created_at: string;
+  /** @format int64 */
+  user_id: number;
 }
 
 /**
@@ -447,6 +468,46 @@ export class Api<
         body: data,
         secure: true,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  postComment = {
+    /**
+     * No description
+     *
+     * @name PostCommentCreate
+     * @summary Comment on the post
+     * @request POST:/post_comment
+     * @secure
+     */
+    postCommentCreate: (data: BlogCommentRequest, params: RequestParams = {}) =>
+      this.request<string, any>({
+        path: `/post_comment`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  postComments = {
+    /**
+     * No description
+     *
+     * @name PostCommentsCreate
+     * @summary Get comments on the post with the inputted post_id
+     * @request POST:/post_comments
+     */
+    postCommentsCreate: (
+      data: BlogCommentRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<Comment[], any>({
+        path: `/post_comments`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };

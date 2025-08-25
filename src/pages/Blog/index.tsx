@@ -111,15 +111,17 @@ export function PostCard(props) {
           })}
         </time>
         <div
-          class="prose max-w-full my-4"
+          class="prose max-w-full mt-4"
           dangerouslySetInnerHTML={{ __html: post.snippet }}
         />
       </a>
-      <Reactions
-        post_id={post.post_id}
-        likes={post.likes}
-        dislikes={post.dislikes}
-      />
+      <div class="card-body pt-0">
+        <Reactions
+          post_id={post.post_id}
+          likes={post.likes}
+          dislikes={post.dislikes}
+        />
+      </div>
     </div>
   );
 }
