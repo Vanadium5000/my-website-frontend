@@ -1,7 +1,29 @@
-body {
-    margin: 0;
-    padding: 0;
-    /* Hide scrollbars */
+/* main {
+    background-image: url("/random-image.jpg");
+    background-size: cover;
+} */
+
+.blink {
+  animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.shadow {
+    border: 1px solid transparent;
+    /* Set a transparent border to preserve the layout */
+    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.5);
+    /* Apply a black blurred border using box-shadow */
 }
 
 .sticky {
@@ -35,9 +57,4 @@ body {
 .image_container3 {
     z-index: -5;
     display: flex;
-}
-
-#content {
-    min-height: 100vh;
-    background-color: rgb(47, 47, 47);
 }

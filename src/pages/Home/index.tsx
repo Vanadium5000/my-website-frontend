@@ -1,22 +1,18 @@
 import { Navbar } from "../../components/Navbar.jsx";
-import randomImage from "../../assets/random-image.jpg";
+import randomImage from "/random-image.jpg";
 import "./style.css";
 
 export function Home() {
   return (
     <>
       <Navbar />
-      <div className="relative flex items-center justify-center h-screen select-none transition-transform duration-500 overflow-hidden">
-        <img
-          src={randomImage}
-          alt="Background"
-          className="absolute inset-0 h-full object-cover"
-        />
+      <div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center p-8 bg-black/80 text-white">
           <h1 className="text-8xl font-semibold mb-2">
             My
             <br />
-            Website<span className="animate-pulse">_</span>
+            Website
+            <span className="blink">_</span>
           </h1>
           <p>Hi</p>
         </div>

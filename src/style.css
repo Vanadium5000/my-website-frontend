@@ -1,5 +1,9 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "@tailwindcss/typography";
+@plugin "daisyui" {
+  themes: all;
+  --depth: 1; /* Skeumorphic design (not flat) */
+}
 
 .box {
     background: linear-gradient(to top, black 50%, rgb(163, 163, 163) 50%);
@@ -17,4 +21,24 @@
 
 .box:hover {
     background-position: 0 -100%;
+}
+
+/* Make the website always at least full height so the footer stays at the bottom */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the container takes at least the full viewport height */
+}
+
+main {
+  flex: 1 0 auto; /* Makes main content take up remaining space */
+}
+
+header, footer {
+  flex-shrink: 0; /* Prevents header and footer from shrinking */
 }

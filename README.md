@@ -8,8 +8,12 @@
 
 ## Getting Started
 
--   `npm run dev` - Starts a dev server at http://localhost:5173/
+- `npm run dev` - Starts a dev server at http://localhost:5173/
 
--   `npm run build` - Builds for production, emitting to `dist/`
+- `npm run build` - Builds for production, emitting to `dist/`
 
--   `npm run preview` - Starts a server at http://localhost:4173/ to test production build locally
+- `npm run preview` - Starts a server at http://localhost:4173/ to test production build locally
+
+### Generate Swagger API client typescript code ( assuming the specification can be found at http://localhost:3000/openapi.json )
+
+- `bun run generate` - OpenAPI code generator into /src/api/api.ts according to the OpenAPI specification
