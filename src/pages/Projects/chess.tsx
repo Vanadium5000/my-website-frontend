@@ -30,27 +30,25 @@ export function ChessGame() {
           setYourColor(data.your_color);
           setOpponent(data.opponent);
           if (data.opponent === null) {
-            setStatus("Searching for an opponent...");
+            setStatus("Waiting for opponent...");
             setDraggable(false);
           } else {
-            setStatus(`Playing against ${data.opponent || "an opponent"}`);
+            setStatus(`Playing against ${data.opponent}`);
             setDraggable(true);
           }
         } else if (data.type === "opponent_joined") {
           setOpponent(data.opponent);
-          setStatus(`Playing against ${data.opponent || "an opponent"}`);
+          setStatus(`Playing against ${data.opponent}`);
           setDraggable(true);
         } else if (data.type === "update") {
           chess.load(data.fen);
           setFen(data.fen);
           setPending(false);
-          setStatus(`Playing against ${opponent || "an opponent"}`);
+          setStatus(`Playing against ${opponent}`);
         } else if (data.type === "win") {
           setDraggable(false);
           const youWin = opponent && data.winner !== opponent;
-          const message = youWin
-            ? "You win!"
-            : `${data.winner || "Opponent"} wins!`;
+          const message = youWin ? "You win!" : `${data.winner} wins!`;
           const reason = data.reason ? ` (${data.reason})` : "";
           setStatus(`Game over: ${message}${reason}`);
         } else if (data.type === "draw") {
@@ -122,26 +120,16 @@ export function ChessGame() {
     }
   };
 
-  let color = "blue";
-  if (status.startsWith("Game over")) {
-    if (status.includes("You win")) {
-      color = "green";
-    } else if (status.includes("wins")) {
-      color = "red";
-    } else if (status.includes("Draw")) {
-      color = "orange";
-    }
-  } else if (status.startsWith("Error")) {
-    color = "red";
-  } else if (status.startsWith("Connection")) {
-    color = "red";
-  }
-
   return (
     <>
       <Navbar />
       <div
-        style={{ textAlign: "center", margin: "10px", fontSize: "18px", color }}
+        style={{
+          textAlign: "center",
+          margin: "10px",
+          fontSize: "18px",
+          color: "blue",
+        }}
       >
         {status}
       </div>
