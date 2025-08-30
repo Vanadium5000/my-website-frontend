@@ -6,7 +6,7 @@ export function Projects() {
       <Navbar />
       <h1 class="text-3xl mx-4 my-8">Temp Project Index (All Unfinished):</h1>
       <p class="text-blue-500 mt-8 mx-4">
-        <a href="/projects/pong">
+        <a href="https://altus.deno.dev/projects/pong">
           Pong with perfect ai - maybe finished (and that is why this is first),
           but very basic
         </a>
@@ -26,7 +26,7 @@ export function Projects() {
         compiled to WASM.
       </p>
       <p class="text-blue-500 mt-8 mx-4">
-        <a href="/projects/connect4">
+        <a href="https://altus.deno.dev/projects/connect4">
           Connect4 AI - breaks after 6th move, perfect player before then
         </a>
       </p>
@@ -38,7 +38,7 @@ export function Projects() {
         to WASM was difficult.
       </p>
       <p class="text-blue-500 mt-8 mx-4">
-        <a href="/projects/tetris_clone">
+        <a href="https://altus.deno.dev/projects/tetris_clone">
           Not a Tetris Clone - it barely has any features of tetris, really
           unfinished, and of course I don't have legal permission from Tetris
           <sup>TM</sup>, so for now it is not a Tetris clone

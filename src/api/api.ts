@@ -66,6 +66,14 @@ export interface LoginRequest {
   password: string;
 }
 
+/** User */
+export interface User {
+  /** @format int64 */
+  user_id: number;
+  username: string;
+  is_admin: boolean;
+}
+
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
@@ -372,10 +380,11 @@ export class Api<
      * @secure
      */
     helloList: (params: RequestParams = {}) =>
-      this.request<string, any>({
+      this.request<User, any>({
         path: `/hello`,
         method: "GET",
         secure: true,
+        format: "json",
         ...params,
       }),
   };
@@ -498,10 +507,7 @@ export class Api<
      * @summary Get comments on the post with the inputted post_id
      * @request POST:/post_comments
      */
-    postCommentsCreate: (
-      data: BlogCommentRequest,
-      params: RequestParams = {},
-    ) =>
+    postCommentsCreate: (data: BlogGetRequest, params: RequestParams = {}) =>
       this.request<Comment[], any>({
         path: `/post_comments`,
         method: "POST",

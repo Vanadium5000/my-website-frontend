@@ -24,7 +24,7 @@
 }
 
 /* Make the website always at least full height so the footer stays at the bottom */
-html, body {
+html, body, #app {
   height: 100%;
   margin: 0;
 }

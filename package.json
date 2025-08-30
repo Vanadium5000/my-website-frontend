@@ -10,6 +10,8 @@
 	"dependencies": {
 		"@tailwindcss/typography": "^0.5.16",
 		"@tailwindcss/vite": "^4.1.12",
+		"chess.js": "^1.4.0",
+		"chessboardjsx": "^2.4.7",
 		"daisyui": "^5.0.50",
 		"preact": "^10.26.9",
 		"preact-iso": "^2.10.0",

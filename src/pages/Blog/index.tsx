@@ -12,8 +12,16 @@ export interface BlogPostType {
   likes: number;
   dislikes: number;
 }
+
+export interface CommentType {
+  content: string;
+  created_at: string;
+  user_id: number;
+}
+
 export function BlogHome() {
   const [blogPosts, setBlogPosts] = useState<BlogPostType[]>([]);
+  const [comments, setComments] = useState<Record<number, CommentType[]>>({});
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;
@@ -32,6 +40,40 @@ export function BlogHome() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // Create an array of promises to fetch comments for each post_id
+        const commentPromises = blogPosts.map(async (post) => {
+          const response = await api.postComments.postCommentsCreate({
+            post_id: post.post_id,
+          });
+          const commentsData = await response.json();
+          return { post_id: post.post_id, comments: commentsData };
+        });
+
+        // Wait for all comment fetches to complete
+        const commentsArray = await Promise.all(commentPromises);
+
+        // Transform the results into a Record<post_id, CommentType[]>
+        const commentsRecord = commentsArray.reduce<
+          Record<number, CommentType[]>
+        >((acc, { post_id, comments }) => {
+          acc[post_id] = comments;
+          return acc;
+        }, {});
+
+        // Update the comments state
+        setComments(commentsRecord);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Fetching comments failed";
+        setError(errorMessage);
+        console.error("Error:", error);
+      }
+    })();
+  }, [blogPosts]);
 
   // Calculate total pages
   const totalPages = Math.ceil(blogPosts.length / postsPerPage);
@@ -75,7 +117,11 @@ export function BlogHome() {
         <h1 className="text-2xl font-bold mb-4">Blog Posts</h1>
         <div className="space-y-6">
           {currentPosts.map((post, index) => (
-            <PostCard key={index} post={post} />
+            <PostCard
+              key={index}
+              post={post}
+              comments={comments[post.post_id]}
+            />
           ))}
         </div>
         {/* Pagination Navigator */}
@@ -99,6 +145,7 @@ export function BlogHome() {
 
 export function PostCard(props) {
   const { post } = props;
+  const { comments } = props;
   return (
     <div class="card shadow transition-transform ease-in-out delay-0 hover:-translate-y-1 hover:scale-[1.02] duration-300">
       <a class="card-body" href={`/blog/${post.post_id}`}>
@@ -120,6 +167,7 @@ export function PostCard(props) {
           post_id={post.post_id}
           likes={post.likes}
           dislikes={post.dislikes}
+          comments={comments}
         />
       </div>
     </div>

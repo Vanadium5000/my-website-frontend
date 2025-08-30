@@ -1,11 +1,13 @@
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../api/client.js";
+import { CommentType } from "../pages/Blog/index.js";
 import * as FontAwesome from "react-icons/fa";
 
 interface Props {
   post_id: Number;
   likes: Number;
   dislikes: Number;
+  comments: CommentType[];
 }
 
 export function Reactions(Props: Props) {
@@ -15,6 +17,7 @@ export function Reactions(Props: Props) {
   const [disliked, setDisliked] = useState(false);
   const [error, setError] = useState("");
 
+  // Load liked/disliked status from backend
   useEffect(() => {
     async function fetchReactionStatus() {
       try {
@@ -27,6 +30,11 @@ export function Reactions(Props: Props) {
         setLiked(false || data[0]);
         setDisliked(false || data[1]);
       } catch (error) {
+        if (error?.status == 401) {
+          console.log("Not logged in: won't fetch previous reactions");
+          return;
+        }
+
         const errorMessage =
           error instanceof Error
             ? error.message
@@ -39,6 +47,7 @@ export function Reactions(Props: Props) {
     fetchReactionStatus();
   }, [Props.post_id]);
 
+  // Simulate react client-side & make appropriate backend request
   async function react(is_like: boolean) {
     try {
       const input = {
@@ -66,6 +75,12 @@ export function Reactions(Props: Props) {
 
       is_like ? setLiked(!liked) : setDisliked(!disliked);
     } catch (error) {
+      if (error?.status == 401) {
+        console.log("401 error: redirecting to /login");
+        window.location.href = "/login";
+        return;
+      }
+
       const errorMessage =
         error instanceof Error ? error.message : "Reacting failed";
       setError(errorMessage);
@@ -109,7 +124,7 @@ export function Reactions(Props: Props) {
           {liked ? <FontAwesome.FaThumbsUp /> : <FontAwesome.FaRegThumbsUp />}
         </span>
       </div>
-      <div class="inline">
+      <div class="inline mr-4">
         <span>{dislikes}</span>
         <span
           className="cursor-pointer px-2 text-red-500 hover:text-[#2196f3] inline-block"
@@ -122,6 +137,17 @@ export function Reactions(Props: Props) {
           ) : (
             <FontAwesome.FaRegThumbsDown />
           )}
+        </span>
+      </div>
+      <div class="inline mr-4">
+        <span>{Props.comments?.length}</span>
+        <span
+          className="cursor-pointer px-2 inline-block"
+          onClick={async () => {
+            await react(false);
+          }}
+        >
+          <FontAwesome.FaCommentDots />
         </span>
       </div>
     </div>

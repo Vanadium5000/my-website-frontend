@@ -8,7 +8,10 @@ import { Home } from "./pages/Home/index.jsx";
 import { About } from "./pages/Info/about.js";
 import { Login } from "./pages/Login/index.js";
 import { Projects } from "./pages/Projects/index.js";
+import { ChessGame } from "./pages/Projects/chessGame.js";
+import { ChessHome } from "./pages/Projects/chessHome.js";
 import { Signup } from "./pages/Signup/index.js";
+import { AdminHome } from "./pages/Admin/index.js";
 import { NotFound } from "./pages/404.js";
 import "./style.css";
 
@@ -33,7 +36,10 @@ export function App() {
             <Route path="/about" component={About} />
             <Route path="/login" component={Login} />
             <Route path="/projects" component={Projects} />
+            <Route path="/projects/chess" component={ChessHome} />
+            <Route path="/projects/chess/:id" component={ChessGame} />
             <Route path="/signup" component={Signup} />
+            <Route path="/admin" component={AdminHome} />
             <Route default component={NotFound} />
           </Router>
         </main>

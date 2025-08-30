@@ -26,6 +26,11 @@
     /* Apply a black blurred border using box-shadow */
 }
 
+#homescreen {
+    background-image: url("/random-image.jpg");
+    background-size: cover;
+}
+
 .sticky {
     position: fixed;
     top: 0;
