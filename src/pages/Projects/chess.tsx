@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
-import Chessboard from "chessboardjsx";
+import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 
 export function ChessGame() {
@@ -22,6 +22,7 @@ export function ChessGame() {
     };
 
     wsRef.current.onmessage = (event) => {
+      console.log(event.data);
       try {
         const data = JSON.parse(event.data);
         if (data.type === "init") {
@@ -44,7 +45,7 @@ export function ChessGame() {
           chess.load(data.fen);
           setFen(data.fen);
           setPending(false);
-          setStatus(`Playing against ${opponent}`);
+          //setStatus(`Playing against ${opponent}`);
         } else if (data.type === "win") {
           setDraggable(false);
           const youWin = opponent && data.winner !== opponent;
@@ -102,7 +103,7 @@ export function ChessGame() {
     }
   }
 
-  const onDrop = ({ sourceSquare, targetSquare }) => {
+  const onDrop = (sourceSquare, targetSquare) => {
     if (!isYourTurn() || pending) return;
     try {
       const move = chess.move({
@@ -115,30 +116,38 @@ export function ChessGame() {
         sendMove(move.san);
         setPending(true);
       }
+      return true;
     } catch (error) {
       console.log("Invalid move");
+      return false;
     }
   };
 
   return (
     <>
       <Navbar />
-      <div
-        style={{
-          textAlign: "center",
-          margin: "10px",
-          fontSize: "18px",
-          color: "blue",
-        }}
-      >
-        {status}
+      <div class="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
+        <div
+          role="alert"
+          className="justify-center my-4 alert bg-neutral text-neutral-content"
+        >
+          <span>{status}</span>
+        </div>
+        <Chessboard
+          position={fen}
+          onPieceDrop={onDrop}
+          arePiecesDraggable={draggable}
+          isDraggablePiece={({ piece }) => {
+            // The piece begins with w or b for color, check if it's the same as the player's
+            if (piece[0] == yourColor[0]) {
+              return isYourTurn();
+            }
+          }}
+          boardOrientation={yourColor || "white"}
+          // TODO: Better promotions
+          showPromotionDialog={false}
+        />
       </div>
-      <Chessboard
-        position={fen}
-        onDrop={onDrop}
-        draggable={draggable}
-        orientation={yourColor || "white"}
-      />
     </>
   );
 }
