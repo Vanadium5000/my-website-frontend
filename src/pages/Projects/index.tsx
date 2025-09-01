@@ -1,10 +1,11 @@
 import { Navbar } from "../../components/Navbar.js";
+import { GameCard } from "../../components/GameCard.js";
 
 export function Projects() {
   return (
     <>
       <Navbar />
-      <h1 class="text-3xl mx-4 my-8">Temp Project Index (All Unfinished):</h1>
+      <h1 class="text-3xl mx-4 my-8">Projects</h1>
       <p class="text-blue-500 mt-8 mx-4">
         <a href="https://altus.deno.dev/projects/pong">
           Pong with perfect ai - maybe finished (and that is why this is first),
@@ -58,6 +59,23 @@ export function Projects() {
         visibility with perhaps a password or something to avoid copyright
         issues.
       </p>
+      {/* Cards */}
+      <div class="p-4 mx-auto">
+        <a href="https://altus.deno.dev/projects/pong">
+          <GameCard
+            title="Chess"
+            description="Multiplayer chess game"
+            image="/pong-paddles.png"
+          />
+        </a>
+        <a href="https://altus.deno.dev/projects/pong">
+          <GameCard
+            title="Pong"
+            description="The classic arcade game"
+            image="/pong-paddles.png"
+          />
+        </a>
+      </div>
     </>
   );
 }

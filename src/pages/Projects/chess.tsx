@@ -126,6 +126,7 @@ export function ChessGame() {
   return (
     <>
       <Navbar />
+      <h1 class="text-3xl mx-4 my-8">Multiplayer Chess:</h1>
       <div class="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
         <div
           role="alert"
