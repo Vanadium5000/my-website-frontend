@@ -15,6 +15,12 @@ export function ChessGame() {
 
   useEffect(() => {
     const token = encodeURIComponent(localStorage.getItem("token") || "");
+    if (!token) {
+      console.log("401 error: redirecting to /login");
+      window.location.href = "/login";
+      return;
+    }
+
     wsRef.current = new WebSocket(`ws://localhost:3000/ws/${token}`);
 
     wsRef.current.onopen = () => {

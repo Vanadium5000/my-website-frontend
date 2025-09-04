@@ -9,6 +9,7 @@ import { About } from "./pages/Info/about.js";
 import { Login } from "./pages/Login/index.js";
 import { Projects } from "./pages/Projects/index.js";
 import { ChessGame } from "./pages/Projects/chess.js";
+import { Arithmetic } from "./pages/Projects/arithmetic.js";
 import { Signup } from "./pages/Signup/index.js";
 import { AdminHome } from "./pages/Admin/index.js";
 import { NotFound } from "./pages/404.js";
@@ -36,6 +37,7 @@ export function App() {
             <Route path="/login" component={Login} />
             <Route path="/projects" component={Projects} />
             <Route path="/projects/chess" component={ChessGame} />
+            <Route path="/projects/arithmetic" component={Arithmetic} />
             <Route path="/signup" component={Signup} />
             <Route path="/admin" component={AdminHome} />
             <Route default component={NotFound} />
