@@ -48,8 +48,8 @@ export function Signup() {
 
       setLoading(false);
 
-      // Redirect to another page
-      window.location.href = "/";
+      // Redirect to login page
+      window.location.href = "/login";
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Signup failed";
