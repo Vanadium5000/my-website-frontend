@@ -21,7 +21,12 @@ export function ChessGame() {
       return;
     }
 
-    wsRef.current = new WebSocket(`ws://localhost:3000/ws/${token}`);
+    const base_url =
+      import.meta.env.MODE === "production"
+        ? "wss://my-website.space/backend/ws/"
+        : "ws://localhost:3000/api/";
+
+    wsRef.current = new WebSocket(base_url + token);
 
     wsRef.current.onopen = () => {
       console.log("WebSocket connected");

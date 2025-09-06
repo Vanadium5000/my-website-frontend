@@ -17,3 +17,12 @@
 ### Generate Swagger API client typescript code ( assuming the specification can be found at http://localhost:3000/openapi.json )
 
 - `bun run generate` - OpenAPI code generator into /src/api/api.ts according to the OpenAPI specification
+
+Note: add the following variable to src/api/api.ts after regenerating
+
+```ts
+public baseUrl: string =
+    import.meta.env.MODE === "production"
+      ? "http://my-website.space/backend/api"
+      : "http://localhost:3000/api";
+```
