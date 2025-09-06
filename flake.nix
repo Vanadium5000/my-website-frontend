@@ -1,6 +1,6 @@
-# frontend/flake.nix
+# flake.nix
 {
-  description = "Vite Preact frontend";
+  description = "A Nix package that installs the /dist directory from the frontend";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -9,35 +9,10 @@
   outputs =
     { self, nixpkgs }:
     let
-      system = "x86_64-linux"; # Adjust for your arch, e.g., aarch64-linux
+      system = "x86_64-linux"; # Adjust as needed for your system
       pkgs = nixpkgs.legacyPackages.${system};
-      nodejs = pkgs.nodejs_20; # Or whichever version your Vite setup needs
     in
     {
-      packages.${system}.default = pkgs.mkYarnPackage {
-        name = "frontend";
-        version = "v0.1.0";
-        src = ./.;
-        packageJSON = ./package.json;
-        yarnLock = ./yarn.lock; # Generate with `yarn install --frozen-lockfile` if needed
-        buildPhase = ''
-          export NODE_ENV=production
-          yarn --offline build  # Runs `vite build` assuming your package.json script
-        '';
-        installPhase = ''
-          cp -r dist $out/
-        '';
-        distPhase = "true"; # Skip tarball creation
-      };
-
-      devShells.${system}.default = pkgs.mkShell {
-        buildInputs = [
-          nodejs
-          pkgs.yarn
-        ];
-        shellHook = ''
-          echo "Enter dev shell: run 'yarn install' then 'yarn dev' for local dev on :5173"
-        '';
-      };
+      packages.${system}.default = pkgs.callPackage ./default.nix { };
     };
 }
