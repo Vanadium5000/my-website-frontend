@@ -129,7 +129,7 @@ export enum ContentType {
 export class HttpClient<SecurityDataType = unknown> {
   public baseUrl: string =
     import.meta.env.MODE === "production"
-      ? "http://my-website.space/backend/api"
+      ? "/backend/api"
       : "http://localhost:3000/api";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
