@@ -24,7 +24,7 @@ export function ChessGame() {
     const base_url =
       import.meta.env.MODE === "production"
         ? "wss://my-website.space/backend/ws/"
-        : "ws://localhost:3000/api/";
+        : "ws://localhost:3000/ws/";
 
     wsRef.current = new WebSocket(base_url + token);
 
@@ -151,9 +151,10 @@ export function ChessGame() {
           arePiecesDraggable={draggable}
           isDraggablePiece={({ piece }) => {
             // The piece begins with w or b for color, check if it's the same as the player's
-            if (piece[0] == yourColor[0]) {
+            if (yourColor && piece[0] == yourColor[0]) {
               return isYourTurn();
             }
+            return false;
           }}
           boardOrientation={yourColor || "white"}
           // TODO: Better promotions
