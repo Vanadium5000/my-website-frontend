@@ -11,8 +11,8 @@ export function Projects() {
       <div class="m-8">
         <GameCard
           title="Chess"
-          description="A multiplayer chess web app built with Rust and Poem-WebSocket, enabling real-time gameplay via WebSockets."
-          technicalSpecs="Turn-based strategy • Move validation engine • Real-time multiplayer"
+          description="A multiplayer chess web app built with Rust and Poem-WebSocket, enabling multiplayer gameplay."
+          technicalSpecs="Move validation • Real-time multiplayer"
           backgroundImage="/chess-board.png"
           href="/projects/chess"
         />
@@ -20,8 +20,8 @@ export function Projects() {
       <div class="m-8">
         <GameCard
           title="Arithmetic Game"
-          description="Challenge your mental math skills in this fast-paced arithmetic puzzle game. Solve complex calculations under time pressure, compete against others, and climb the global leaderboards."
-          technicalSpecs="Real-time mental math challenges • Dynamic problem generation • Multiplayer leaderboards • Timed solo mode"
+          description="Challenge your mental arithmetic skills in this arithmetic puzzle game."
+          technicalSpecs="Dynamic problem generation • Multiplayer leaderboards • Timed solo mode"
           backgroundImage="/stragedy-rush.png"
           href="/projects/arithmetic"
         />

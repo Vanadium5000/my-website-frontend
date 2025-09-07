@@ -60,7 +60,9 @@ export function ChessGame() {
         } else if (data.type === "win") {
           setDraggable(false);
           const youWin = opponent && data.winner !== opponent;
-          const message = youWin ? "You win!" : `${data.winner} wins!`;
+          const message = youWin
+            ? "You win!"
+            : `${data.winner || yourColor} wins!`;
           const reason = data.reason ? ` (${data.reason})` : "";
           setStatus(`Game over: ${message}${reason}`);
         } else if (data.type === "draw") {
