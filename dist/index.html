@@ -6,8 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>My Website</title>
-    <script type="module" crossorigin src="/assets/index-BCwAydeA.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DrZwAkfA.css">
+    <script>
+      // URL where the Base64-encoded JavaScript module is hosted
+      const base64Url = "/base64-script.txt";
+
+      // Fetch the Base64 string and execute it as a module
+      fetch(base64Url)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Base64 string");
+          }
+          return response.text();
+        })
+        .then((base64String) => {
+          // Decode the Base64 string
+          const decodedScript = atob(base64String.trim());
+
+          // Create a script element with type="module"
+          const scriptElement = document.createElement("script");
+          scriptElement.type = "module";
+          scriptElement.textContent = decodedScript;
+
+          // Append the script to the body to execute it
+          document.body.appendChild(scriptElement);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    </script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DrZwAkfA.css" />
   </head>
   <body>
     <div id="app"></div>
