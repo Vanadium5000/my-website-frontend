@@ -10,17 +10,35 @@
       // URL where the Base64-encoded JavaScript module is hosted
       const base64Url = "/base64-script.txt";
 
+      // Function to decode Base64 to UTF-8 string
+      function base64ToUTF8(base64) {
+        // Decode Base64 to binary string
+        const binaryString = atob(base64.trim());
+        // Convert binary string to UTF-8
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        return new TextDecoder("utf-8").decode(bytes);
+      }
+
       // Fetch the Base64 string and execute it as a module
-      fetch(base64Url)
+      fetch(base64Url, {
+        headers: {
+          Accept: "text/plain; charset=utf-8",
+        },
+      })
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch Base64 string");
+            throw new Error(
+              `Failed to fetch Base64 string: ${response.statusText}`
+            );
           }
           return response.text();
         })
         .then((base64String) => {
-          // Decode the Base64 string
-          const decodedScript = atob(base64String.trim());
+          // Decode Base64 to UTF-8, preserving special characters
+          const decodedScript = base64ToUTF8(base64String);
 
           // Create a script element with type="module"
           const scriptElement = document.createElement("script");
