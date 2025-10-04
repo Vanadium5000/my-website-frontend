@@ -1,40 +1,49 @@
 import { h } from "preact";
 import { useState, useEffect, useRef } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
-
 type Range = {
   min1: number;
   max1: number;
   min2: number;
   max2: number;
 };
-
 type Op = "add" | "sub" | "mult" | "div";
-
 type Problem = {
   question: string;
   answer: number;
 };
-
+type SelectedOps = Record<Op, boolean>;
 const randInt = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
-
 const operations: Op[] = ["add", "sub", "mult", "div"];
-
 export function Arithmetic() {
-  const [addRange, setAddRange] = useState<Range>({
-    min1: 0,
-    max1: 100,
-    min2: 0,
-    max2: 100,
-  });
-  const [multRange, setMultRange] = useState<Range>({
-    min1: 2,
-    max1: 20,
-    min2: 2,
-    max2: 20,
-  });
-  const [duration, setDuration] = useState<number>(120);
+  const params = new URLSearchParams(window.location.search);
+  const configStr = params.get("config");
+  let initialAddRange: Range = { min1: 0, max1: 100, min2: 0, max2: 100 };
+  let initialMultRange: Range = { min1: 2, max1: 20, min2: 2, max2: 20 };
+  let initialDuration = 120;
+  let initialSelectedOps: SelectedOps = {
+    add: true,
+    sub: true,
+    mult: true,
+    div: true,
+  };
+  let autoStart = false;
+  if (configStr) {
+    try {
+      const config = JSON.parse(atob(configStr));
+      initialAddRange = config.addRange;
+      initialMultRange = config.multRange;
+      initialDuration = config.duration;
+      initialSelectedOps = config.selectedOps;
+      autoStart = true;
+    } catch (e) {}
+  }
+  const [addRange, setAddRange] = useState<Range>(initialAddRange);
+  const [multRange, setMultRange] = useState<Range>(initialMultRange);
+  const [duration, setDuration] = useState<number>(initialDuration);
+  const [selectedOps, setSelectedOps] =
+    useState<SelectedOps>(initialSelectedOps);
   const [gameState, setGameState] = useState<"start" | "playing" | "ended">(
     "start"
   );
@@ -43,11 +52,11 @@ export function Arithmetic() {
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [inputValue, setInputValue] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
-
   const generateProblem = () => {
-    const op = operations[randInt(0, operations.length - 1)];
+    const selectedOperations = operations.filter((op) => selectedOps[op]);
+    if (selectedOperations.length === 0) return;
+    const op = selectedOperations[randInt(0, selectedOperations.length - 1)];
     let a: number, b: number, question: string, answer: number;
-
     if (op === "add" || op === "sub") {
       a = randInt(addRange.min1, addRange.max1);
       b = randInt(addRange.min2, addRange.max2);
@@ -55,7 +64,6 @@ export function Arithmetic() {
       a = randInt(multRange.min1, multRange.max1);
       b = randInt(multRange.min2, multRange.max2);
     }
-
     if (op === "add") {
       question = `${a} + ${b} = `;
       answer = a + b;
@@ -74,18 +82,25 @@ export function Arithmetic() {
       question = `${product} ÷ ${divisor} = `;
       answer = product / divisor;
     }
-
     setCurrentProblem({ question, answer });
     setInputValue("");
   };
-
   const startGame = () => {
+    const hasOps = Object.values(selectedOps).some((v) => v);
+    if (!hasOps) {
+      alert("Please select at least one operation.");
+      return;
+    }
     setScore(0);
     setTimeLeft(duration);
     setGameState("playing");
     generateProblem();
   };
-
+  useEffect(() => {
+    if (autoStart) {
+      startGame();
+    }
+  }, []);
   useEffect(() => {
     if (gameState !== "playing") return;
     if (timeLeft <= 0) {
@@ -97,13 +112,11 @@ export function Arithmetic() {
     }, 1000);
     return () => clearInterval(timer);
   }, [gameState, timeLeft]);
-
   useEffect(() => {
     if (gameState === "playing" && inputRef.current) {
       inputRef.current.focus();
     }
   }, [gameState, currentProblem]);
-
   useEffect(() => {
     if (gameState === "ended") {
       console.log(
@@ -120,7 +133,6 @@ export function Arithmetic() {
       );
     }
   }, [gameState, addRange, multRange, duration, score]);
-
   const handleSubmit = () => {
     if (!currentProblem) return;
     const userAnswer = parseFloat(inputValue);
@@ -135,13 +147,11 @@ export function Arithmetic() {
       setInputValue("");
     }
   };
-
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSubmit();
     }
   };
-
   const handleRangeChange = (
     setter: (r: Range) => void,
     range: Range,
@@ -153,12 +163,24 @@ export function Arithmetic() {
       setter({ ...range, [key]: num });
     }
   };
-
+  const handleShare = () => {
+    const config = {
+      addRange,
+      multRange,
+      duration,
+      selectedOps,
+    };
+    const configStr = btoa(JSON.stringify(config));
+    const url = `${window.location.origin}${window.location.pathname}?config=${configStr}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert("Shareable link copied to clipboard!");
+    });
+  };
   if (gameState === "start") {
     return (
       <>
         <Navbar />
-        <div className="max-w-md mx-auto p-4">
+        <div className="bg-base-100 mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full p-4">
           <h1 className="text-2xl font-bold mb-4">Arithmetic Game</h1>
           <p className="mb-4">
             The Arithmetic Game is a fast-paced speed drill where you are given
@@ -167,6 +189,11 @@ export function Arithmetic() {
           <p className="mb-4">If you have any questions, please contact me.</p>
           <h2 className="text-xl font-semibold mb-2">Addition</h2>
           <p className="mb-4">
+            <input
+              type="checkbox"
+              checked={selectedOps.add}
+              onChange={() => setSelectedOps((p) => ({ ...p, add: !p.add }))}
+            />{" "}
             Range: (
             <input
               type="number"
@@ -226,9 +253,21 @@ export function Arithmetic() {
             )
           </p>
           <h2 className="text-xl font-semibold mb-2">Subtraction</h2>
-          <p className="mb-4">Addition problems in reverse.</p>
+          <p className="mb-4">
+            <input
+              type="checkbox"
+              checked={selectedOps.sub}
+              onChange={() => setSelectedOps((p) => ({ ...p, sub: !p.sub }))}
+            />{" "}
+            Addition problems in reverse.
+          </p>
           <h2 className="text-xl font-semibold mb-2">Multiplication</h2>
           <p className="mb-4">
+            <input
+              type="checkbox"
+              checked={selectedOps.mult}
+              onChange={() => setSelectedOps((p) => ({ ...p, mult: !p.mult }))}
+            />{" "}
             Range: (
             <input
               type="number"
@@ -288,7 +327,14 @@ export function Arithmetic() {
             )
           </p>
           <h2 className="text-xl font-semibold mb-2">Division</h2>
-          <p className="mb-4">Multiplication problems in reverse.</p>
+          <p className="mb-4">
+            <input
+              type="checkbox"
+              checked={selectedOps.div}
+              onChange={() => setSelectedOps((p) => ({ ...p, div: !p.div }))}
+            />{" "}
+            Multiplication problems in reverse.
+          </p>
           <h2 className="text-xl font-semibold mb-2">Duration:</h2>
           <input
             type="number"
@@ -300,10 +346,16 @@ export function Arithmetic() {
             }}
           />
           <button
-            className="bg-blue-500 text-white p-2 rounded mt-4"
+            className="bg-blue-500 text-white p-2 rounded mt-4 mr-4"
             onClick={startGame}
           >
             Start
+          </button>
+          <button
+            className="bg-green-500 text-white p-2 rounded"
+            onClick={handleShare}
+          >
+            Share Config
           </button>
         </div>
       </>

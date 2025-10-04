@@ -1,8 +1,39 @@
 import { useLocation } from "preact-iso";
 import { ThemeDropdown } from "./ThemeDropdown";
+import { useEffect, useState } from "preact/hooks";
+import { api } from "../api/client.js";
+import * as FontAwesome from "react-icons/fa";
 
 export function Navbar() {
   const { url } = useLocation();
+
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
+
+  // Load user data from backend
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        // Fetch user's current username
+        const response = await api.hello.helloList();
+        const data = await response.json(); // {userid, username, is_admin}
+
+        setUsername(data.username);
+      } catch (error) {
+        if (error?.status == 401) {
+          console.log("Not logged in: can't fetch user data");
+          return;
+        }
+
+        const errorMessage =
+          error instanceof Error ? error.message : "Fetching user data failed";
+        setError(errorMessage);
+        console.error("Error:", error);
+      }
+    }
+
+    fetchUserData();
+  }, [localStorage.getItem("token")]);
   return (
     <div className="navbar bg-neutral text-neutral-content shadow-sm">
       <div className="navbar-start">
@@ -42,9 +73,16 @@ export function Navbar() {
       </div>
       <div className="navbar-end">
         <ThemeDropdown />
-        <a className="btn btn-sm" href="/login">
-          Login
-        </a>
+        {!error || username ? (
+          <a href="/login" class="mx-4 inline">
+            <FontAwesome.FaUser class="inline-block" />
+            {username}
+          </a>
+        ) : (
+          <a className="btn btn-sm" href="/login">
+            Login
+          </a>
+        )}
       </div>
     </div>
   );
