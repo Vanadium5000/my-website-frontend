@@ -37,6 +37,31 @@ export function Navbar() {
     fetchUserData();
   }, []);
 
+  // Generate or set the user's avatar
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!user) {
+          return;
+        }
+        // Generate or set the user's avatar
+        const imageURL =
+          user.image ||
+          (await (await api.avatar.getAvatar({ name: user.name })).text());
+        console.log("GOT IMAGE URL:", imageURL);
+
+        setImageURL(imageURL);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Generating or setting the user's avatar failed";
+        setError(errorMessage);
+        console.error("Error:", error);
+      }
+    })();
+  }, [user]);
+
   function logout() {
     api.auth.apiSignOutCreate({});
     route("/login");
