@@ -1,4 +1,5 @@
 import { useEffect } from "preact/hooks";
+import { PiPaintBrushHousehold } from "react-icons/pi";
 
 export function ThemeDropdown() {
   const handleClick = (event) => {

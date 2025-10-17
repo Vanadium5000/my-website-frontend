@@ -1,17 +1,25 @@
 import { useState } from "preact/hooks";
-import { route } from "preact-router";
 import { Navbar } from "../../components/Navbar.jsx";
 import { api } from "../../api/client.js";
+import { useLocation } from "preact-iso";
+import { FaEnvelope, FaKey, FaUser } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { FcGoogle } from "react-icons/fc";
 
 export function Signup() {
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { route } = useLocation();
 
-  const updateUsernme = (e) => {
-    setUsername(e.target.value);
+  const updateName = (e) => {
+    setName(e.target.value);
+  };
+  const updateEmail = (e) => {
+    setEmail(e.target.value);
   };
   const updatePassword = (e) => {
     setPassword(e.target.value);
@@ -20,77 +28,99 @@ export function Signup() {
     setPassword2(e.target.value);
   };
 
-  const register = async () => {
+  async function register() {
     setLoading(true);
 
-    try {
-      if (password != password2) {
-        setError("Passwords must match");
-        setLoading(false);
-        return;
-      }
-
-      if (
-        !(
-          document.getElementById("username") as HTMLInputElement
-        ).checkValidity()
-      ) {
-        setError("Username is not valid");
-        setLoading(false);
-        return;
-      }
-
-      const userId = await (
-        await api.register.registerCreate({ username, password })
-      ).text();
-
-      console.log("User ID:", userId);
-
+    if (password != password2) {
+      setError("Passwords must match");
       setLoading(false);
+      return;
+    }
 
-      // Redirect to login page
-      window.location.href = "/login";
+    try {
+      await api.auth.apiSignUpEmailCreate({
+        name,
+        email,
+        password,
+        rememberMe: true,
+      });
+
+      // Redirect to home page, as register didn't fail
+      route("/");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Signup failed";
+      console.log(error);
+      const errorMessage = error?.error?.message || "ERROR: REGISTER FAILED";
 
       setError(errorMessage);
-      console.log("Error:", error);
+      console.log("ERROR:", error?.error?.message || error);
 
       setLoading(false);
     }
-  };
+  }
+
+  async function registerWithAuth(provider: "google" | "twitter") {
+    setLoading(true);
+
+    try {
+      // HACK: It is meant to return a url field, which is not in the type
+      const authData: any = (
+        await api.auth.socialSignIn({
+          provider,
+          // Gets the / url (home page) of the current location
+          callbackURL: new URL("/", window.location.origin).href,
+        })
+      ).data;
+
+      window.location.href = authData.url;
+      return;
+    } catch (error) {
+      const errorMessage = error?.error?.message || "ERROR: REGISTER FAILED";
+
+      setError(errorMessage);
+      console.log("ERROR:", error?.error?.message || error);
+
+      setLoading(false);
+    }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    register();
+  }
 
   return (
     <>
       <Navbar />
-      <div className="bg-base-100 mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
+      <div className="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
         <div className="card-body">
           <h1 className="text-center text-xl font-bold">Create Your Account</h1>
-          <fieldset className="fieldset">
-            <label className="label">Username</label>
-            <label className="input validator w-full">
-              <UserIcon />
+
+          <form className="fieldset" onSubmit={handleSubmit}>
+            <label className="label">Name</label>
+            <label className="input w-full">
+              <FaUser />
               <input
-                id="username"
                 type="text"
                 required
-                placeholder="Username"
-                pattern="[A-Za-z][A-Za-z0-9\-]*"
-                minlength={3}
-                maxlength={30}
-                title="Only letters, numbers or dash"
-                onInput={updateUsernme}
+                placeholder="Name"
+                onInput={updateName}
               />
             </label>
-            <p className="validator-hint hidden">
-              Must be 3 to 30 characters containing only letters, numbers or
-              dash
-            </p>
+
+            <label className="label">Email</label>
+            <label className="input w-full">
+              <FaEnvelope />
+              <input
+                type="text"
+                required
+                placeholder="Email"
+                onInput={updateEmail}
+              />
+            </label>
 
             <label className="label">Password</label>
             <label className="input w-full">
-              <KeyIcon />
+              <FaKey />
               <input
                 type="password"
                 required
@@ -101,7 +131,7 @@ export function Signup() {
 
             <label className="label">Confirm Password</label>
             <label className="input w-full">
-              <KeyIcon />
+              <FaKey />
               <input
                 type="password"
                 required
@@ -112,10 +142,11 @@ export function Signup() {
             <button
               disabled={isLoading}
               className="btn btn-neutral mt-4"
-              onClick={register}
+              type="submit"
             >
               Sign Up
             </button>
+
             <div>
               <p className="text-center">
                 Already have an account?{" "}
@@ -124,51 +155,25 @@ export function Signup() {
                 </a>
               </p>
             </div>
-          </fieldset>
+          </form>
           {error && <p className="text-error">{error}</p>}
+          <div className="divider">Sign Up With</div>
+          <button
+            className="btn text-black bg-white font-bold"
+            onClick={() => registerWithAuth("google")}
+          >
+            <FcGoogle />
+            Google
+          </button>
+          <button
+            className="btn text-white bg-black font-bold"
+            onClick={() => registerWithAuth("twitter")}
+          >
+            <FaXTwitter />
+            Twitter (X)
+          </button>
         </div>
       </div>
     </>
-  );
-}
-function KeyIcon() {
-  return (
-    <svg
-      className="h-[1em] opacity-50"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-    >
-      <g
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        strokeWidth="2.5"
-        fill="none"
-        stroke="currentColor"
-      >
-        <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path>
-        <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
-      </g>
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg
-      className="h-[1em] opacity-50"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-    >
-      <g
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        strokeWidth="2.5"
-        fill="none"
-        stroke="currentColor"
-      >
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </g>
-    </svg>
   );
 }

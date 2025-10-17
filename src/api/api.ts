@@ -10,68 +10,57 @@
  * ---------------------------------------------------------------
  */
 
-/**
- * Blog
- * Blog
- */
-export interface Blog {
-  /** @format int64 */
-  post_id: number;
-  title: string;
-  content: string;
-  snippet: string;
-  /** @format int64 */
-  likes: number;
-  /** @format int64 */
-  dislikes: number;
-  created_at: string;
-}
-
-/**
- * BlogCommentRequest
- * Blog ID & comment content
- */
-export interface BlogCommentRequest {
-  /** @format int64 */
-  post_id: number;
-  content: string;
-}
-
-/**
- * BlogGetRequest
- * Blog ID
- */
-export interface BlogGetRequest {
-  /** @format int64 */
-  post_id: number;
-}
-
-/**
- * Comment
- * Comment
- */
-export interface Comment {
-  content: string;
-  created_at: string;
-  /** @format int64 */
-  user_id: number;
-}
-
-/**
- * LoginRequest
- * Login input
- */
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-/** User */
 export interface User {
-  /** @format int64 */
-  user_id: number;
-  username: string;
-  is_admin: boolean;
+  id?: string;
+  name: string;
+  email: string;
+  /** @default false */
+  emailVerified: boolean;
+  image?: string;
+  /** @default "Generated at runtime" */
+  createdAt: string;
+  /** @default "Generated at runtime" */
+  updatedAt: string;
+}
+
+export interface Session {
+  id?: string;
+  expiresAt: string;
+  token: string;
+  /** @default "Generated at runtime" */
+  createdAt: string;
+  updatedAt: string;
+  ipAddress?: string;
+  userAgent?: string;
+  userId: string;
+}
+
+export interface Account {
+  id?: string;
+  accountId: string;
+  providerId: string;
+  userId: string;
+  accessToken?: string;
+  refreshToken?: string;
+  idToken?: string;
+  accessTokenExpiresAt?: string;
+  refreshTokenExpiresAt?: string;
+  scope?: string;
+  password?: string;
+  /** @default "Generated at runtime" */
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Verification {
+  id?: string;
+  identifier: string;
+  value: string;
+  expiresAt: string;
+  /** @default "Generated at runtime" */
+  createdAt: string;
+  /** @default "Generated at runtime" */
+  updatedAt: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -105,7 +94,7 @@ export interface ApiConfig<SecurityDataType = unknown> {
   baseUrl?: string;
   baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
   securityWorker?: (
-    securityData: SecurityDataType | null
+    securityData: SecurityDataType | null,
   ) => Promise<RequestParams | void> | RequestParams | void;
   customFetch?: typeof fetch;
 }
@@ -127,10 +116,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string =
-    import.meta.env.MODE === "production"
-      ? "/backend/api"
-      : "http://localhost:3000/api";
+  public baseUrl: string = "";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -169,13 +155,13 @@ export class HttpClient<SecurityDataType = unknown> {
   protected toQueryString(rawQuery?: QueryParamsType): string {
     const query = rawQuery || {};
     const keys = Object.keys(query).filter(
-      (key) => "undefined" !== typeof query[key]
+      (key) => "undefined" !== typeof query[key],
     );
     return keys
       .map((key) =>
         Array.isArray(query[key])
           ? this.addArrayQueryParam(query, key)
-          : this.addQueryParam(query, key)
+          : this.addQueryParam(query, key),
       )
       .join("&");
   }
@@ -211,7 +197,7 @@ export class HttpClient<SecurityDataType = unknown> {
             ? property
             : typeof property === "object" && property !== null
               ? JSON.stringify(property)
-              : `${property}`
+              : `${property}`,
         );
         return formData;
       }, new FormData());
@@ -221,7 +207,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected mergeRequestParams(
     params1: RequestParams,
-    params2?: RequestParams
+    params2?: RequestParams,
   ): RequestParams {
     return {
       ...this.baseApiParams,
@@ -236,7 +222,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }
 
   protected createAbortSignal = (
-    cancelToken: CancelToken
+    cancelToken: CancelToken,
   ): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
       const abortController = this.abortControllers.get(cancelToken);
@@ -299,7 +285,7 @@ export class HttpClient<SecurityDataType = unknown> {
           typeof body === "undefined" || body === null
             ? null
             : payloadFormatter(body),
-      }
+      },
     ).then(async (response) => {
       const r = response.clone() as HttpResponse<T, E>;
       r.data = null as unknown as T;
@@ -332,111 +318,474 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title My Website Backend
- * @version 1.0
- * @baseUrl http://localhost:3000/api
+ * @title Elysia Documentation
+ * @version 0.0.0
+ *
+ * Development documentation
  */
 export class Api<
   SecurityDataType extends unknown,
 > extends HttpClient<SecurityDataType> {
-  register = {
+  /**
+   * No description
+   *
+   * @name GetIndex
+   * @request GET:/
+   */
+  getIndex = (params: RequestParams = {}) =>
+    this.request<any, any>({
+      path: `/`,
+      method: "GET",
+      ...params,
+    });
+
+  avatar = {
     /**
      * No description
      *
-     * @name RegisterCreate
-     * @summary Register & return the user id in plain text
-     * @request POST:/register
+     * @tags avatars
+     * @name GetAvatar
+     * @summary Generate avatar image from name initials
+     * @request GET:/avatar/
      */
-    registerCreate: (data: LoginRequest, params: RequestParams = {}) =>
+    getAvatar: (
+      query: {
+        /**
+         * The full name to generate initials from (e.g., "John Smith")
+         * @minLength 1
+         */
+        name: string;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<string, any>({
-        path: `/register`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
+        path: `/avatar/`,
+        method: "GET",
+        query: query,
         ...params,
       }),
   };
-  login = {
+  auth = {
     /**
-     * No description
+     * @description Sign in with a social provider
      *
-     * @name LoginCreate
-     * @summary Login & return JWT token in plain text
-     * @request POST:/login
-     */
-    loginCreate: (data: LoginRequest, params: RequestParams = {}) =>
-      this.request<string, string>({
-        path: `/login`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
-  hello = {
-    /**
-     * No description
-     *
-     * @name HelloList
-     * @summary Returns the currently logged in user
-     * @request GET:/hello
+     * @tags Better Auth
+     * @name SocialSignIn
+     * @request POST:/auth/api/sign-in/social
      * @secure
      */
-    helloList: (params: RequestParams = {}) =>
-      this.request<User, any>({
-        path: `/hello`,
+    socialSignIn: (
+      data: {
+        /** Callback URL to redirect to after the user has signed in */
+        callbackURL?: string | null;
+        newUserCallbackURL?: string | null;
+        /** Callback URL to redirect to if an error happens */
+        errorCallbackURL?: string | null;
+        provider: string;
+        /** Disable automatic redirection to the provider. Useful for handling the redirection yourself */
+        disableRedirect?: boolean | null;
+        idToken?: {
+          /** ID token from the provider */
+          token: string;
+          /** Nonce used to generate the token */
+          nonce?: string | null;
+          /** Access token from the provider */
+          accessToken?: string | null;
+          /** Refresh token from the provider */
+          refreshToken?: string | null;
+          /** Expiry date of the token */
+          expiresAt?: number | null;
+        };
+        /** Array of scopes to request from the provider. This will override the default scopes passed. */
+        scopes?: any[] | null;
+        /** Explicitly request sign-up. Useful when disableImplicitSignUp is true for this provider */
+        requestSignUp?: boolean | null;
+        /** The login hint to use for the authorization code request */
+        loginHint?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          redirect: false;
+          /** Session token */
+          token: string;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/sign-in/social`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get the current session
+     *
+     * @tags Better Auth
+     * @name ApiGetSessionList
+     * @request GET:/auth/api/get-session
+     * @secure
+     */
+    apiGetSessionList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          session: Session;
+          user: User;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/get-session`,
         method: "GET",
         secure: true,
         format: "json",
         ...params,
       }),
-  };
-  posts = {
+
     /**
-     * No description
+     * @description Sign out the current user
      *
-     * @name PostsList
-     * @summary Returns all publicly available blog posts
-     * @request GET:/posts
+     * @tags Better Auth
+     * @name ApiSignOutCreate
+     * @request POST:/auth/api/sign-out
+     * @secure
      */
-    postsList: (params: RequestParams = {}) =>
-      this.request<Blog[], any>({
-        path: `/posts`,
+    apiSignOutCreate: (data: object, params: RequestParams = {}) =>
+      this.request<
+        {
+          success?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/sign-out`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Sign up a user using email and password
+     *
+     * @tags Better Auth
+     * @name ApiSignUpEmailCreate
+     * @request POST:/auth/api/sign-up/email
+     * @secure
+     */
+    apiSignUpEmailCreate: (
+      data: {
+        /** The name of the user */
+        name: string;
+        /** The email of the user */
+        email: string;
+        /** The password of the user */
+        password: string;
+        /** The profile image URL of the user */
+        image?: string;
+        /** The URL to use for email verification callback */
+        callbackURL?: string;
+        /** If this is false, the session will not be remembered. Default is `true`. */
+        rememberMe?: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** Authentication token for the session */
+          token?: string | null;
+          user: {
+            /** The unique identifier of the user */
+            id: string;
+            /**
+             * The email address of the user
+             * @format email
+             */
+            email: string;
+            /** The name of the user */
+            name: string;
+            /**
+             * The profile image URL of the user
+             * @format uri
+             */
+            image?: string | null;
+            /** Whether the email has been verified */
+            emailVerified: boolean;
+            /**
+             * When the user was created
+             * @format date-time
+             */
+            createdAt: string;
+            /**
+             * When the user was last updated
+             * @format date-time
+             */
+            updatedAt: string;
+          };
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/sign-up/email`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Sign in with email and password
+     *
+     * @tags Better Auth
+     * @name ApiSignInEmailCreate
+     * @request POST:/auth/api/sign-in/email
+     * @secure
+     */
+    apiSignInEmailCreate: (
+      data: {
+        /** Email of the user */
+        email: string;
+        /** Password of the user */
+        password: string;
+        /** Callback URL to use as a redirect for email verification */
+        callbackURL?: string | null;
+        rememberMe?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          redirect: false;
+          /** Session token */
+          token: string;
+          url?: null;
+          user: {
+            id: string;
+            email: string;
+            name?: string | null;
+            image?: string | null;
+            emailVerified: boolean;
+            /** @format date-time */
+            createdAt: string;
+            /** @format date-time */
+            updatedAt: string;
+          };
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/sign-in/email`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Send a password reset email to the user
+     *
+     * @tags Better Auth
+     * @name ApiForgetPasswordCreate
+     * @request POST:/auth/api/forget-password
+     * @secure
+     */
+    apiForgetPasswordCreate: (
+      data: {
+        /** The email address of the user to send a password reset email to */
+        email: string;
+        /** The URL to redirect the user to reset their password. If the token isn't valid or expired, it'll be redirected with a query parameter `?error=INVALID_TOKEN`. If the token is valid, it'll be redirected with a query parameter `?token=VALID_TOKEN */
+        redirectTo?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          status?: boolean;
+          message?: string;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/forget-password`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Reset the password for a user
+     *
+     * @tags Better Auth
+     * @name ApiResetPasswordCreate
+     * @request POST:/auth/api/reset-password
+     * @secure
+     */
+    apiResetPasswordCreate: (
+      data: {
+        /** The new password to set */
+        newPassword: string;
+        /** The token to reset the password */
+        token?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          status?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/reset-password`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Verify the email of the user
+     *
+     * @tags Better Auth
+     * @name ApiVerifyEmailList
+     * @request GET:/auth/api/verify-email
+     * @secure
+     */
+    apiVerifyEmailList: (
+      query: {
+        /** The token to verify the email */
+        token: string;
+        /** The URL to redirect to after email verification */
+        callbackURL?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user: {
+            /** User ID */
+            id: string;
+            /** User email */
+            email: string;
+            /** User name */
+            name: string;
+            /** User image URL */
+            image: string;
+            /** Indicates if the user email is verified */
+            emailVerified: boolean;
+            /** User creation date */
+            createdAt: string;
+            /** User update date */
+            updatedAt: string;
+          };
+          /** Indicates if the email was verified successfully */
+          status: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/verify-email`,
         method: "GET",
+        query: query,
+        secure: true,
         format: "json",
         ...params,
       }),
-  };
-  post = {
+
     /**
-     * No description
+     * @description Send a verification email to the user
      *
-     * @name PostCreate
-     * @summary Returns blog post with same post_id
-     * @request POST:/post
-     */
-    postCreate: (data: BlogGetRequest, params: RequestParams = {}) =>
-      this.request<Blog, string>({
-        path: `/post`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  postReaction = {
-    /**
-     * No description
-     *
-     * @name PostReactionCreate
-     * @summary Returns the authenticated user's reaction to the post with the inputted ID
-     * @request POST:/post_reaction
+     * @tags Better Auth
+     * @name ApiSendVerificationEmailCreate
+     * @request POST:/auth/api/send-verification-email
      * @secure
      */
-    postReactionCreate: (data: BlogGetRequest, params: RequestParams = {}) =>
-      this.request<boolean[], any>({
-        path: `/post_reaction`,
+    apiSendVerificationEmailCreate: (
+      data: {
+        /**
+         * The email to send the verification email to
+         * @example "user@example.com"
+         */
+        email: string;
+        /**
+         * The URL to use for email verification callback
+         * @example "https://example.com/callback"
+         */
+        callbackURL?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /**
+           * Indicates if the email was sent successfully
+           * @example true
+           */
+          status?: boolean;
+        },
+        | {
+            /**
+             * Error message
+             * @example "Verification email isn't enabled"
+             */
+            message?: string;
+          }
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/send-verification-email`,
         method: "POST",
         body: data,
         secure: true,
@@ -444,79 +793,736 @@ export class Api<
         format: "json",
         ...params,
       }),
-  };
-  postLike = {
+
     /**
      * No description
      *
-     * @name PostLikeCreate
-     * @summary Like the post if not already liked, unlike the post if, and remove any dislikes
-     * @request POST:/post_like
+     * @tags Better Auth
+     * @name ApiChangeEmailCreate
+     * @request POST:/auth/api/change-email
      * @secure
      */
-    postLikeCreate: (data: BlogGetRequest, params: RequestParams = {}) =>
-      this.request<string, any>({
-        path: `/post_like`,
+    apiChangeEmailCreate: (
+      data: {
+        /** The new email address to set must be a valid email address */
+        newEmail: string;
+        /** The URL to redirect to after email verification */
+        callbackURL?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** Indicates if the request was successful */
+          status: boolean;
+          /** Status message of the email change process */
+          message?: "Email updated" | "Verification email sent" | null;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/change-email`,
         method: "POST",
         body: data,
         secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
-  postDislike = {
-    /**
-     * No description
-     *
-     * @name PostDislikeCreate
-     * @summary Dislike the post if not already disliked, undislike the post if, and remove any likes
-     * @request POST:/post_dislike
-     * @secure
-     */
-    postDislikeCreate: (data: BlogGetRequest, params: RequestParams = {}) =>
-      this.request<string, any>({
-        path: `/post_dislike`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
-  postComment = {
-    /**
-     * No description
-     *
-     * @name PostCommentCreate
-     * @summary Comment on the post
-     * @request POST:/post_comment
-     * @secure
-     */
-    postCommentCreate: (data: BlogCommentRequest, params: RequestParams = {}) =>
-      this.request<string, any>({
-        path: `/post_comment`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
-  postComments = {
-    /**
-     * No description
-     *
-     * @name PostCommentsCreate
-     * @summary Get comments on the post with the inputted post_id
-     * @request POST:/post_comments
-     */
-    postCommentsCreate: (data: BlogGetRequest, params: RequestParams = {}) =>
-      this.request<Comment[], any>({
-        path: `/post_comments`,
-        method: "POST",
-        body: data,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Change the password of the user
+     *
+     * @tags Better Auth
+     * @name ApiChangePasswordCreate
+     * @request POST:/auth/api/change-password
+     * @secure
+     */
+    apiChangePasswordCreate: (
+      data: {
+        /** The new password to set */
+        newPassword: string;
+        /** The current password is required */
+        currentPassword: string;
+        /** Must be a boolean value */
+        revokeOtherSessions?: boolean | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** New session token if other sessions were revoked */
+          token?: string | null;
+          user: {
+            /** The unique identifier of the user */
+            id: string;
+            /**
+             * The email address of the user
+             * @format email
+             */
+            email: string;
+            /** The name of the user */
+            name: string;
+            /**
+             * The profile image URL of the user
+             * @format uri
+             */
+            image?: string | null;
+            /** Whether the email has been verified */
+            emailVerified: boolean;
+            /**
+             * When the user was created
+             * @format date-time
+             */
+            createdAt: string;
+            /**
+             * When the user was last updated
+             * @format date-time
+             */
+            updatedAt: string;
+          };
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/change-password`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update the current user
+     *
+     * @tags Better Auth
+     * @name ApiUpdateUserCreate
+     * @request POST:/auth/api/update-user
+     * @secure
+     */
+    apiUpdateUserCreate: (
+      data: {
+        /** The name of the user */
+        name?: string;
+        /** The image of the user */
+        image?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** Indicates if the update was successful */
+          status?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/update-user`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete the user
+     *
+     * @tags Better Auth
+     * @name ApiDeleteUserCreate
+     * @request POST:/auth/api/delete-user
+     * @secure
+     */
+    apiDeleteUserCreate: (
+      data: {
+        /** The callback URL to redirect to after the user is deleted */
+        callbackURL?: string | null;
+        /** The password of the user is required to delete the user */
+        password?: string | null;
+        /** The token to delete the user is required */
+        token?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** Indicates if the operation was successful */
+          success: boolean;
+          /** Status message of the deletion process */
+          message: "User deleted" | "Verification email sent";
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/delete-user`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Redirects the user to the callback URL with the token
+     *
+     * @tags Better Auth
+     * @name ApiResetPasswordDetail
+     * @request GET:/auth/api/reset-password/{token}
+     * @secure
+     */
+    apiResetPasswordDetail: (
+      token: string,
+      query?: {
+        /** The URL to redirect the user to reset their password */
+        callbackURL?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          token?: string;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/reset-password/${token}`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Send a password reset email to the user
+     *
+     * @tags Better Auth
+     * @name ApiRequestPasswordResetCreate
+     * @request POST:/auth/api/request-password-reset
+     * @secure
+     */
+    apiRequestPasswordResetCreate: (
+      data: {
+        /** The email address of the user to send a password reset email to */
+        email: string;
+        /** The URL to redirect the user to reset their password. If the token isn't valid or expired, it'll be redirected with a query parameter `?error=INVALID_TOKEN`. If the token is valid, it'll be redirected with a query parameter `?token=VALID_TOKEN */
+        redirectTo?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          status?: boolean;
+          message?: string;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/request-password-reset`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description List all active sessions for the user
+     *
+     * @tags Better Auth
+     * @name ApiListSessionsList
+     * @request GET:/auth/api/list-sessions
+     * @secure
+     */
+    apiListSessionsList: (params: RequestParams = {}) =>
+      this.request<
+        Session[],
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/list-sessions`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Revoke a single session
+     *
+     * @tags Better Auth
+     * @name ApiRevokeSessionCreate
+     * @request POST:/auth/api/revoke-session
+     * @secure
+     */
+    apiRevokeSessionCreate: (
+      data: {
+        /** The token to revoke */
+        token: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** Indicates if the session was revoked successfully */
+          status: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/revoke-session`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Revoke all sessions for the user
+     *
+     * @tags Better Auth
+     * @name ApiRevokeSessionsCreate
+     * @request POST:/auth/api/revoke-sessions
+     * @secure
+     */
+    apiRevokeSessionsCreate: (data: object, params: RequestParams = {}) =>
+      this.request<
+        {
+          /** Indicates if all sessions were revoked successfully */
+          status: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/revoke-sessions`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Revoke all other sessions for the user except the current one
+     *
+     * @tags Better Auth
+     * @name ApiRevokeOtherSessionsCreate
+     * @request POST:/auth/api/revoke-other-sessions
+     * @secure
+     */
+    apiRevokeOtherSessionsCreate: (data: object, params: RequestParams = {}) =>
+      this.request<
+        {
+          /** Indicates if all other sessions were revoked successfully */
+          status: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/revoke-other-sessions`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Link a social account to the user
+     *
+     * @tags Better Auth
+     * @name ApiLinkSocialCreate
+     * @request POST:/auth/api/link-social
+     * @secure
+     */
+    apiLinkSocialCreate: (
+      data: {
+        /** The URL to redirect to after the user has signed in */
+        callbackURL?: string | null;
+        provider: string;
+        idToken?: {
+          token: string;
+          nonce?: string | null;
+          accessToken?: string | null;
+          refreshToken?: string | null;
+          scopes?: any[] | null;
+        };
+        requestSignUp?: boolean | null;
+        /** Additional scopes to request from the provider */
+        scopes?: any[] | null;
+        /** The URL to redirect to if there is an error during the link process */
+        errorCallbackURL?: string | null;
+        /** Disable automatic redirection to the provider. Useful for handling the redirection yourself */
+        disableRedirect?: boolean | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** The authorization URL to redirect the user to */
+          url?: string;
+          /** Indicates if the user should be redirected to the authorization URL */
+          redirect: boolean;
+          status?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/link-social`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description List all accounts linked to the user
+     *
+     * @tags Better Auth
+     * @name ApiListAccountsList
+     * @request GET:/auth/api/list-accounts
+     * @secure
+     */
+    apiListAccountsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          id: string;
+          providerId: string;
+          /** @format date-time */
+          createdAt: string;
+          /** @format date-time */
+          updatedAt: string;
+          accountId: string;
+          scopes: string[];
+        }[],
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/list-accounts`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Callback to complete user deletion with verification token
+     *
+     * @tags Better Auth
+     * @name ApiDeleteUserCallbackList
+     * @request GET:/auth/api/delete-user/callback
+     * @secure
+     */
+    apiDeleteUserCallbackList: (
+      query?: {
+        /** The token to verify the deletion request */
+        token?: string;
+        /** The URL to redirect to after deletion */
+        callbackURL?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** Indicates if the deletion was successful */
+          success: boolean;
+          /** Confirmation message */
+          message: "User deleted";
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/delete-user/callback`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Unlink an account
+     *
+     * @tags Better Auth
+     * @name ApiUnlinkAccountCreate
+     * @request POST:/auth/api/unlink-account
+     * @secure
+     */
+    apiUnlinkAccountCreate: (
+      data: {
+        providerId: string;
+        accountId?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          status?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/unlink-account`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Refresh the access token using a refresh token
+     *
+     * @tags Better Auth
+     * @name ApiRefreshTokenCreate
+     * @request POST:/auth/api/refresh-token
+     * @secure
+     */
+    apiRefreshTokenCreate: (
+      data: {
+        /** The provider ID for the OAuth provider */
+        providerId: string;
+        /** The account ID associated with the refresh token */
+        accountId?: string | null;
+        /** The user ID associated with the account */
+        userId?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          tokenType?: string;
+          idToken?: string;
+          accessToken?: string;
+          refreshToken?: string;
+          /** @format date-time */
+          accessTokenExpiresAt?: string;
+          /** @format date-time */
+          refreshTokenExpiresAt?: string;
+        },
+        | void
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/refresh-token`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get a valid access token, doing a refresh if needed
+     *
+     * @tags Better Auth
+     * @name ApiGetAccessTokenCreate
+     * @request POST:/auth/api/get-access-token
+     * @secure
+     */
+    apiGetAccessTokenCreate: (
+      data: {
+        /** The provider ID for the OAuth provider */
+        providerId: string;
+        /** The account ID associated with the refresh token */
+        accountId?: string | null;
+        /** The user ID associated with the account */
+        userId?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          tokenType?: string;
+          idToken?: string;
+          accessToken?: string;
+          refreshToken?: string;
+          /** @format date-time */
+          accessTokenExpiresAt?: string;
+          /** @format date-time */
+          refreshTokenExpiresAt?: string;
+        },
+        | void
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/get-access-token`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get the account info provided by the provider
+     *
+     * @tags Better Auth
+     * @name ApiAccountInfoCreate
+     * @request POST:/auth/api/account-info
+     * @secure
+     */
+    apiAccountInfoCreate: (
+      data: {
+        /** The provider given account id for which to get the account info */
+        accountId: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user: {
+            id: string;
+            name?: string;
+            email?: string;
+            image?: string;
+            emailVerified: boolean;
+          };
+          data: Record<string, any>;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/account-info`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Check if the API is working
+     *
+     * @tags Better Auth
+     * @name ApiOkList
+     * @request GET:/auth/api/ok
+     * @secure
+     */
+    apiOkList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          /** Indicates if the API is working */
+          ok: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/ok`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Displays an error page
+     *
+     * @tags Better Auth
+     * @name ApiErrorList
+     * @request GET:/auth/api/error
+     * @secure
+     */
+    apiErrorList: (params: RequestParams = {}) =>
+      this.request<
+        string,
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/error`,
+        method: "GET",
+        secure: true,
         ...params,
       }),
   };

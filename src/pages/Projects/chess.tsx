@@ -1,7 +1,11 @@
-import { useState, useEffect, useRef } from "preact/hooks";
+// Frontend: Updated ChessGame component with additional logging
+
+import { io } from "socket.io-client";
+import { useState, useEffect } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
+import { api } from "../../api/client.js"; // Assuming this is the OpenAPI-generated client
 
 export function ChessGame() {
   const [chess] = useState(new Chess());
@@ -11,32 +15,40 @@ export function ChessGame() {
   const [status, setStatus] = useState("Connecting...");
   const [draggable, setDraggable] = useState(false);
   const [pending, setPending] = useState(false);
-  const wsRef = useRef(null);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const token = encodeURIComponent(localStorage.getItem("token") || "");
-    if (!token) {
-      console.log("401 error: redirecting to /login");
-      window.location.href = "/login";
-      return;
-    }
-
-    const base_url =
-      import.meta.env.MODE === "production"
-        ? "wss://my-website.space/backend/ws/"
-        : "ws://localhost:3000/ws/";
-
-    wsRef.current = new WebSocket(base_url + token);
-
-    wsRef.current.onopen = () => {
-      console.log("WebSocket connected");
-    };
-
-    wsRef.current.onmessage = (event) => {
-      console.log(event.data);
+    async function init() {
       try {
-        const data = JSON.parse(event.data);
-        if (data.type === "init") {
+        // Check session using the provided API call
+        const response = await (await api.auth.apiGetSessionList()).json();
+        console.log("Session check response:", response);
+        if (!response) {
+          console.log("No active session: redirecting to /login");
+          window.location.href = "/login";
+          return;
+        }
+
+        const base_url =
+          import.meta.env.MODE === "production"
+            ? "wss://my-website.space/backend"
+            : "http://localhost:3000";
+
+        const newSocket = io(base_url, {
+          path: "/socket.io/",
+          transports: ["websocket", "polling"],
+          withCredentials: true, // Send cookies for authentication
+        });
+
+        setSocket(newSocket);
+
+        newSocket.on("connect", () => {
+          console.log("Socket connected");
+          setStatus("Connected, joining game...");
+        });
+
+        newSocket.on("init", (data) => {
+          console.log("Received init:", data);
           chess.load(data.fen);
           setFen(data.fen);
           setYourColor(data.your_color);
@@ -48,16 +60,24 @@ export function ChessGame() {
             setStatus(`Playing against ${data.opponent}`);
             setDraggable(true);
           }
-        } else if (data.type === "opponent_joined") {
+        });
+
+        newSocket.on("opponent_joined", (data) => {
+          console.log("Received opponent_joined:", data);
           setOpponent(data.opponent);
           setStatus(`Playing against ${data.opponent}`);
           setDraggable(true);
-        } else if (data.type === "update") {
+        });
+
+        newSocket.on("update", (data) => {
+          console.log("Received update:", data);
           chess.load(data.fen);
           setFen(data.fen);
           setPending(false);
-          //setStatus(`Playing against ${opponent}`);
-        } else if (data.type === "win") {
+        });
+
+        newSocket.on("win", (data) => {
+          console.log("Received win:", data);
           setDraggable(false);
           const youWin = opponent && data.winner !== opponent;
           const message = youWin
@@ -65,35 +85,48 @@ export function ChessGame() {
             : `${data.winner || yourColor} wins!`;
           const reason = data.reason ? ` (${data.reason})` : "";
           setStatus(`Game over: ${message}${reason}`);
-        } else if (data.type === "draw") {
+        });
+
+        newSocket.on("draw", () => {
+          console.log("Received draw");
           setDraggable(false);
           setStatus("Game over: Draw!");
-        } else if (data.type === "error") {
+        });
+
+        newSocket.on("error", (data) => {
+          console.log("Received error:", data);
           if (pending) {
             chess.undo();
             setFen(chess.fen());
             setPending(false);
           }
           setStatus(`Error: ${data.message}`);
-        }
+        });
+
+        newSocket.on("connect_error", (error) => {
+          console.error("Socket connect error:", error);
+          setStatus("Connection error: " + error.message);
+        });
+
+        newSocket.on("disconnect", (reason) => {
+          console.log("Socket disconnected:", reason);
+          setStatus("Connection closed: " + reason);
+        });
+
+        newSocket.onAny((event, ...args) => {
+          console.log("Socket event:", event, args);
+        });
       } catch (error) {
-        console.error("Error processing WebSocket message:", error);
+        console.error("Init error:", error);
+        setStatus("Init error");
       }
-    };
+    }
 
-    wsRef.current.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      setStatus("Connection error");
-    };
-
-    wsRef.current.onclose = () => {
-      console.log("WebSocket closed");
-      setStatus("Connection closed");
-    };
+    init();
 
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
+      if (socket) {
+        socket.disconnect();
       }
     };
   }, []);
@@ -111,13 +144,14 @@ export function ChessGame() {
   }, [fen, yourColor, opponent]);
 
   function sendMove(move) {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ move }));
+    if (socket) {
+      console.log("Sending move:", move);
+      socket.emit("move", { move });
     }
   }
 
   const onDrop = (sourceSquare, targetSquare) => {
-    if (!isYourTurn() || pending) return;
+    if (!isYourTurn() || pending) return false;
     try {
       const move = chess.move({
         from: sourceSquare,
@@ -128,8 +162,9 @@ export function ChessGame() {
         setFen(chess.fen());
         sendMove(move.san);
         setPending(true);
+        return true;
       }
-      return true;
+      return false;
     } catch (error) {
       console.log("Invalid move");
       return false;
@@ -152,14 +187,12 @@ export function ChessGame() {
           onPieceDrop={onDrop}
           arePiecesDraggable={draggable}
           isDraggablePiece={({ piece }) => {
-            // The piece begins with w or b for color, check if it's the same as the player's
             if (yourColor && piece[0] == yourColor[0]) {
               return isYourTurn();
             }
             return false;
           }}
           boardOrientation={yourColor || "white"}
-          // TODO: Better promotions
           showPromotionDialog={false}
         />
       </div>

@@ -2,12 +2,15 @@ import { useLocation } from "preact-iso";
 import { ThemeDropdown } from "./ThemeDropdown";
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../api/client.js";
-import * as FontAwesome from "react-icons/fa";
+import { User } from "../api/api";
+import { FaSignInAlt, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { FiSettings } from "react-icons/fi";
 
 export function Navbar() {
-  const { url } = useLocation();
+  const { route } = useLocation();
 
-  const [username, setUsername] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [imageURL, setImageURL] = useState("");
   const [error, setError] = useState("");
 
   // Load user data from backend
@@ -15,12 +18,11 @@ export function Navbar() {
     async function fetchUserData() {
       try {
         // Fetch user's current username
-        const response = await api.hello.helloList();
-        const data = await response.json(); // {userid, username, is_admin}
+        const sessionResponse = (await api.auth.apiGetSessionList()).data;
 
-        setUsername(data.username);
+        setUser(sessionResponse.user);
       } catch (error) {
-        if (error?.status == 401) {
+        if (error?.error?.status == 401) {
           console.log("Not logged in: can't fetch user data");
           return;
         }
@@ -33,7 +35,13 @@ export function Navbar() {
     }
 
     fetchUserData();
-  }, [localStorage.getItem("token")]);
+  }, []);
+
+  function logout() {
+    api.auth.apiSignOutCreate({});
+    route("/login");
+  }
+
   return (
     <div className="navbar bg-neutral text-neutral-content shadow-sm">
       <div className="navbar-start">
@@ -73,13 +81,42 @@ export function Navbar() {
       </div>
       <div className="navbar-end">
         <ThemeDropdown />
-        {!error || username ? (
-          <a href="/login" class="mx-4 inline">
-            <FontAwesome.FaUser class="inline-block" />
-            {username}
-          </a>
+        {user ? (
+          <div className="mx-2 dropdown dropdown-end">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost btn-circle avatar"
+            >
+              <div className="w-10 rounded-full">
+                <img alt="USER ICON" src={imageURL} />
+              </div>
+            </div>
+            <ul
+              tabIndex={-1}
+              className="menu menu-sm dropdown-content bg-base-300 rounded-box z-1 w-36 p-2 shadow-2xl mt-3"
+            >
+              <li>
+                <a className="justify-between">
+                  <FaUser /> Profile
+                  <span className="badge">New</span>
+                </a>
+              </li>
+              <li>
+                <a>
+                  <FiSettings /> Settings
+                </a>
+              </li>
+              <li>
+                <button onClick={logout}>
+                  <FaSignOutAlt /> Logout
+                </button>
+              </li>
+            </ul>
+          </div>
         ) : (
           <a className="btn btn-sm" href="/login">
+            <FaSignInAlt />
             Login
           </a>
         )}

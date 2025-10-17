@@ -23,6 +23,6 @@ Note: add the following variable to src/api/api.ts after regenerating
 ```ts
 public baseUrl: string =
     import.meta.env.MODE === "production"
-      ? "http://my-website.space/backend/api"
-      : "http://localhost:3000/api";
+      ? "http://my-website.space/backend"
+      : "http://localhost:3000";
 ```

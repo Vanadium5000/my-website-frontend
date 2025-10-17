@@ -18,15 +18,8 @@ import "./style.css";
 export function App() {
   return (
     <LocationProvider>
-      <div
-        class="flex min-h-screen flex-col"
-        // data-theme={localStorage.getItem("theme") || "dark"}
-      >
+      <div class="flex min-h-screen flex-col">
         {/* <Navbar /> */}
-        <script
-          src="https://kit.fontawesome.com/783385aa49.js"
-          crossorigin="anonymous"
-        ></script>
         <main>
           <Router>
             <Route path="/" component={Home} />

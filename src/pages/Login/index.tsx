@@ -1,67 +1,104 @@
 import { useState } from "preact/hooks";
 import { Navbar } from "../../components/Navbar.jsx";
 import { api } from "../../api/client.js";
+import { useLocation } from "preact-iso";
+import { FaEnvelope, FaKey } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { FcGoogle } from "react-icons/fc";
 
 export function Login() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { route } = useLocation();
 
-  const updateUsernme = (e) => {
-    setUsername(e.target.value);
+  const updateEmail = (e) => {
+    setEmail(e.target.value);
   };
   const updatePassword = (e) => {
     setPassword(e.target.value);
   };
+  const updateRememberMe = (e) => {
+    setRememberMe(e.target.checked);
+  };
 
-  const login = async () => {
+  async function login() {
     setLoading(true);
 
     try {
-      const token = await (
-        await api.login.loginCreate({ username, password })
-      ).text();
+      await api.auth.apiSignInEmailCreate({
+        email,
+        password,
+        // HACK: rememberMe only works as a boolean, but the OpenAPI spec wants it as a string
+        rememberMe: rememberMe as any,
+      });
 
-      console.log("JWT Token:", token);
-      localStorage.setItem("token", token);
-
-      setLoading(false);
-
-      // Redirect to another page
-      window.location.href = "/";
+      // Redirect to home page, as login didn't fail
+      route("/");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Login failed";
+      const errorMessage = error?.error?.message || "ERROR: LOGIN FAILED";
 
       setError(errorMessage);
-      console.log("Error:", error);
+      console.log("ERROR:", error?.error?.message || error);
 
       setLoading(false);
     }
-  };
+  }
+
+  async function loginWithAuth(provider: "google" | "twitter") {
+    setLoading(true);
+
+    try {
+      // HACK: It is meant to return a url field, which is not in the type
+      const authData: any = (
+        await api.auth.socialSignIn({
+          provider,
+          // Gets the / url (home page) of the current location
+          callbackURL: new URL("/", window.location.origin).href,
+        })
+      ).data;
+
+      window.location.href = authData.url;
+      return;
+    } catch (error) {
+      const errorMessage = error?.error?.message || "ERROR: LOGIN FAILED";
+
+      setError(errorMessage);
+      console.log("ERROR:", error?.error?.message || error);
+
+      setLoading(false);
+    }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    login();
+  }
 
   return (
     <>
       <Navbar />
-      <div className="bg-base-100 mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
+      <div className="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
         <div className="card-body">
           <h1 className="text-center text-xl font-bold">Login</h1>
-          <fieldset className="fieldset">
-            <label className="label">Username</label>
+
+          <form className="fieldset" onSubmit={handleSubmit}>
+            <label className="label">Email</label>
             <label className="input w-full">
-              <UserIcon />
+              <FaEnvelope />
               <input
                 type="text"
                 required
-                placeholder="Username"
-                onInput={updateUsernme}
+                placeholder="Email"
+                onInput={updateEmail}
               />
             </label>
 
             <label className="label">Password</label>
             <label className="input w-full">
-              <KeyIcon />
+              <FaKey />
               <input
                 type="password"
                 required
@@ -69,13 +106,22 @@ export function Login() {
                 onInput={updatePassword}
               />
             </label>
+            <label className="label">
+              <input
+                type="checkbox"
+                onChange={updateRememberMe}
+                checked={rememberMe}
+              />
+              Remember me
+            </label>
             <button
               disabled={isLoading}
               className="btn btn-neutral mt-4"
-              onClick={login}
+              type="submit"
             >
-              Sign In
+              Login
             </button>
+
             <div>
               <p className="text-center">
                 Don't have an account?{" "}
@@ -84,51 +130,25 @@ export function Login() {
                 </a>
               </p>
             </div>
-          </fieldset>
+          </form>
           {error && <p className="text-error">{error}</p>}
+          <div className="divider">Sign In With</div>
+          <button
+            className="btn text-black bg-white font-bold"
+            onClick={() => loginWithAuth("google")}
+          >
+            <FcGoogle />
+            Google
+          </button>
+          <button
+            className="btn text-white bg-black font-bold"
+            onClick={() => loginWithAuth("twitter")}
+          >
+            <FaXTwitter />
+            Twitter (X)
+          </button>
         </div>
       </div>
     </>
-  );
-}
-function KeyIcon() {
-  return (
-    <svg
-      className="h-[1em] opacity-50"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-    >
-      <g
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        strokeWidth="2.5"
-        fill="none"
-        stroke="currentColor"
-      >
-        <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path>
-        <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
-      </g>
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg
-      className="h-[1em] opacity-50"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-    >
-      <g
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        strokeWidth="2.5"
-        fill="none"
-        stroke="currentColor"
-      >
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </g>
-    </svg>
   );
 }
