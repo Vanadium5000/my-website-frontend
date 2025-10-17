@@ -138,8 +138,8 @@ export function DeleteAccountSettings(props: DeleteAccountProps) {
                 </div>
               </div>
 
-              <div className="mt-6 p-4 bg-warning bg-opacity-10 border border-warning rounded-lg">
-                <h4 className="font-semibold text-warning mb-2">
+              <div className="mt-6 p-4 bg-warning text-warning-content bg-opacity-10 border border-warning rounded-lg">
+                <h4 className="font-semibold mb-2">
                   ⚠️ Important Considerations
                 </h4>
                 <ul className="text-sm list-disc list-inside space-y-1">

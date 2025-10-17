@@ -48,22 +48,10 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
       setUnlinking(providerId);
       setError(null);
 
-      const unlinkResponse = await fetch("/auth/api/unlink-account", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          providerId,
-          accountId,
-        }),
+      await api.auth.apiUnlinkAccountCreate({
+        providerId,
+        accountId,
       });
-
-      if (!unlinkResponse.ok) {
-        const errorData = await unlinkResponse.json();
-        throw new Error(errorData.message || "Failed to unlink account");
-      }
 
       setSuccess(`Successfully unlinked ${getProviderDisplayName(providerId)}`);
       await loadAccounts();
@@ -71,7 +59,10 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.message || "Failed to unlink account");
+      console.error("Unlink account error:", err);
+      setError(
+        err?.error?.message || err?.message || "Failed to unlink account"
+      );
     } finally {
       setUnlinking(null);
     }
@@ -82,35 +73,23 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
       setLinking(provider);
       setError(null);
 
-      const linkResponse = await fetch("/auth/api/link-social", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const linkData = (
+        await api.auth.apiLinkSocialCreate({
           provider,
           callbackURL: `${window.location.origin}/settings/accounts`,
-        }),
-      });
+        })
+      ).data;
 
-      if (!linkResponse.ok) {
-        const errorData = await linkResponse.json();
-        throw new Error(errorData.message || "Failed to initiate linking");
-      }
+      // Redirect to the oauth2 login
+      window.location.href = linkData.url;
 
-      const linkData = await linkResponse.json();
-
-      if (linkData.redirect && linkData.url) {
-        // Redirect to the provider
-        route(linkData.url);
-      } else {
-        // Handle success case if no redirect needed
-        setSuccess(`Successfully linked ${getProviderDisplayName(provider)}`);
-        await loadAccounts();
-      }
+      // The API should handle the redirect automatically,
+      // so if we get here without a redirect, it succeeded
+      // setSuccess(`Successfully linked ${getProviderDisplayName(provider)}`);
+      await loadAccounts();
     } catch (err: any) {
-      setError(err.message || "Failed to link account");
+      console.error("Link account error:", err);
+      setError(err?.error?.message || err?.message || "Failed to link account");
     } finally {
       setLinking(null);
     }

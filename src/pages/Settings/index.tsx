@@ -132,9 +132,11 @@ export function Settings(props: SettingsPageProps) {
                   <label className="label">
                     <span className="label-text">Joined</span>
                   </label>
-                  <span>
-                    {new Date(currentUser.createdAt).toLocaleDateString()}
-                  </span>
+                  <div>
+                    <span>
+                      {new Date(currentUser.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
