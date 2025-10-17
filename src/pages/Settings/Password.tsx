@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
 import { useLocation } from "preact-iso";
+import { FaCheck, FaTimes } from "react-icons/fa";
 
 interface PasswordSettingsProps {}
 
@@ -185,14 +186,14 @@ export function PasswordSettings(props: PasswordSettingsProps) {
                   }
                 />
                 {confirmPassword && newPassword && (
-                  <div className="mt-1">
+                  <div className="mt-1 flex items-center gap-1">
                     {newPassword === confirmPassword ? (
                       <span className="text-success text-sm">
-                        ✓ Passwords match
+                        <FaCheck /> Passwords match
                       </span>
                     ) : (
                       <span className="text-error text-sm">
-                        ✗ Passwords do not match
+                        <FaTimes /> Passwords do not match
                       </span>
                     )}
                   </div>
@@ -201,13 +202,6 @@ export function PasswordSettings(props: PasswordSettingsProps) {
 
               <div className="form-control mt-4">
                 <label className="label cursor-pointer">
-                  <span className="label-text">
-                    Revoke all other sessions
-                    <span className="text-sm opacity-70 block">
-                      Log out from all devices and browsers after password
-                      change
-                    </span>
-                  </span>
                   <input
                     type="checkbox"
                     className="checkbox"
@@ -216,6 +210,13 @@ export function PasswordSettings(props: PasswordSettingsProps) {
                       setRevokeOthers((e.target as HTMLInputElement).checked)
                     }
                   />
+                  <span className="label-text">
+                    Revoke all other sessions
+                    <span className="text-sm opacity-70 block">
+                      Log out from all devices and browsers after password
+                      change
+                    </span>
+                  </span>
                 </label>
               </div>
 

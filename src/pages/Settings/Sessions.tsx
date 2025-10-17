@@ -2,7 +2,13 @@ import { useState, useEffect } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
 import { Session } from "../../api/api";
-import { FaDesktop, FaMobileAlt, FaTabletAlt } from "react-icons/fa";
+import {
+  FaDesktop,
+  FaMobileAlt,
+  FaTabletAlt,
+  FaCheck,
+  FaLock,
+} from "react-icons/fa";
 
 interface SessionsProps {}
 
@@ -238,8 +244,8 @@ export function SessionsSettings(props: SessionsProps) {
                       >
                         <div className="flex items-center gap-3">
                           <div className="avatar placeholder">
-                            <div className="bg-success text-white rounded-full w-10">
-                              <span className="text-lg">✓</span>
+                            <div className="bg-success text-white rounded-full w-10 flex items-center justify-center">
+                              <FaCheck />
                             </div>
                           </div>
                           <div>
@@ -272,7 +278,7 @@ export function SessionsSettings(props: SessionsProps) {
 
               {!hasOtherSessions ? (
                 <div className="text-center py-8">
-                  <div className="text-6xl mb-4">🔐</div>
+                  <FaLock className="text-6xl mb-4 mx-auto" />
                   <h3 className="font-bold text-lg mb-2">
                     No Other Active Sessions
                   </h3>

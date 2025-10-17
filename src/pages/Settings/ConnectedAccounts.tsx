@@ -2,6 +2,14 @@ import { useState, useEffect } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
 import { useLocation } from "preact-iso";
+import {
+  FaGoogle,
+  FaTwitter,
+  FaGithub,
+  FaDiscord,
+  FaFacebook,
+  FaLink,
+} from "react-icons/fa";
 
 interface ConnectedAccount {
   id: string;
@@ -107,14 +115,14 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
   };
 
   const getProviderIcon = (providerId: string) => {
-    const icons: { [key: string]: string } = {
-      google: "🌐",
-      twitter: "🐦",
-      github: "🐙",
-      discord: "💬",
-      facebook: "📘",
+    const icons: { [key: string]: any } = {
+      google: <FaGoogle />,
+      twitter: <FaTwitter />,
+      github: <FaGithub />,
+      discord: <FaDiscord />,
+      facebook: <FaFacebook />,
     };
-    return icons[providerId] || "🔗";
+    return icons[providerId] || <FaLink />;
   };
 
   const isAccountLinked = (provider: string) => {

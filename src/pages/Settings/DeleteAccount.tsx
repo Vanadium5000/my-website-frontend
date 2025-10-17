@@ -2,6 +2,14 @@ import { useState } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
 import { useLocation } from "preact-iso";
+import {
+  FaUser,
+  FaComments,
+  FaLink,
+  FaLock,
+  FaCogs,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 interface DeleteAccountProps {}
 
@@ -102,35 +110,35 @@ export function DeleteAccountSettings(props: DeleteAccountProps) {
               </h2>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                  <span className="text-error text-xl">👤</span>
+                  <FaUser className="text-error text-xl" />
                   <div className="text-sm">
                     <strong>Profile & Personal Data:</strong> Your name, email,
                     profile picture, and personal information
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                  <span className="text-error text-xl">💬</span>
+                  <FaComments className="text-error text-xl" />
                   <div className="text-sm">
                     <strong>Content & Activity:</strong> All posts, comments,
                     likes, and any content you've created
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                  <span className="text-error text-xl">🔗</span>
+                  <FaLink className="text-error text-xl" />
                   <div className="text-sm">
                     <strong>Connected Accounts:</strong> All social media links
                     and connected services will be disconnected
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                  <span className="text-error text-xl">🔐</span>
+                  <FaLock className="text-error text-xl" />
                   <div className="text-sm">
                     <strong>Sessions:</strong> All active sessions will be
                     terminated
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
-                  <span className="text-error text-xl">⚙️</span>
+                  <FaCogs className="text-error text-xl" />
                   <div className="text-sm">
                     <strong>Settings & Preferences:</strong> All personal
                     settings, themes, and customizations
@@ -139,8 +147,9 @@ export function DeleteAccountSettings(props: DeleteAccountProps) {
               </div>
 
               <div className="mt-6 p-4 bg-warning text-warning-content bg-opacity-10 border border-warning rounded-lg">
-                <h4 className="font-semibold mb-2">
-                  ⚠️ Important Considerations
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <FaExclamationTriangle />
+                  Important Considerations
                 </h4>
                 <ul className="text-sm list-disc list-inside space-y-1">
                   <li>

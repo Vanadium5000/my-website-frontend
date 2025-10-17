@@ -2,6 +2,15 @@ import { useState, useEffect } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
 import { Session, User } from "../../api/api";
+import {
+  FaUser,
+  FaLock,
+  FaLink,
+  FaMobileAlt,
+  FaExclamationTriangle,
+  FaCheck,
+  FaTimes,
+} from "react-icons/fa";
 
 interface SettingsPageProps {}
 
@@ -117,12 +126,12 @@ export function Settings(props: SettingsPageProps) {
                   <div className="flex items-center gap-2">
                     {currentUser.emailVerified ? (
                       <>
-                        <span className="text-success">✓</span>
+                        <FaCheck className="text-success" />
                         <span>Verified</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-error">✗</span>
+                        <FaTimes className="text-error" />
                         <span>Not verified</span>
                       </>
                     )}
@@ -148,8 +157,8 @@ export function Settings(props: SettingsPageProps) {
               <div className="card-body">
                 <div className="flex items-center gap-3">
                   <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-12">
-                      <span className="text-xl">👤</span>
+                    <div className="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
+                      <FaUser />
                     </div>
                   </div>
                   <div>
@@ -171,8 +180,8 @@ export function Settings(props: SettingsPageProps) {
               <div className="card-body">
                 <div className="flex items-center gap-3">
                   <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-12">
-                      <span className="text-xl">🔒</span>
+                    <div className="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
+                      <FaLock />
                     </div>
                   </div>
                   <div>
@@ -195,8 +204,8 @@ export function Settings(props: SettingsPageProps) {
               <div className="card-body">
                 <div className="flex items-center gap-3">
                   <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-12">
-                      <span className="text-xl">🔗</span>
+                    <div className="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
+                      <FaLink />
                     </div>
                   </div>
                   <div>
@@ -219,8 +228,8 @@ export function Settings(props: SettingsPageProps) {
               <div className="card-body">
                 <div className="flex items-center gap-3">
                   <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-12">
-                      <span className="text-xl">📱</span>
+                    <div className="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
+                      <FaMobileAlt />
                     </div>
                   </div>
                   <div>
@@ -245,8 +254,8 @@ export function Settings(props: SettingsPageProps) {
               <div className="card-body">
                 <div className="flex items-center gap-3">
                   <div className="avatar placeholder">
-                    <div className="bg-error text-white rounded-full w-12">
-                      <span className="text-xl">⚠️</span>
+                    <div className="bg-error text-white rounded-full w-12 flex items-center justify-center">
+                      <FaExclamationTriangle />
                     </div>
                   </div>
                   <div>
