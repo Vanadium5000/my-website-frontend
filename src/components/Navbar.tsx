@@ -128,7 +128,7 @@ export function Navbar() {
                 </a>
               </li>
               <li>
-                <a>
+                <a href="/settings">
                   <FiSettings /> Settings
                 </a>
               </li>

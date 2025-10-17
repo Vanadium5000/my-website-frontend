@@ -12,6 +12,12 @@ import { ChessGame } from "./pages/Projects/chess.js";
 import { Arithmetic } from "./pages/Projects/arithmetic.js";
 import { Signup } from "./pages/Signup/index.js";
 import { AdminHome } from "./pages/Admin/index.js";
+import { Settings } from "./pages/Settings/index";
+import { NameSettings } from "./pages/Settings/Name";
+import { PasswordSettings } from "./pages/Settings/Password";
+import { ConnectedAccountsSettings } from "./pages/Settings/ConnectedAccounts";
+import { SessionsSettings } from "./pages/Settings/Sessions";
+import { DeleteAccountSettings } from "./pages/Settings/DeleteAccount";
 import { NotFound } from "./pages/404.js";
 import "./style.css";
 
@@ -33,6 +39,15 @@ export function App() {
             <Route path="/projects/arithmetic" component={Arithmetic} />
             <Route path="/signup" component={Signup} />
             <Route path="/admin" component={AdminHome} />
+            <Route path="/settings" component={Settings} />
+            <Route path="/settings/name" component={NameSettings} />
+            <Route path="/settings/password" component={PasswordSettings} />
+            <Route
+              path="/settings/accounts"
+              component={ConnectedAccountsSettings}
+            />
+            <Route path="/settings/sessions" component={SessionsSettings} />
+            <Route path="/settings/delete" component={DeleteAccountSettings} />
             <Route default component={NotFound} />
           </Router>
         </main>
