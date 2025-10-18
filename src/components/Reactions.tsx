@@ -1,18 +1,24 @@
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../api/client.js";
-import { CommentType } from "../pages/Blog/index.js";
-import * as FontAwesome from "react-icons/fa";
+import {
+  FaCommentDots,
+  FaRegThumbsDown,
+  FaRegThumbsUp,
+  FaThumbsDown,
+  FaThumbsUp,
+} from "react-icons/fa";
 
 interface Props {
-  post_id: Number;
+  id: string;
   likes: Number;
   dislikes: Number;
-  comments: CommentType[];
+  comments: Number;
 }
 
-export function Reactions(Props: Props) {
-  const [likes, setLikes] = useState(Props.likes.valueOf()); // "Number" into primitive "number"
-  const [dislikes, setDislikes] = useState(Props.dislikes.valueOf());
+export function Reactions(props: Props) {
+  const [likes, setLikes] = useState(props.likes.valueOf()); // "Number" into primitive "number"
+  const [dislikes, setDislikes] = useState(props.dislikes.valueOf());
+  const [comments, setComments] = useState(props.dislikes.valueOf());
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
   const [error, setError] = useState("");
@@ -22,13 +28,11 @@ export function Reactions(Props: Props) {
     async function fetchReactionStatus() {
       try {
         // Fetch user's like & dislike status for the post
-        const response = await api.postReaction.postReactionCreate({
-          post_id: Props.post_id.valueOf(),
-        });
-        const data = await response.json(); // [liked, disliked]
+        const reactionsResponse = (await api.blog.getBlogByIdReaction(props.id))
+          .data;
 
-        setLiked(false || data[0]);
-        setDisliked(false || data[1]);
+        setLiked(false || reactionsResponse[0]);
+        setDisliked(false || reactionsResponse[1]);
       } catch (error) {
         if (error?.status == 401) {
           console.log("Not logged in: won't fetch previous reactions");
@@ -45,19 +49,16 @@ export function Reactions(Props: Props) {
     }
 
     fetchReactionStatus();
-  }, [Props.post_id]);
+  }, [props.id]);
 
   // Simulate react client-side & make appropriate backend request
   async function react(is_like: boolean) {
     try {
-      const input = {
-        post_id: Object(Props.post_id), // primitive "number" into "Number"
-      };
-      const response = await (is_like
-        ? api.postLike.postLikeCreate(input)
-        : api.postDislike.postDislikeCreate(input));
-      const data = await response.text;
-      console.log("data");
+      const response = (
+        await api.blog.patchBlogByIdReaction(props.id, {
+          type: is_like ? "like" : "dislike",
+        })
+      ).data;
 
       if (is_like) {
         !liked ? setLikes(likes + 1) : setLikes(likes - 1);
@@ -121,7 +122,7 @@ export function Reactions(Props: Props) {
             await react(true);
           }}
         >
-          {liked ? <FontAwesome.FaThumbsUp /> : <FontAwesome.FaRegThumbsUp />}
+          {liked ? <FaThumbsUp /> : <FaRegThumbsUp />}
         </span>
       </div>
       <div class="inline mr-4">
@@ -132,22 +133,18 @@ export function Reactions(Props: Props) {
             await react(false);
           }}
         >
-          {disliked ? (
-            <FontAwesome.FaThumbsDown />
-          ) : (
-            <FontAwesome.FaRegThumbsDown />
-          )}
+          {disliked ? <FaThumbsDown /> : <FaRegThumbsDown />}
         </span>
       </div>
       <div class="inline mr-4">
-        <span>{Props.comments?.length}</span>
+        <span>{props.comments}</span>
         <span
           className="cursor-pointer px-2 inline-block"
           onClick={async () => {
             await react(false);
           }}
         >
-          <FontAwesome.FaCommentDots />
+          <FaCommentDots />
         </span>
       </div>
     </div>

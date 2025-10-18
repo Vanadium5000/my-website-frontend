@@ -2,12 +2,37 @@
 import { useState, useEffect } from "preact/hooks";
 import { Navbar } from "../../components/Navbar.jsx";
 import { api } from "../../api/client.js";
-import { BlogPostType, PostCard, CommentType } from "./index.js";
+import { PostCard, CommentType } from "./index.js";
 
-export function BlogPost({ id }) {
+// Code highlighting
+import "prismjs/themes/prism-dark.min.css";
+import DOMPurify from "dompurify"; // HTML SANITIZATION
+
+interface FullBlogPostType {
+  blog: {
+    id: string;
+    title: string;
+    snippet: string;
+    content: string;
+    likes: number;
+    dislikes: number;
+    commentCount: number;
+    createdAt: any;
+    updatedAt: any;
+  };
+  comments: {
+    _id?: string;
+    blogId: string;
+    authorId: string;
+    content: string;
+    accepted: boolean;
+    createdAt: any;
+  }[];
+}
+
+export function BlogPost({ id }: { id: string }) {
   const [comment, setComment] = useState("");
-  const [comments, setComments] = useState<CommentType[]>([]);
-  const [blogPost, setBlogPost] = useState<BlogPostType | null>(null);
+  const [blogPost, setBlogPost] = useState<FullBlogPostType | null>(null);
   const [error, setError] = useState("");
 
   const updateComment = (e) => {
@@ -17,13 +42,17 @@ export function BlogPost({ id }) {
   function postComment() {
     (async () => {
       try {
-        const response = await api.postComment.postCommentCreate({
-          post_id: parseInt(id),
-          content: comment,
-        });
-        const data = await response.text();
-        console.log(data);
-        alert(data);
+        const response = (
+          await api.blog.postBlogByIdComment(id, {
+            content: comment,
+          })
+        ).data;
+        console.log("Comment post data:", response);
+        alert(
+          response.success
+            ? "Successfully posted a comment"
+            : "Failed to post a comment"
+        );
       } catch (error) {
         if (error?.status == 401) {
           console.log("401 error: redirecting to /login");
@@ -44,9 +73,8 @@ export function BlogPost({ id }) {
   useEffect(() => {
     (async () => {
       try {
-        const response = await api.post.postCreate({ post_id: parseInt(id) });
-        const data = await response.json();
-        setBlogPost(data);
+        const blogsResponse = (await api.blog.getBlogById(id)).data;
+        setBlogPost(blogsResponse);
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Fetching blog failed";
@@ -55,23 +83,6 @@ export function BlogPost({ id }) {
       }
     })();
   }, [id]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const response = await api.postComments.postCommentsCreate({
-          post_id: parseInt(id),
-        });
-        const data = await response.json();
-        setComments(data);
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Fetching comments failed";
-        setError(errorMessage);
-        console.error("Error:", error);
-      }
-    })();
-  }, []);
 
   if (error) {
     return (
@@ -111,12 +122,12 @@ export function BlogPost({ id }) {
       <Navbar />
       <div class="card card-body max-w-full">
         <div class="text-center justify-center">
-          <PostCard post={blogPost} comments={comments} />
+          <PostCard post={blogPost.blog} />
         </div>
       </div>
       <div
         class="prose max-w-full mx-8"
-        dangerouslySetInnerHTML={{ __html: blogPost?.content }}
+        dangerouslySetInnerHTML={{ __html: blogPost.blog.content }}
       />
       <div class="mx-8 mb-8">
         <div className="divider" />
@@ -142,27 +153,50 @@ export function BlogPost({ id }) {
           </button>
         </div>
 
-        {comments.map((comment, index) => (
-          <CommentCard
-            content={comment.content}
-            created_at={comment.created_at}
-            user_id={comment.user_id}
-          />
-        ))}
+        {blogPost.comments
+          // .filter((value) => value.accepted)
+          .map((comment, index) => (
+            <CommentCard
+              content={comment.content}
+              createdAt={comment.createdAt}
+              authorID={comment.authorId}
+            />
+          ))}
       </div>
     </>
   );
 }
 
 export function CommentCard(Props: CommentType) {
+  // Configure allowed tags/attributes for comments (customize as needed)
+  const sanitizerConfig = {
+    ALLOWED_TAGS: [
+      "p",
+      "br",
+      "strong",
+      "em",
+      "u",
+      "a",
+      "ul",
+      "ol",
+      "li",
+      "blockquote",
+      "code",
+    ],
+    ALLOWED_ATTR: ["href", "target", "rel"], // e.g., safe links
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^&\s]+)$/i, // Restrict link protocols
+  };
+
+  const sanitizedContent = DOMPurify.sanitize(Props.content, sanitizerConfig);
+
   return (
     <div class="card">
       <div class="card-body pb-8 text-[1.0625rem]">
         <div class="inline">
-          <span class="font-bold">ID: {Props.user_id}</span>
+          <span class="font-bold">ID: {Props.authorID}</span>
 
           <time class="ml-4">
-            {new Date(Props.created_at).toLocaleDateString("en-uk", {
+            {new Date(Props.createdAt).toLocaleDateString("en-uk", {
               hour: "numeric",
               minute: "numeric",
               year: "numeric",
@@ -171,9 +205,10 @@ export function CommentCard(Props: CommentType) {
             })}
           </time>
         </div>
+
         <div
           class="prose max-w-full"
-          dangerouslySetInnerHTML={{ __html: Props.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
       </div>
     </div>

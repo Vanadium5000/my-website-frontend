@@ -156,11 +156,8 @@ export function Settings(props: SettingsPageProps) {
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
                 <div className="flex items-center gap-3">
-                  <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
-                      <FaUser />
-                    </div>
-                  </div>
+                  <FaUser size={32} />
+
                   <div>
                     <h3 className="card-title text-lg">Change Name</h3>
                     <p className="text-sm opacity-70">
@@ -179,11 +176,7 @@ export function Settings(props: SettingsPageProps) {
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
                 <div className="flex items-center gap-3">
-                  <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
-                      <FaLock />
-                    </div>
-                  </div>
+                  <FaLock size={32} />
                   <div>
                     <h3 className="card-title text-lg">Change Password</h3>
                     <p className="text-sm opacity-70">Update your password</p>
@@ -203,11 +196,7 @@ export function Settings(props: SettingsPageProps) {
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
                 <div className="flex items-center gap-3">
-                  <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
-                      <FaLink />
-                    </div>
-                  </div>
+                  <FaLink size={32} />
                   <div>
                     <h3 className="card-title text-lg">Connected Accounts</h3>
                     <p className="text-sm opacity-70">Manage social logins</p>
@@ -227,11 +216,7 @@ export function Settings(props: SettingsPageProps) {
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
                 <div className="flex items-center gap-3">
-                  <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
-                      <FaMobileAlt />
-                    </div>
-                  </div>
+                  <FaMobileAlt size={32} />
                   <div>
                     <h3 className="card-title text-lg">Active Sessions</h3>
                     <p className="text-sm opacity-70">
@@ -253,11 +238,7 @@ export function Settings(props: SettingsPageProps) {
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow border-red-500 border-2">
               <div className="card-body">
                 <div className="flex items-center gap-3">
-                  <div className="avatar placeholder">
-                    <div className="bg-error text-white rounded-full w-12 flex items-center justify-center">
-                      <FaExclamationTriangle />
-                    </div>
-                  </div>
+                  <FaExclamationTriangle size={32} className="text-red-500" />
                   <div>
                     <h3 className="card-title text-lg text-error">
                       Danger Zone

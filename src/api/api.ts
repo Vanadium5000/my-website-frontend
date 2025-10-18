@@ -21,6 +21,7 @@ export interface User {
   createdAt: string;
   /** @default "Generated at runtime" */
   updatedAt: string;
+  age?: number;
 }
 
 export interface Session {
@@ -362,6 +363,170 @@ export class Api<
         path: `/avatar/`,
         method: "GET",
         query: query,
+        ...params,
+      }),
+  };
+  blog = {
+    /**
+     * No description
+     *
+     * @tags blogs
+     * @name GetBlog
+     * @summary Get all blog posts with comment counts
+     * @request GET:/blog/
+     */
+    getBlog: (params: RequestParams = {}) =>
+      this.request<
+        {
+          id: string;
+          title: string;
+          snippet: string;
+          likes: number;
+          dislikes: number;
+          commentCount: number;
+          createdAt: date | string | number;
+          updatedAt: date | string | number;
+        }[],
+        any
+      >({
+        path: `/blog/`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags blogs
+     * @name GetBlogById
+     * @summary Get blog post by ID with its comments
+     * @request GET:/blog/{id}
+     */
+    getBlogById: (id: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          blog: {
+            id: string;
+            title: string;
+            snippet: string;
+            content: string;
+            likes: number;
+            dislikes: number;
+            commentCount: number;
+            createdAt: date | string | number;
+            updatedAt: date | string | number;
+          };
+          comments: {
+            _id?: string;
+            blogId: string;
+            authorId: string;
+            content: string;
+            accepted: boolean;
+            createdAt: date | string | number;
+          }[];
+        },
+        any
+      >({
+        path: `/blog/${id}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags blogs, comments
+     * @name PostBlogByIdComment
+     * @summary Add a comment to a blog post (unpublished by default)
+     * @request POST:/blog/{id}/comment
+     * @secure
+     */
+    postBlogByIdComment: (
+      id: string,
+      data: {
+        /** Comment content */
+        content: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success: boolean;
+          commentId: string;
+        },
+        any
+      >({
+        path: `/blog/${id}/comment`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags blogs, reactions
+     * @name GetBlogByIdReaction
+     * @summary Get current user's reaction on a blog post
+     * @request GET:/blog/{id}/reaction
+     * @secure
+     */
+    getBlogByIdReaction: (id: string, params: RequestParams = {}) =>
+      this.request<boolean[], any>({
+        path: `/blog/${id}/reaction`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags blogs, reactions
+     * @name PatchBlogByIdReaction
+     * @summary Set or toggle user's reaction on a blog post
+     * @request PATCH:/blog/{id}/reaction
+     * @secure
+     */
+    patchBlogByIdReaction: (
+      id: string,
+      data: {
+        type: "like" | "dislike";
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success: boolean;
+        },
+        any
+      >({
+        path: `/blog/${id}/reaction`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  me = {
+    /**
+     * No description
+     *
+     * @name GetMe
+     * @request GET:/me
+     */
+    getMe: (params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/me`,
+        method: "GET",
         ...params,
       }),
   };

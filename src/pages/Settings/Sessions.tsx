@@ -240,14 +240,10 @@ export function SessionsSettings(props: SessionsProps) {
                     .map((session) => (
                       <div
                         key={session.id}
-                        className="flex items-center justify-between p-4 border border-base-300 rounded-lg bg-success bg-opacity-10 border-success border-opacity-30"
+                        className="flex items-center justify-between p-4 border rounded-lg bg-success text-success-content bg-opacity-10 border-success border-opacity-30"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="avatar placeholder">
-                            <div className="bg-success text-white rounded-full w-10 flex items-center justify-center">
-                              <FaCheck />
-                            </div>
-                          </div>
+                          <FaCheck size={32} />
                           <div>
                             <div className="font-semibold flex items-center gap-2">
                               {formatDeviceInfo(session.userAgent || "")}
@@ -255,10 +251,10 @@ export function SessionsSettings(props: SessionsProps) {
                                 Current
                               </span>
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm">
                               IP: {session.ipAddress || "Unknown"}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm">
                               Started: {formatTime(session.createdAt)}
                             </div>
                           </div>

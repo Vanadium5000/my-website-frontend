@@ -1,15 +1,9 @@
 import { useState, useEffect } from "preact/hooks";
 import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
-import { useLocation } from "preact-iso";
-import {
-  FaGoogle,
-  FaTwitter,
-  FaGithub,
-  FaDiscord,
-  FaFacebook,
-  FaLink,
-} from "react-icons/fa";
+import { FaGithub, FaDiscord, FaFacebook, FaLink } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+import { FaXTwitter } from "react-icons/fa6";
 
 interface ConnectedAccount {
   id: string;
@@ -29,7 +23,6 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
   const [linking, setLinking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const { route } = useLocation();
 
   useEffect(() => {
     loadAccounts();
@@ -116,11 +109,11 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
 
   const getProviderIcon = (providerId: string) => {
     const icons: { [key: string]: any } = {
-      google: <FaGoogle />,
-      twitter: <FaTwitter />,
-      github: <FaGithub />,
-      discord: <FaDiscord />,
-      facebook: <FaFacebook />,
+      google: <FcGoogle size={32} />,
+      twitter: <FaXTwitter size={32} />,
+      github: <FaGithub size={32} />,
+      discord: <FaDiscord size={32} />,
+      facebook: <FaFacebook size={32} />,
     };
     return icons[providerId] || <FaLink />;
   };
@@ -173,13 +166,9 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
                       className="flex items-center justify-between p-4 border border-base-300 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="avatar placeholder">
-                          <div className="bg-neutral text-neutral-content rounded-full w-10">
-                            <span className="text-lg">
-                              {getProviderIcon(account.providerId)}
-                            </span>
-                          </div>
-                        </div>
+                        <span className="text-lg">
+                          {getProviderIcon(account.providerId)}
+                        </span>
                         <div>
                           <div className="font-semibold">
                             {getProviderDisplayName(account.providerId)}
@@ -238,13 +227,9 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="avatar placeholder">
-                          <div className="bg-neutral text-neutral-content rounded-full w-10">
-                            <span className="text-lg">
-                              {getProviderIcon(provider)}
-                            </span>
-                          </div>
-                        </div>
+                        <span className="text-lg">
+                          {getProviderIcon(provider)}
+                        </span>
                         <div>
                           <div className="font-semibold">
                             {getProviderDisplayName(provider)}
@@ -301,7 +286,7 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
                   <li>Import profile information and avatars</li>
                   <li>Maintain a unified account across services</li>
                 </ul>
-                <p className="mt-2 text-yellow-600">
+                <p className="mt-2">
                   <strong>Note:</strong> Unlinking an account will remove the
                   connection but won't delete your account. Make sure you have
                   other ways to sign in before unlinking your last connected

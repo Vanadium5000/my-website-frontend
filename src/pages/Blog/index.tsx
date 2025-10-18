@@ -2,26 +2,26 @@ import { useEffect, useState } from "preact/hooks";
 import { Navbar } from "../../components/Navbar.jsx";
 import { api } from "../../api/client.js";
 import { Reactions } from "../../components/Reactions.js";
+import DOMPurify from "dompurify"; // HTML SANITIZATION
 
 export interface BlogPostType {
-  post_id: number;
+  id: string;
   title: string;
-  content: string;
   snippet: string;
-  created_at: string;
   likes: number;
   dislikes: number;
+  commentCount: number;
+  createdAt: any;
+  updatedAt: any;
 }
-
 export interface CommentType {
   content: string;
-  created_at: string;
-  user_id: number;
+  createdAt: string;
+  authorID: string;
 }
 
 export function BlogHome() {
   const [blogPosts, setBlogPosts] = useState<BlogPostType[]>([]);
-  const [comments, setComments] = useState<Record<number, CommentType[]>>({});
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;
@@ -29,9 +29,8 @@ export function BlogHome() {
   useEffect(() => {
     (async () => {
       try {
-        const response = await api.posts.postsList();
-        const data = await response.json();
-        setBlogPosts(data);
+        const blogResponse = (await api.blog.getBlog()).data;
+        setBlogPosts(blogResponse);
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Fetching blogs failed";
@@ -40,40 +39,6 @@ export function BlogHome() {
       }
     })();
   }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        // Create an array of promises to fetch comments for each post_id
-        const commentPromises = blogPosts.map(async (post) => {
-          const response = await api.postComments.postCommentsCreate({
-            post_id: post.post_id,
-          });
-          const commentsData = await response.json();
-          return { post_id: post.post_id, comments: commentsData };
-        });
-
-        // Wait for all comment fetches to complete
-        const commentsArray = await Promise.all(commentPromises);
-
-        // Transform the results into a Record<post_id, CommentType[]>
-        const commentsRecord = commentsArray.reduce<
-          Record<number, CommentType[]>
-        >((acc, { post_id, comments }) => {
-          acc[post_id] = comments;
-          return acc;
-        }, {});
-
-        // Update the comments state
-        setComments(commentsRecord);
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Fetching comments failed";
-        setError(errorMessage);
-        console.error("Error:", error);
-      }
-    })();
-  }, [blogPosts]);
 
   // Calculate total pages
   const totalPages = Math.ceil(blogPosts.length / postsPerPage);
@@ -117,11 +82,7 @@ export function BlogHome() {
         <h1 className="text-2xl font-bold mb-4">Blog Posts</h1>
         <div className="space-y-6">
           {currentPosts.map((post, index) => (
-            <PostCard
-              key={index}
-              post={post}
-              comments={comments[post.post_id]}
-            />
+            <PostCard key={index} post={post} />
           ))}
         </div>
         {/* Pagination Navigator */}
@@ -130,7 +91,9 @@ export function BlogHome() {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
-                className={`join-item btn ${currentPage === page ? "btn-active" : ""}`}
+                className={`join-item btn ${
+                  currentPage === page ? "btn-active" : ""
+                }`}
                 onClick={() => paginate(page)}
               >
                 {page}
@@ -143,15 +106,35 @@ export function BlogHome() {
   );
 }
 
-export function PostCard(props) {
+export function PostCard(props: { post: BlogPostType }) {
   const { post } = props;
-  const { comments } = props;
+
+  // Configure allowed tags/attributes for comments (customize as needed)
+  const sanitizerConfig = {
+    ALLOWED_TAGS: [
+      "p",
+      "br",
+      "strong",
+      "em",
+      "u",
+      "a",
+      "ul",
+      "ol",
+      "li",
+      "blockquote",
+      "code",
+    ],
+    ALLOWED_ATTR: ["href", "target", "rel"], // e.g., safe links
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^&\s]+)$/i, // Restrict link protocols
+  };
+
+  const sanitizedContent = DOMPurify.sanitize(post.snippet, sanitizerConfig);
   return (
     <div class="card shadow transition-transform ease-in-out delay-0 hover:-translate-y-1 hover:scale-[1.02] duration-300">
-      <a class="card-body" href={`/blog/${post.post_id}`}>
+      <a class="card-body" href={`/blog/${post.id}`}>
         <h1 class="text-4xl font-bold">{post.title}</h1>
         <time>
-          {new Date(post.created_at).toLocaleDateString("en-uk", {
+          {new Date(post.createdAt).toLocaleDateString("en-uk", {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -159,15 +142,15 @@ export function PostCard(props) {
         </time>
         <div
           class="prose max-w-full mt-4"
-          dangerouslySetInnerHTML={{ __html: post.snippet }}
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />
       </a>
       <div class="card-body pt-0">
         <Reactions
-          post_id={post.post_id}
+          id={post.id}
           likes={post.likes}
           dislikes={post.dislikes}
-          comments={comments}
+          comments={post.commentCount}
         />
       </div>
     </div>
