@@ -114,11 +114,7 @@ export function Profile({ id }: ProfileProps) {
         <div className="card bg-base-100 shadow-2xl max-w-md w-full mx-4">
           <div className="card-body items-center text-center">
             {/* Profile Picture */}
-            <ProfilePicture
-              id={profileUser.id}
-              name={profileUser.name}
-              image={profileUser.image}
-            />
+            <ProfilePicture name={profileUser.name} image={profileUser.image} />
 
             {/* Name */}
             <h2 className="card-title text-2xl font-bold mt-4">

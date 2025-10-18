@@ -8,7 +8,7 @@ import { FiSettings } from "react-icons/fi";
 import { ProfilePicture } from "./ProfilePicture";
 
 export function Navbar() {
-  const { route } = useLocation();
+  const { route, url } = useLocation();
 
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
@@ -20,12 +20,10 @@ export function Navbar() {
         // Fetch user's current username
         const sessionResponse = (await api.auth.apiGetSessionList()).data;
 
-        setUser(sessionResponse.user);
+        setUser(sessionResponse?.user || null);
       } catch (error) {
-        if (error?.error?.status == 401) {
-          console.log("Not logged in: can't fetch user data");
-          return;
-        }
+        // Reset session
+        setUser(null);
 
         const errorMessage =
           error instanceof Error ? error.message : "Fetching user data failed";
@@ -35,7 +33,7 @@ export function Navbar() {
     }
 
     fetchUserData();
-  }, []);
+  }, [url]);
 
   function logout() {
     api.auth.apiSignOutCreate({});
@@ -86,7 +84,7 @@ export function Navbar() {
         <ThemeDropdown />
         {user ? (
           <div className="mx-2 dropdown dropdown-end">
-            <ProfilePicture id={user.id} name={user.name} image={user.image} />
+            <ProfilePicture name={user.name} image={user.image} />
 
             <ul
               tabIndex={-1}

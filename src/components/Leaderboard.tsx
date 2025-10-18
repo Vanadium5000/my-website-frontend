@@ -85,11 +85,7 @@ export function Leaderboard(props: Props) {
                       href={`/profile/${user.id}`}
                       className="flex items-center gap-3"
                     >
-                      <ProfilePicture
-                        id={user.id}
-                        name={user.name}
-                        image={user.image}
-                      />
+                      <ProfilePicture name={user.name} image={user.image} />
                       <div className="font-bold">{user.name}</div>
                     </a>
                   </td>
