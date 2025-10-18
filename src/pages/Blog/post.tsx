@@ -42,6 +42,11 @@ export function BlogPost({ id }: { id: string }) {
   function postComment() {
     (async () => {
       try {
+        if (!comment) {
+          alert("Comment cannot be empty");
+          return;
+        }
+
         const response = (
           await api.blog.postBlogByIdComment(id, {
             content: comment,
@@ -57,6 +62,12 @@ export function BlogPost({ id }: { id: string }) {
         if (error?.status == 401) {
           console.log("401 error: redirecting to /login");
           window.location.href = "/login";
+          return;
+        }
+
+        if (error?.status == 429) {
+          console.log("421 error: sending alert");
+          alert("You are posting too many comments, try posting again later.");
           return;
         }
 
