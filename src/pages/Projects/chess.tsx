@@ -1,19 +1,25 @@
-// Frontend: Updated ChessGame component with additional logging
+// Frontend: Enhanced ChessGame component with DaisyUI, Tailwind, react-icons, sidebar info, utilities, improved functionality
 
 import { io } from "socket.io-client";
-import { useState, useEffect } from "preact/hooks";
-import { Navbar } from "../../components/Navbar";
+import { useState, useEffect, useMemo } from "preact/hooks";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import { api } from "../../api/client.js"; // Assuming this is the OpenAPI-generated client
+import {
+  FaCopy,
+  FaChessPawn,
+  FaChessKing,
+  FaClock,
+  FaUser,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 export function ChessGame() {
-  const [chess] = useState(new Chess());
+  const chess = useMemo(() => new Chess(), []); // Stable chess instance
   const [fen, setFen] = useState(chess.fen());
   const [yourColor, setYourColor] = useState(null);
   const [opponent, setOpponent] = useState(null);
   const [status, setStatus] = useState("Connecting...");
-  const [draggable, setDraggable] = useState(false);
   const [pending, setPending] = useState(false);
   const [socket, setSocket] = useState(null);
   const [phase, setPhase] = useState("connecting");
@@ -22,15 +28,38 @@ export function ChessGame() {
   const [blackTime, setBlackTime] = useState(0);
   const [bidSent, setBidSent] = useState(false);
   const [myName, setMyName] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // Derived draggable state
+  const [draggable, setDraggable] = useState(false);
+  // console.log("Draggable:", draggable);
+
+  useEffect(() => {
+    setDraggable(
+      phase === "playing" &&
+        opponent !== null &&
+        yourColor !== null &&
+        !pending &&
+        isYourTurn()
+    );
+  }, [phase, opponent, yourColor, pending, fen]);
+
+  const isYourTurn = () => {
+    if (!yourColor) return false;
+    const turn = chess.turn();
+    return (
+      (turn === "w" && yourColor === "white") ||
+      (turn === "b" && yourColor === "black")
+    );
+  };
 
   useEffect(() => {
     async function init() {
       try {
-        // Check session using the provided API call
         const response = await (await api.auth.apiGetSessionList()).json();
-        console.log("Session check response:", response);
-        if (!response) {
-          console.log("No active session: redirecting to /login");
+        if (!response || !response.user) {
+          console.warn("No active session, redirecting to login");
           window.location.href = "/login";
           return;
         }
@@ -44,110 +73,118 @@ export function ChessGame() {
         const newSocket = io(base_url, {
           path: "/socket.io/",
           transports: ["websocket", "polling"],
-          withCredentials: true, // Send cookies for authentication
+          withCredentials: true,
         });
 
         setSocket(newSocket);
 
         newSocket.on("connect", () => {
-          console.log("Socket connected");
           setPhase("connecting");
           setStatus("Connected, joining game...");
         });
 
         newSocket.on("waiting", () => {
-          console.log("Received waiting");
           setPhase("waiting");
           setStatus("Waiting for opponent...");
         });
 
         newSocket.on("paired", (data) => {
-          console.log("Received paired:", data);
+          console.log("Received paired message:", data);
           setOpponent(data.opponent);
           setPhase("bidding");
           setBidSent(false);
           setStatus(
-            "Paired with " +
-              data.opponent +
-              ". Please bid your preferred game time (min 60s):"
+            `Paired with ${data.opponent}. Bid your preferred game time (min 60s):`
           );
         });
 
         newSocket.on("start", (data) => {
-          console.log("Received start:", data);
+          console.log("Received start message:", data);
           chess.load(data.fen);
-          setFen(data.fen);
+          setFen(chess.fen());
           setYourColor(data.your_color);
           setOpponent(data.opponent);
           setWhiteTime(data.whiteTime);
           setBlackTime(data.blackTime);
           setPhase("playing");
-          setStatus("Playing against " + data.opponent);
+          setStatus(`Playing as ${data.your_color} against ${data.opponent}`);
+          console.log(
+            `Game started. Your color: ${
+              data.your_color
+            }, Turn: ${chess.turn()}`
+          );
         });
 
         newSocket.on("time_update", (data) => {
-          console.log("Received time_update:", data);
           setWhiteTime(data.whiteTime);
           setBlackTime(data.blackTime);
         });
 
         newSocket.on("opponent_disconnected", (data) => {
-          console.log("Received opponent_disconnected:", data);
+          console.log("Received opponent_disconnected message:", data);
+          setStatus(data.message || "Opponent disconnected");
           setPhase("waiting");
-          setStatus(data.message);
+          chess.reset();
+          setFen(chess.fen());
+          setYourColor(null);
+          setOpponent(null);
+          setWhiteTime(0);
+          setBlackTime(0);
+          console.warn("Opponent disconnected");
         });
 
         newSocket.on("update", (data) => {
-          console.log("Received update:", data);
+          console.log("Received update message:", data);
           chess.load(data.fen);
-          setFen(data.fen);
+          setFen(chess.fen());
           setPending(false);
+          console.log(
+            `Board updated. Turn: ${chess.turn()}, Your turn: ${isYourTurn()}`
+          );
         });
 
         newSocket.on("win", (data) => {
-          console.log("Received win:", data);
-          setDraggable(false);
+          console.log("Received win message:", data);
           setPhase("ended");
           const youWin = data.winner === myName;
-          const message = youWin ? "You win!" : data.winner + " wins!";
-          const reason = data.reason ? " (" + data.reason + ")" : "";
-          setStatus("Game over: " + message + reason);
+          const message = youWin ? "You win!" : `${data.winner} wins!`;
+          const reason = data.reason ? ` (${data.reason})` : "";
+          setStatus(`Game over: ${message}${reason}`);
+          console.log(`Game ended: ${message}${reason}`);
         });
 
         newSocket.on("draw", (data) => {
-          console.log("Received draw:", data);
-          setDraggable(false);
+          console.log("Received draw message:", data);
           setPhase("ended");
-          const reason = data.reason ? " (" + data.reason + ")" : "";
-          setStatus("Game over: Draw!" + reason);
+          const reason = data.reason ? ` (${data.reason})` : "";
+          setStatus(`Game over: Draw!${reason}`);
+          console.log(`Game ended: Draw${reason}`);
         });
 
         newSocket.on("error", (data) => {
-          console.log("Received error:", data);
+          console.log("Received error message:", data);
+
           if (pending) {
             chess.undo();
             setFen(chess.fen());
             setPending(false);
           }
-          setStatus("Error: " + data.message);
+          setErrorMessage(data.message || "An error occurred");
+          console.error("Server error:", data);
         });
 
         newSocket.on("connect_error", (error) => {
-          console.error("Socket connect error:", error);
-          setStatus("Connection error: " + error.message);
+          setErrorMessage(`Connection error: ${error.message}`);
+          console.error("Connect error:", error);
         });
 
         newSocket.on("disconnect", (reason) => {
-          console.log("Socket disconnected:", reason);
-          setStatus("Connection closed: " + reason);
-        });
-
-        newSocket.onAny((event, ...args) => {
-          console.log("Socket event:", event, args);
+          setStatus(`Disconnected: ${reason}`);
+          console.warn("Socket disconnected:", reason);
         });
       } catch (error) {
-        console.error("Init error:", error);
-        setStatus("Init error");
+        console.error("Initialization error:", error);
+        setErrorMessage("Failed to initialize the game");
       }
     }
 
@@ -160,53 +197,62 @@ export function ChessGame() {
     };
   }, []);
 
-  const isYourTurn = () => {
-    if (!yourColor) return false;
-    return (
-      (chess.turn() === "w" && yourColor === "white") ||
-      (chess.turn() === "b" && yourColor === "black")
-    );
-  };
-
-  useEffect(() => {
-    setDraggable(opponent !== null && isYourTurn());
-  }, [fen, yourColor, opponent]);
-
-  function sendBid(time) {
+  const sendBid = (time) => {
     if (socket && !bidSent && time >= 60) {
-      console.log("Sending bid:", time);
       socket.emit("bid", { time });
       setBidSent(true);
-      setStatus("Bid sent (" + time + "s), waiting for opponent...");
+      setStatus(`Bid sent (${time}s), waiting for opponent...`);
     } else if (time < 60) {
-      setStatus("Bid time must be at least 60s");
+      setErrorMessage("Bid time must be at least 60s");
+    } else {
+      setErrorMessage("Unable to send bid");
     }
-  }
+  };
 
-  function sendMove(move) {
+  const sendMove = (move) => {
     if (socket) {
-      console.log("Sending move:", move);
       socket.emit("move", { move });
+      console.log("Move sent:", move);
     }
-  }
+  };
 
-  const onDrop = (sourceSquare, targetSquare) => {
-    if (!isYourTurn() || pending) return false;
+  const onDrop = (sourceSquare, targetSquare, piece) => {
+    if (pending || phase !== "playing" || !isYourTurn()) return false;
+
     try {
-      const move = chess.move({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion: "q",
-      });
+      const originalPiece = chess.get(sourceSquare);
+      if (!originalPiece || originalPiece.color !== chess.turn()) return false;
+
+      let move;
+      const isPromotion =
+        originalPiece.type === "p" &&
+        ((originalPiece.color === "w" && targetSquare[1] === "8") ||
+          (originalPiece.color === "b" && targetSquare[1] === "1"));
+
+      if (isPromotion) {
+        const promotionType = piece ? piece[1].toLowerCase() : "q"; // Default to queen if no piece specified
+        move = chess.move({
+          from: sourceSquare,
+          to: targetSquare,
+          promotion: promotionType,
+        });
+      } else {
+        move = chess.move({
+          from: sourceSquare,
+          to: targetSquare,
+        });
+      }
+
       if (move) {
         setFen(chess.fen());
         sendMove(move.san);
         setPending(true);
+        console.log("Local move:", move.san);
         return true;
       }
       return false;
     } catch (error) {
-      console.log("Invalid move");
+      console.error("Invalid move:", error);
       return false;
     }
   };
@@ -214,61 +260,168 @@ export function ChessGame() {
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return m + ":" + s.toString().padStart(2, "0");
+    return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
+  const copyFen = async () => {
+    try {
+      await navigator.clipboard.writeText(chess.fen());
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy FEN:", err);
+      setErrorMessage("Failed to copy FEN");
+    }
+  };
+
+  console.log("Your color", yourColor);
+
   return (
-    <>
-      <h1 class="text-3xl mx-4 my-8">Multiplayer Chess:</h1>
-      <div class="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
-        {phase === "playing" && (
-          <div class="flex justify-around my-4">
-            <div>White: {formatTime(whiteTime)}</div>
-            <div>Black: {formatTime(blackTime)}</div>
-          </div>
-        )}
-        <div
-          role="alert"
-          className="justify-center my-4 alert bg-neutral text-neutral-content"
-        >
-          <span>{status}</span>
-        </div>
-        {phase === "bidding" && !bidSent && (
-          <div class="my-4 flex flex-col items-center">
-            <input
-              type="number"
-              value={biddingTime}
-              onInput={(e) =>
-                setBiddingTime(
-                  parseInt((e.target as HTMLInputElement).value, 10) || 60
-                )
-              }
-              min="60"
-              step="1"
-              class="input input-bordered"
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-8 text-center">Multiplayer Chess</h1>
+      <div className="flex flex-col lg:flex-row gap-8 justify-center">
+        {/* Chessboard */}
+        <div className="card bg-base-100 shadow-xl w-full lg:w-1/2">
+          <div className="card-body p-0">
+            <Chessboard
+              position={fen}
+              onPieceDrop={onDrop}
+              arePiecesDraggable={draggable}
+              isDraggablePiece={({ piece }) => {
+                // FIXME: The code below doesn't work
+                const isDraggable =
+                  yourColor &&
+                  piece[0].toLowerCase() ===
+                    (yourColor && yourColor[0].toLowerCase()) &&
+                  isYourTurn() &&
+                  !pending;
+
+                return true;
+              }}
+              boardOrientation={yourColor || "white"}
+              showPromotionDialog={true}
             />
-            <button
-              onClick={() => sendBid(biddingTime)}
-              class="btn btn-primary mt-2"
-            >
-              Submit Bid
-            </button>
           </div>
-        )}
-        <Chessboard
-          position={fen}
-          onPieceDrop={onDrop}
-          arePiecesDraggable={draggable}
-          isDraggablePiece={({ piece }) => {
-            if (yourColor && piece[0] == yourColor[0]) {
-              return isYourTurn();
-            }
-            return false;
-          }}
-          boardOrientation={yourColor || "white"}
-          showPromotionDialog={false}
-        />
+        </div>
+
+        {/* Sidebar: Game Info */}
+        <div className="card bg-base-100 shadow-xl hover:shadow-2xl w-full lg:w-1/3">
+          <div className="card-body">
+            <h2 className="card-title mb-4">Game Info</h2>
+
+            {/* Status Alert */}
+            <div className="alert alert-info mb-4">
+              <FaExclamationTriangle className="h-5 w-5" />
+              <span>{status}</span>
+            </div>
+
+            {errorMessage && (
+              <div className="alert alert-error mb-4">
+                <FaExclamationTriangle className="h-5 w-5" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
+            {/* Players */}
+            <div className="flex flex-col gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <FaUser className="h-5 w-5" />
+                <span>
+                  <strong>You:</strong> {myName || "Loading..."}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FaUser className="h-5 w-5" />
+                <span>
+                  <strong>Opponent:</strong> {opponent || "Waiting..."}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FaChessPawn className="h-5 w-5" />
+                <span>
+                  <strong>Your Color:</strong>{" "}
+                  {yourColor
+                    ? yourColor.charAt(0).toUpperCase() + yourColor.slice(1)
+                    : "Not assigned"}
+                </span>
+              </div>
+            </div>
+
+            {/* Times */}
+            {phase === "playing" && (
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <FaClock className="h-5 w-5" />
+                  <span>
+                    <strong>White Time:</strong> {formatTime(whiteTime)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaClock className="h-5 w-5" />
+                  <span>
+                    <strong>Black Time:</strong> {formatTime(blackTime)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Turn Indicator */}
+            {phase === "playing" && (
+              <div
+                className={`alert ${
+                  isYourTurn() ? "alert-success" : "alert-warning"
+                } mb-4`}
+              >
+                <FaChessKing className="h-5 w-5" />
+                <span>{isYourTurn() ? "Your Turn" : "Opponent's Turn"}</span>
+              </div>
+            )}
+
+            {/* Bidding */}
+            {phase === "bidding" && !bidSent && (
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Bid Time (seconds, min 60)</span>
+                </label>
+                <div className="join">
+                  <input
+                    type="number"
+                    value={biddingTime}
+                    onInput={(e) =>
+                      setBiddingTime(
+                        parseInt((e.target as HTMLInputElement).value, 10) || 60
+                      )
+                    }
+                    min="60"
+                    step="1"
+                    className="input input-bordered join-item w-full"
+                  />
+                  <button
+                    onClick={() => sendBid(biddingTime)}
+                    className="btn btn-primary join-item"
+                  >
+                    Submit Bid
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Utilities */}
+            <div className="flex flex-col gap-2">
+              <button onClick={copyFen} className="btn btn-outline">
+                <FaCopy className="h-5 w-5 mr-2" />
+                Copy FEN
+              </button>
+              {copySuccess && (
+                <div className="alert alert-success text-sm">
+                  FEN copied to clipboard!
+                </div>
+              )}
+              {/* Add more utilities as needed, e.g., Export PGN */}
+            </div>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
