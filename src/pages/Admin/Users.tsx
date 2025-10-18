@@ -192,7 +192,10 @@ export function AdminUsers() {
                 {users.map((user) => (
                   <tr key={user.id}>
                     <td>
-                      <div className="flex items-center gap-3">
+                      <a
+                        href={`/profile/${user.id}`}
+                        className="flex items-center gap-3"
+                      >
                         <ProfilePicture
                           id={user.id}
                           name={user.name}
@@ -206,7 +209,7 @@ export function AdminUsers() {
                             </span>
                           )}
                         </div>
-                      </div>
+                      </a>
                     </td>
                     <td>{user.email}</td>
                     <td>{user.id}</td>

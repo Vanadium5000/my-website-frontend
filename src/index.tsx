@@ -23,6 +23,7 @@ import { DeleteAccountSettings } from "./pages/Settings/DeleteAccount";
 import { NotFound } from "./pages/404.js";
 import { Profile } from "./pages/Profile/index.js";
 import "./style.css";
+import { Leaderboards } from "./pages/Leaderboards/index.js";
 
 export function App() {
   return (
@@ -33,9 +34,10 @@ export function App() {
           <Router>
             <Route path="/" component={Home} />
             <Route path="/blog" component={BlogHome} />
-            <Route path="/blog/:id" component={BlogPost} />
             {/* Dynamic route */}
+            <Route path="/blog/:id" component={BlogPost} />
             <Route path="/about" component={About} />
+            <Route path="/leaderboards" component={Leaderboards} />
             <Route path="/login" component={Login} />
             <Route path="/projects" component={Projects} />
             <Route path="/projects/chess" component={ChessGame} />

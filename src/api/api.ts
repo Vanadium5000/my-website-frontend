@@ -27,6 +27,8 @@ export interface User {
   banReason?: string;
   banExpires?: string;
   age?: number;
+  chessScore?: number;
+  draughtsScore?: number;
 }
 
 export interface Session {
@@ -595,7 +597,7 @@ export class Api<
         {
           id: string;
           name: string;
-          image?: string;
+          image: string | null;
           createdAt: date | string | number;
           updatedAt: date | string | number;
         },
@@ -603,6 +605,39 @@ export class Api<
       >({
         path: `/profile/${userId}`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  leaderboards = {
+    /**
+     * @description Retrieves a list of public user profiles ranked by the specified attribute value in descending order. Only includes users with a truthy value for the attribute. Numeric values are sorted numerically, string values by length and then alphabetically.
+     *
+     * @tags leaderboards
+     * @name GetLeaderboards
+     * @summary Get leaderboard of users ranked by a specific attribute
+     * @request GET:/leaderboards/
+     */
+    getLeaderboards: (
+      query: {
+        /** The attribute name to rank users by (e.g., chessScore). Must consist of alphanumeric characters and underscores. */
+        attribute: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          id: string;
+          name: string;
+          image: string | null;
+          createdAt: date | string | number;
+          updatedAt: date | string | number;
+        }[],
+        any
+      >({
+        path: `/leaderboards/`,
+        method: "GET",
+        query: query,
         format: "json",
         ...params,
       }),

@@ -77,6 +77,9 @@ export function Navbar() {
           <li>
             <a href="/projects">Projects</a>
           </li>
+          <li>
+            <a href="/leaderboards">Leaderboards</a>
+          </li>
         </ul>
       </div>
       <div className="navbar-end">

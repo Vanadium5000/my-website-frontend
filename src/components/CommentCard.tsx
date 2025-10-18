@@ -4,7 +4,7 @@ import DOMPurify from "dompurify";
 import { FaCheck, FaTrash } from "react-icons/fa";
 import { ProfilePicture } from "./ProfilePicture";
 
-interface User {
+export interface Profile {
   id: string;
   name: string;
   image?: string;
@@ -33,7 +33,7 @@ export function CommentCard({
   onDelete,
   commentId,
 }: CommentCardProps) {
-  const [author, setAuthor] = useState<User | null>(null);
+  const [author, setAuthor] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
