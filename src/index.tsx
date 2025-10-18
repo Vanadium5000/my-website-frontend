@@ -24,12 +24,13 @@ import { NotFound } from "./pages/404.js";
 import { Profile } from "./pages/Profile/index.js";
 import "./style.css";
 import { Leaderboards } from "./pages/Leaderboards/index.js";
+import { Navbar } from "./components/Navbar.js";
 
 export function App() {
   return (
     <LocationProvider>
       <div class="flex min-h-screen flex-col">
-        {/* <Navbar /> */}
+        <Navbar />
         <main>
           <Router>
             <Route path="/" component={Home} />

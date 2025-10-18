@@ -78,7 +78,6 @@ export function NameSettings(props: NameSettingsProps) {
   if (loading) {
     return (
       <>
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center">
             <span className="loading loading-spinner loading-lg"></span>
@@ -91,7 +90,6 @@ export function NameSettings(props: NameSettingsProps) {
   if (error && !currentUser) {
     return (
       <>
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="alert alert-error">
             <span>{error}</span>
@@ -106,7 +104,6 @@ export function NameSettings(props: NameSettingsProps) {
 
   return (
     <>
-      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

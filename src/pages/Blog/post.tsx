@@ -99,7 +99,6 @@ export function BlogPost({ id }: { id: string }) {
   if (error) {
     return (
       <>
-        <Navbar />
         <div role="alert" className="alert alert-error">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -123,7 +122,6 @@ export function BlogPost({ id }: { id: string }) {
   if (!blogPost) {
     return (
       <>
-        <Navbar />
         <p>Loading...</p>
       </>
     );
@@ -131,7 +129,6 @@ export function BlogPost({ id }: { id: string }) {
 
   return (
     <>
-      <Navbar />
       <div class="card card-body max-w-full">
         <div class="text-center justify-center">
           <PostCard post={blogPost.blog} />

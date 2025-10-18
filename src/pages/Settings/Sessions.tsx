@@ -181,7 +181,6 @@ export function SessionsSettings(props: SessionsProps) {
   if (loading) {
     return (
       <>
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center">
             <span className="loading loading-spinner loading-lg"></span>
@@ -193,7 +192,6 @@ export function SessionsSettings(props: SessionsProps) {
 
   return (
     <>
-      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

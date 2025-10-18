@@ -127,7 +127,6 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
   if (loading) {
     return (
       <>
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center">
             <span className="loading loading-spinner loading-lg"></span>
@@ -139,7 +138,6 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
 
   return (
     <>
-      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

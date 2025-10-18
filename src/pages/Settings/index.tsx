@@ -62,7 +62,6 @@ export function Settings(props: SettingsPageProps) {
   if (loading) {
     return (
       <>
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center">
             <span className="loading loading-spinner loading-lg"></span>
@@ -75,7 +74,6 @@ export function Settings(props: SettingsPageProps) {
   if (error || !currentUser) {
     return (
       <>
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="alert alert-error">
             <span>{error || "User not authenticated"}</span>
@@ -87,7 +85,6 @@ export function Settings(props: SettingsPageProps) {
 
   return (
     <>
-      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Account Settings</h1>

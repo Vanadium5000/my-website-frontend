@@ -179,7 +179,6 @@ export function Arithmetic() {
   if (gameState === "start") {
     return (
       <>
-        <Navbar />
         <div className="bg-base-100 mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full p-4">
           <h1 className="text-2xl font-bold mb-4">Arithmetic Game</h1>
           <p className="mb-4">
@@ -363,7 +362,6 @@ export function Arithmetic() {
   } else if (gameState === "playing") {
     return (
       <>
-        <Navbar />
         <div className="flex flex-col items-center justify-center h-screen">
           <div className="flex justify-between w-full max-w-md mb-4">
             <p>Time: {timeLeft} s</p>
@@ -388,7 +386,6 @@ export function Arithmetic() {
   } else {
     return (
       <>
-        <Navbar />
         <div className="flex flex-col items-center justify-center h-screen">
           <h1 className="text-3xl font-bold mb-4">Game Over</h1>
           <p className="text-2xl mb-4">Score: {score}</p>

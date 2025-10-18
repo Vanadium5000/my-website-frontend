@@ -79,7 +79,6 @@ export function Login() {
 
   return (
     <>
-      <Navbar />
       <div className="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
         <div className="card-body">
           <h1 className="text-center text-xl font-bold">Login</h1>

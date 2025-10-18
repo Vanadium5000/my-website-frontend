@@ -1,12 +1,10 @@
 import { Navbar } from "../../components/Navbar.js";
-import logo from "../../assets/logo.png";
 import { MdLeaderboard } from "react-icons/md";
 import { Leaderboard } from "../../components/Leaderboard.js";
 
 export function Leaderboards() {
   return (
     <>
-      <Navbar />
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
           <MdLeaderboard />

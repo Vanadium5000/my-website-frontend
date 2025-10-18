@@ -4,7 +4,6 @@ import logo from "../../assets/logo.png";
 export function About() {
   return (
     <>
-      <Navbar />
       <div className="sm:float-left sm:w-1/2 p-4">
         <h1 class="text-4xl font-bold mb-3">About</h1>
         <p>Hello!</p>

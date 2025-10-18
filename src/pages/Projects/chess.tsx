@@ -16,6 +16,12 @@ export function ChessGame() {
   const [draggable, setDraggable] = useState(false);
   const [pending, setPending] = useState(false);
   const [socket, setSocket] = useState(null);
+  const [phase, setPhase] = useState("connecting");
+  const [biddingTime, setBiddingTime] = useState(60);
+  const [whiteTime, setWhiteTime] = useState(0);
+  const [blackTime, setBlackTime] = useState(0);
+  const [bidSent, setBidSent] = useState(false);
+  const [myName, setMyName] = useState(null);
 
   useEffect(() => {
     async function init() {
@@ -28,6 +34,7 @@ export function ChessGame() {
           window.location.href = "/login";
           return;
         }
+        setMyName(response.user.name);
 
         const base_url =
           import.meta.env.MODE === "production"
@@ -44,29 +51,50 @@ export function ChessGame() {
 
         newSocket.on("connect", () => {
           console.log("Socket connected");
+          setPhase("connecting");
           setStatus("Connected, joining game...");
         });
 
-        newSocket.on("init", (data) => {
-          console.log("Received init:", data);
+        newSocket.on("waiting", () => {
+          console.log("Received waiting");
+          setPhase("waiting");
+          setStatus("Waiting for opponent...");
+        });
+
+        newSocket.on("paired", (data) => {
+          console.log("Received paired:", data);
+          setOpponent(data.opponent);
+          setPhase("bidding");
+          setBidSent(false);
+          setStatus(
+            "Paired with " +
+              data.opponent +
+              ". Please bid your preferred game time (min 60s):"
+          );
+        });
+
+        newSocket.on("start", (data) => {
+          console.log("Received start:", data);
           chess.load(data.fen);
           setFen(data.fen);
           setYourColor(data.your_color);
           setOpponent(data.opponent);
-          if (data.opponent === null) {
-            setStatus("Waiting for opponent...");
-            setDraggable(false);
-          } else {
-            setStatus(`Playing against ${data.opponent}`);
-            setDraggable(true);
-          }
+          setWhiteTime(data.whiteTime);
+          setBlackTime(data.blackTime);
+          setPhase("playing");
+          setStatus("Playing against " + data.opponent);
         });
 
-        newSocket.on("opponent_joined", (data) => {
-          console.log("Received opponent_joined:", data);
-          setOpponent(data.opponent);
-          setStatus(`Playing against ${data.opponent}`);
-          setDraggable(true);
+        newSocket.on("time_update", (data) => {
+          console.log("Received time_update:", data);
+          setWhiteTime(data.whiteTime);
+          setBlackTime(data.blackTime);
+        });
+
+        newSocket.on("opponent_disconnected", (data) => {
+          console.log("Received opponent_disconnected:", data);
+          setPhase("waiting");
+          setStatus(data.message);
         });
 
         newSocket.on("update", (data) => {
@@ -79,18 +107,19 @@ export function ChessGame() {
         newSocket.on("win", (data) => {
           console.log("Received win:", data);
           setDraggable(false);
-          const youWin = opponent && data.winner !== opponent;
-          const message = youWin
-            ? "You win!"
-            : `${data.winner || yourColor} wins!`;
-          const reason = data.reason ? ` (${data.reason})` : "";
-          setStatus(`Game over: ${message}${reason}`);
+          setPhase("ended");
+          const youWin = data.winner === myName;
+          const message = youWin ? "You win!" : data.winner + " wins!";
+          const reason = data.reason ? " (" + data.reason + ")" : "";
+          setStatus("Game over: " + message + reason);
         });
 
-        newSocket.on("draw", () => {
-          console.log("Received draw");
+        newSocket.on("draw", (data) => {
+          console.log("Received draw:", data);
           setDraggable(false);
-          setStatus("Game over: Draw!");
+          setPhase("ended");
+          const reason = data.reason ? " (" + data.reason + ")" : "";
+          setStatus("Game over: Draw!" + reason);
         });
 
         newSocket.on("error", (data) => {
@@ -100,7 +129,7 @@ export function ChessGame() {
             setFen(chess.fen());
             setPending(false);
           }
-          setStatus(`Error: ${data.message}`);
+          setStatus("Error: " + data.message);
         });
 
         newSocket.on("connect_error", (error) => {
@@ -143,6 +172,17 @@ export function ChessGame() {
     setDraggable(opponent !== null && isYourTurn());
   }, [fen, yourColor, opponent]);
 
+  function sendBid(time) {
+    if (socket && !bidSent && time >= 60) {
+      console.log("Sending bid:", time);
+      socket.emit("bid", { time });
+      setBidSent(true);
+      setStatus("Bid sent (" + time + "s), waiting for opponent...");
+    } else if (time < 60) {
+      setStatus("Bid time must be at least 60s");
+    }
+  }
+
   function sendMove(move) {
     if (socket) {
       console.log("Sending move:", move);
@@ -171,17 +211,50 @@ export function ChessGame() {
     }
   };
 
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m + ":" + s.toString().padStart(2, "0");
+  };
+
   return (
     <>
-      <Navbar />
       <h1 class="text-3xl mx-4 my-8">Multiplayer Chess:</h1>
       <div class="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
+        {phase === "playing" && (
+          <div class="flex justify-around my-4">
+            <div>White: {formatTime(whiteTime)}</div>
+            <div>Black: {formatTime(blackTime)}</div>
+          </div>
+        )}
         <div
           role="alert"
           className="justify-center my-4 alert bg-neutral text-neutral-content"
         >
           <span>{status}</span>
         </div>
+        {phase === "bidding" && !bidSent && (
+          <div class="my-4 flex flex-col items-center">
+            <input
+              type="number"
+              value={biddingTime}
+              onInput={(e) =>
+                setBiddingTime(
+                  parseInt((e.target as HTMLInputElement).value, 10) || 60
+                )
+              }
+              min="60"
+              step="1"
+              class="input input-bordered"
+            />
+            <button
+              onClick={() => sendBid(biddingTime)}
+              class="btn btn-primary mt-2"
+            >
+              Submit Bid
+            </button>
+          </div>
+        )}
         <Chessboard
           position={fen}
           onPieceDrop={onDrop}

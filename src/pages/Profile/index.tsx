@@ -80,7 +80,6 @@ export function Profile({ id }: ProfileProps) {
   if (loading) {
     return (
       <>
-        <Navbar />
         <div
           className="h-[99%] flex items-center justify-center"
           id="profile-background"
@@ -94,7 +93,6 @@ export function Profile({ id }: ProfileProps) {
   if (error || !profileUser) {
     return (
       <>
-        <Navbar />
         <div
           className="h-[99%] flex items-center justify-center"
           id="profile-background"
@@ -109,7 +107,6 @@ export function Profile({ id }: ProfileProps) {
 
   return (
     <>
-      <Navbar />
       <div
         className="h-[99%] flex items-center justify-center"
         id="profile-background"

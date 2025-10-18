@@ -4,7 +4,6 @@ import { GameCard } from "../../components/GameCard.js";
 export function Projects() {
   return (
     <>
-      <Navbar />
       <h1 class="text-3xl mx-4 my-8">Projects</h1>
 
       {/* Cards */}

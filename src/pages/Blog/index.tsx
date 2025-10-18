@@ -54,7 +54,6 @@ export function BlogHome() {
   if (error) {
     return (
       <>
-        <Navbar />
         <div role="alert" className="alert alert-error">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -77,7 +76,6 @@ export function BlogHome() {
 
   return (
     <>
-      <Navbar />
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Blog Posts</h1>
         <div className="space-y-6">
