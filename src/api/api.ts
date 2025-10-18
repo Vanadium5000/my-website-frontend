@@ -596,6 +596,8 @@ export class Api<
           id: string;
           name: string;
           image?: string;
+          createdAt: date | string | number;
+          updatedAt: date | string | number;
         },
         any
       >({

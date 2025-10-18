@@ -147,7 +147,11 @@ export function BlogPost({ id }: { id: string }) {
         <p>
           Comments do not allow any HTML, but they allow Markdown for styling.
           Once submitted, they need to be reviewed by the site administrator to
-          be displayed for obvious reasons.
+          be displayed for{" "}
+          <i>
+            <b>obvious reasons</b>
+          </i>
+          .
         </p>
         <textarea
           id="comment"

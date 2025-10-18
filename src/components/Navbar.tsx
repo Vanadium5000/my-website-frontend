@@ -87,10 +87,10 @@ export function Navbar() {
 
             <ul
               tabIndex={-1}
-              className="menu menu-sm dropdown-content bg-base-300 rounded-box z-1 w-36 p-2 shadow-2xl mt-3"
+              className="menu menu-sm dropdown-content bg-base-300 text-base-content rounded-box z-1 w-36 p-2 shadow-2xl mt-3"
             >
               <li>
-                <a className="justify-between">
+                <a href="/profile" className="justify-between">
                   <FaUser /> Profile
                   <span className="badge">New</span>
                 </a>

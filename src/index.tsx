@@ -21,6 +21,7 @@ import { ConnectedAccountsSettings } from "./pages/Settings/ConnectedAccounts";
 import { SessionsSettings } from "./pages/Settings/Sessions";
 import { DeleteAccountSettings } from "./pages/Settings/DeleteAccount";
 import { NotFound } from "./pages/404.js";
+import { Profile } from "./pages/Profile/index.js";
 import "./style.css";
 
 export function App() {
@@ -52,6 +53,7 @@ export function App() {
             />
             <Route path="/settings/sessions" component={SessionsSettings} />
             <Route path="/settings/delete" component={DeleteAccountSettings} />
+            <Route path="/profile/:id?" component={Profile} />
             <Route default component={NotFound} />
           </Router>
         </main>

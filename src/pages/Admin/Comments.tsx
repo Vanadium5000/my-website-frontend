@@ -71,6 +71,9 @@ export function AdminComments() {
       <Navbar />
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
+          <a href="/admin" class="btn btn-ghost btn-sm">
+            ← Back to Admin
+          </a>
           <FaCommentDots />
           Pending Comments
         </h1>

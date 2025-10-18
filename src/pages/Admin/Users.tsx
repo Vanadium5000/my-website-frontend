@@ -10,6 +10,7 @@ import {
   FaEdit,
   FaTrash,
 } from "react-icons/fa";
+import { ProfilePicture } from "../../components/ProfilePicture";
 
 interface User {
   id?: string;
@@ -143,6 +144,9 @@ export function AdminUsers() {
       <Navbar />
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
+          <a href="/admin" class="btn btn-ghost btn-sm">
+            ← Back to Admin
+          </a>
           <FaUserShield />
           User Management
         </h1>
@@ -177,6 +181,7 @@ export function AdminUsers() {
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
+                  <th>ID</th>
                   <th>Role</th>
                   <th>Status</th>
                   <th>Created</th>
@@ -188,21 +193,15 @@ export function AdminUsers() {
                   <tr key={user.id}>
                     <td>
                       <div className="flex items-center gap-3">
-                        <div className="avatar">
-                          <div className="mask mask-squircle h-12 w-12">
-                            {user.image ? (
-                              <img src={user.image} alt={user.name} />
-                            ) : (
-                              <div className="bg-neutral-focus text-neutral-content rounded-full flex items-center justify-center h-12 w-12">
-                                {user.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        <ProfilePicture
+                          id={user.id}
+                          name={user.name}
+                          image={user.image}
+                        />
                         <div>
                           <div className="font-bold">{user.name}</div>
                           {user.emailVerified && (
-                            <span className="badge badge-ghost badge-sm">
+                            <span className="badge badge-success badge-sm">
                               Verified
                             </span>
                           )}
@@ -210,6 +209,7 @@ export function AdminUsers() {
                       </div>
                     </td>
                     <td>{user.email}</td>
+                    <td>{user.id}</td>
                     <td>
                       <span
                         className={`badge ${
@@ -225,7 +225,7 @@ export function AdminUsers() {
                       {user.banned ? (
                         <span className="badge badge-error">Banned</span>
                       ) : (
-                        <span className="badge badge-success">Active</span>
+                        <span className="badge badge-success">Normal</span>
                       )}
                     </td>
                     <td>{formatDate(user.createdAt)}</td>

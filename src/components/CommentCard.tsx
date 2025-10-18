@@ -8,6 +8,8 @@ interface User {
   id: string;
   name: string;
   image?: string;
+  createdAt: string | number;
+  updatedAt: string | number;
 }
 
 interface CommentCardProps {
