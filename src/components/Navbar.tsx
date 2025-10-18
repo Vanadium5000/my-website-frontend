@@ -5,12 +5,12 @@ import { api } from "../api/client.js";
 import { User } from "../api/api";
 import { FaSignInAlt, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { FiSettings } from "react-icons/fi";
+import { ProfilePicture } from "./ProfilePicture";
 
 export function Navbar() {
   const { route } = useLocation();
 
   const [user, setUser] = useState<User | null>(null);
-  const [imageURL, setImageURL] = useState("");
   const [error, setError] = useState("");
 
   // Load user data from backend
@@ -36,31 +36,6 @@ export function Navbar() {
 
     fetchUserData();
   }, []);
-
-  // Generate or set the user's avatar
-  useEffect(() => {
-    (async () => {
-      try {
-        if (!user) {
-          return;
-        }
-        // Generate or set the user's avatar
-        const imageURL =
-          user.image ||
-          (await (await api.avatar.getAvatar({ name: user.name })).text());
-        console.log("GOT IMAGE URL:", imageURL);
-
-        setImageURL(imageURL);
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Generating or setting the user's avatar failed";
-        setError(errorMessage);
-        console.error("Error:", error);
-      }
-    })();
-  }, [user]);
 
   function logout() {
     api.auth.apiSignOutCreate({});
@@ -108,15 +83,8 @@ export function Navbar() {
         <ThemeDropdown />
         {user ? (
           <div className="mx-2 dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-circle avatar"
-            >
-              <div className="w-10 rounded-full">
-                <img alt="USER ICON" src={imageURL} />
-              </div>
-            </div>
+            <ProfilePicture id={user.id} name={user.name} image={user.image} />
+
             <ul
               tabIndex={-1}
               className="menu menu-sm dropdown-content bg-base-300 rounded-box z-1 w-36 p-2 shadow-2xl mt-3"

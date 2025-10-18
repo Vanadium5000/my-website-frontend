@@ -11,7 +11,9 @@ import { Projects } from "./pages/Projects/index.js";
 import { ChessGame } from "./pages/Projects/chess.js";
 import { Arithmetic } from "./pages/Projects/arithmetic.js";
 import { Signup } from "./pages/Signup/index.js";
-import { AdminHome } from "./pages/Admin/index.js";
+import { AdminHome } from "./pages/Admin/index";
+import { AdminUsers } from "./pages/Admin/Users";
+import { AdminComments } from "./pages/Admin/Comments";
 import { Settings } from "./pages/Settings/index";
 import { NameSettings } from "./pages/Settings/Name";
 import { PasswordSettings } from "./pages/Settings/Password";
@@ -39,6 +41,8 @@ export function App() {
             <Route path="/projects/arithmetic" component={Arithmetic} />
             <Route path="/signup" component={Signup} />
             <Route path="/admin" component={AdminHome} />
+            <Route path="/admin/users" component={AdminUsers} />
+            <Route path="/admin/comments" component={AdminComments} />
             <Route path="/settings" component={Settings} />
             <Route path="/settings/name" component={NameSettings} />
             <Route path="/settings/password" component={PasswordSettings} />

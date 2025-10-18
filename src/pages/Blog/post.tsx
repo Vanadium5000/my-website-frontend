@@ -1,6 +1,7 @@
 // pages/Blog/post.js
 import { useState, useEffect } from "preact/hooks";
 import { Navbar } from "../../components/Navbar.jsx";
+import { CommentCard } from "../../components/CommentCard";
 import { api } from "../../api/client.js";
 import { PostCard, CommentType } from "./index.js";
 
@@ -170,58 +171,10 @@ export function BlogPost({ id }: { id: string }) {
             <CommentCard
               content={comment.content}
               createdAt={comment.createdAt}
-              authorID={comment.authorId}
+              authorId={comment.authorId}
             />
           ))}
       </div>
     </>
-  );
-}
-
-export function CommentCard(Props: CommentType) {
-  // Configure allowed tags/attributes for comments (customize as needed)
-  const sanitizerConfig = {
-    ALLOWED_TAGS: [
-      "p",
-      "br",
-      "strong",
-      "em",
-      "u",
-      "a",
-      "ul",
-      "ol",
-      "li",
-      "blockquote",
-      "code",
-    ],
-    ALLOWED_ATTR: ["href", "target", "rel"], // e.g., safe links
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^&\s]+)$/i, // Restrict link protocols
-  };
-
-  const sanitizedContent = DOMPurify.sanitize(Props.content, sanitizerConfig);
-
-  return (
-    <div class="card">
-      <div class="card-body pb-8 text-[1.0625rem]">
-        <div class="inline">
-          <span class="font-bold">ID: {Props.authorID}</span>
-
-          <time class="ml-4">
-            {new Date(Props.createdAt).toLocaleDateString("en-uk", {
-              hour: "numeric",
-              minute: "numeric",
-              year: "numeric",
-              month: "numeric",
-              day: "numeric",
-            })}
-          </time>
-        </div>
-
-        <div
-          class="prose max-w-full"
-          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-        />
-      </div>
-    </div>
   );
 }

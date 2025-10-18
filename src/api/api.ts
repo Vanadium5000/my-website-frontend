@@ -21,6 +21,11 @@ export interface User {
   createdAt: string;
   /** @default "Generated at runtime" */
   updatedAt: string;
+  role?: string;
+  /** @default false */
+  banned?: boolean;
+  banReason?: string;
+  banExpires?: string;
   age?: number;
 }
 
@@ -34,6 +39,7 @@ export interface Session {
   ipAddress?: string;
   userAgent?: string;
   userId: string;
+  impersonatedBy?: string;
 }
 
 export interface Account {
@@ -512,6 +518,89 @@ export class Api<
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags admin, comments
+     * @name GetBlogAdminCommentsPending
+     * @summary Get all pending (unaccepted) comments - Admin only
+     * @request GET:/blog/admin/comments/pending
+     * @secure
+     */
+    getBlogAdminCommentsPending: (params: RequestParams = {}) =>
+      this.request<
+        {
+          _id?: string;
+          blogId: string;
+          authorId: string;
+          content: string;
+          accepted: boolean;
+          createdAt: date | string | number;
+        }[],
+        any
+      >({
+        path: `/blog/admin/comments/pending`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Admin moderation actions for comments: - **accept**: Sets comment accepted=true, makes it visible to all users - **deny**: Sets comment accepted=false, hides it from public view - **delete**: Permanently removes the comment from database Requires admin authentication. Only comments that need moderation will be visible to admins.
+     *
+     * @tags admin, comments
+     * @name PatchBlogAdminCommentsByCommentIdModerate
+     * @summary Moderate a comment (accept, deny, or delete) - Admin only
+     * @request PATCH:/blog/admin/comments/{commentId}/moderate
+     * @secure
+     */
+    patchBlogAdminCommentsByCommentIdModerate: (
+      commentId: string,
+      data: {
+        action: "accept" | "deny" | "delete";
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success: boolean;
+        },
+        any
+      >({
+        path: `/blog/admin/comments/${commentId}/moderate`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  profile = {
+    /**
+     * @description Retrieves publicly available user information including name and profile picture.
+     *
+     * @tags profile
+     * @name GetProfileByUserId
+     * @summary Get public user profile by user ID
+     * @request GET:/profile/{userId}
+     */
+    getProfileByUserId: (userId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          id: string;
+          name: string;
+          image?: string;
+        },
+        any
+      >({
+        path: `/profile/${userId}`,
+        method: "GET",
         format: "json",
         ...params,
       }),
@@ -1688,6 +1777,558 @@ export class Api<
         path: `/auth/api/error`,
         method: "GET",
         secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Set the role of a user
+     *
+     * @tags Better Auth
+     * @name SetRole
+     * @request POST:/auth/api/admin/set-role
+     * @secure
+     */
+    setRole: (
+      data: {
+        /** The user id */
+        userId: string;
+        /** The role to set, this can be a string or an array of strings. Eg: `admin` or `[admin, user]` */
+        role: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user?: User;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/set-role`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get an existing user
+     *
+     * @tags Better Auth
+     * @name GetUser
+     * @request GET:/auth/api/admin/get-user
+     * @secure
+     */
+    getUser: (
+      query?: {
+        /** The id of the User */
+        id?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user?: User;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/get-user`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a new user
+     *
+     * @tags Better Auth
+     * @name CreateUser
+     * @request POST:/auth/api/admin/create-user
+     * @secure
+     */
+    createUser: (
+      data: {
+        /** The email of the user */
+        email: string;
+        /** The password of the user */
+        password: string;
+        /** The name of the user */
+        name: string;
+        role?: string | null;
+        data?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user?: User;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/create-user`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update a user's details
+     *
+     * @tags Better Auth
+     * @name UpdateUser
+     * @request POST:/auth/api/admin/update-user
+     * @secure
+     */
+    updateUser: (
+      data: {
+        /** The user id */
+        userId: string;
+        /** The user data to update */
+        data: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user?: User;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/update-user`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description List users
+     *
+     * @tags Better Auth
+     * @name ListUsers
+     * @request GET:/auth/api/admin/list-users
+     * @secure
+     */
+    listUsers: (
+      query?: {
+        searchValue?: string | null;
+        /** The field to search in, defaults to email. Can be `email` or `name`. Eg: "name" */
+        searchField?: string | null;
+        /** The operator to use for the search. Can be `contains`, `starts_with` or `ends_with`. Eg: "contains" */
+        searchOperator?: string | null;
+        limit?: string | null;
+        offset?: string | null;
+        /** The field to sort by */
+        sortBy?: string | null;
+        /** The direction to sort by */
+        sortDirection?: string | null;
+        /** The field to filter by */
+        filterField?: string | null;
+        filterValue?: string | null;
+        /** The operator to use for the filter */
+        filterOperator?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          users: User[];
+          total: number;
+          limit?: number;
+          offset?: number;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/list-users`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description List user sessions
+     *
+     * @tags Better Auth
+     * @name ListUserSessions
+     * @request POST:/auth/api/admin/list-user-sessions
+     * @secure
+     */
+    listUserSessions: (
+      data: {
+        /** The user id */
+        userId: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          sessions?: Session[];
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/list-user-sessions`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Unban a user
+     *
+     * @tags Better Auth
+     * @name UnbanUser
+     * @request POST:/auth/api/admin/unban-user
+     * @secure
+     */
+    unbanUser: (
+      data: {
+        /** The user id */
+        userId: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user?: User;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/unban-user`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Ban a user
+     *
+     * @tags Better Auth
+     * @name BanUser
+     * @request POST:/auth/api/admin/ban-user
+     * @secure
+     */
+    banUser: (
+      data: {
+        /** The user id */
+        userId: string;
+        /** The reason for the ban */
+        banReason?: string | null;
+        /** The number of seconds until the ban expires */
+        banExpiresIn?: number | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user?: User;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/ban-user`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Impersonate a user
+     *
+     * @tags Better Auth
+     * @name ImpersonateUser
+     * @request POST:/auth/api/admin/impersonate-user
+     * @secure
+     */
+    impersonateUser: (
+      data: {
+        /** The user id */
+        userId: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          session?: Session;
+          user?: User;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/impersonate-user`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Better Auth
+     * @name ApiAdminStopImpersonatingCreate
+     * @request POST:/auth/api/admin/stop-impersonating
+     * @secure
+     */
+    apiAdminStopImpersonatingCreate: (params: RequestParams = {}) =>
+      this.request<
+        any,
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/stop-impersonating`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * @description Revoke a user session
+     *
+     * @tags Better Auth
+     * @name RevokeUserSession
+     * @request POST:/auth/api/admin/revoke-user-session
+     * @secure
+     */
+    revokeUserSession: (
+      data: {
+        /** The session token */
+        sessionToken: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/revoke-user-session`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Revoke all user sessions
+     *
+     * @tags Better Auth
+     * @name RevokeUserSessions
+     * @request POST:/auth/api/admin/revoke-user-sessions
+     * @secure
+     */
+    revokeUserSessions: (
+      data: {
+        /** The user id */
+        userId: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/revoke-user-sessions`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete a user and all their sessions and accounts. Cannot be undone.
+     *
+     * @tags Better Auth
+     * @name RemoveUser
+     * @request POST:/auth/api/admin/remove-user
+     * @secure
+     */
+    removeUser: (
+      data: {
+        /** The user id */
+        userId: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/remove-user`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Set a user's password
+     *
+     * @tags Better Auth
+     * @name SetUserPassword
+     * @request POST:/auth/api/admin/set-user-password
+     * @secure
+     */
+    setUserPassword: (
+      data: {
+        /** The new password */
+        newPassword: string;
+        /** The user id */
+        userId: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          status?: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/set-user-password`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Check if the user has permission
+     *
+     * @tags Better Auth
+     * @name ApiAdminHasPermissionCreate
+     * @request POST:/auth/api/admin/has-permission
+     * @secure
+     */
+    apiAdminHasPermissionCreate: (
+      data: {
+        /**
+         * The permission to check
+         * @deprecated
+         */
+        permission?: object;
+        /** The permission to check */
+        permissions: object;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          error?: string;
+          success: boolean;
+        },
+        | {
+            message: string;
+          }
+        | {
+            message?: string;
+          }
+      >({
+        path: `/auth/api/admin/has-permission`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };
