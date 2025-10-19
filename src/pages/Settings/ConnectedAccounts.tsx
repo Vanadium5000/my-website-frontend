@@ -1,5 +1,4 @@
 import { useState, useEffect } from "preact/hooks";
-import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
 import { FaGithub, FaDiscord, FaFacebook, FaLink } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";

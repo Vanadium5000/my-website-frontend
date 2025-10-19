@@ -305,7 +305,7 @@ export function ChessGame() {
         </div>
 
         {/* Sidebar: Game Info */}
-        <div className="card bg-base-100 shadow-xl hover:shadow-2xl w-full lg:w-1/3">
+        <div className="card bg-base-100 shadow-2xl w-full lg:w-1/3">
           <div className="card-body">
             <h2 className="card-title mb-4">Game Info</h2>
 
@@ -349,18 +349,50 @@ export function ChessGame() {
 
             {/* Times */}
             {phase === "playing" && (
-              <div className="flex flex-col gap-2 mb-4">
-                <div className="flex items-center gap-2">
-                  <FaClock className="h-5 w-5" />
-                  <span>
-                    <strong>White Time:</strong> {formatTime(whiteTime)}
-                  </span>
+              <div className="grid grid-cols-1 gap-3 mb-4">
+                <div
+                  className={
+                    "card shadow-lg " +
+                    (isYourTurn()
+                      ? "bg-success text-success-content"
+                      : "bg-base-300 text-base-content")
+                  }
+                >
+                  <div className="card-body p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FaClock className="h-5 w-5" />
+                        <span className="font-semibold">Your Time</span>
+                      </div>
+                      <span className="text-lg font-mono">
+                        {formatTime(
+                          yourColor === "white" ? whiteTime : blackTime
+                        )}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <FaClock className="h-5 w-5" />
-                  <span>
-                    <strong>Black Time:</strong> {formatTime(blackTime)}
-                  </span>
+                <div
+                  className={
+                    "card shadow-lg " +
+                    (isYourTurn()
+                      ? "bg-base-300 text-base-content"
+                      : "bg-success text-success-content")
+                  }
+                >
+                  <div className="card-body p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FaClock className="h-5 w-5" />
+                        <span className="font-semibold">Opponent's Time</span>
+                      </div>
+                      <span className="text-lg font-mono">
+                        {formatTime(
+                          yourColor === "white" ? blackTime : whiteTime
+                        )}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

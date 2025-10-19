@@ -27,8 +27,10 @@ export interface User {
   banReason?: string;
   banExpires?: string;
   age?: number;
-  chessScore?: number;
-  draughtsScore?: number;
+  chessWins?: number;
+  chessLosses?: number;
+  draughtsWins?: number;
+  draughtsLosses?: number;
 }
 
 export interface Session {
@@ -585,7 +587,7 @@ export class Api<
   };
   profile = {
     /**
-     * @description Retrieves publicly available user information including name and profile picture.
+     * @description Retrieves publicly available user information including name, age, and game statistics.
      *
      * @tags profile
      * @name GetProfileByUserId
@@ -600,6 +602,11 @@ export class Api<
           image: string | null;
           createdAt: date | string | number;
           updatedAt: date | string | number;
+          age: number | null;
+          chessWins: number | null;
+          chessLosses: number | null;
+          draughtsWins: number | null;
+          draughtsLosses: number | null;
         },
         any
       >({
@@ -611,7 +618,7 @@ export class Api<
   };
   leaderboards = {
     /**
-     * @description Retrieves a list of public user profiles ranked by the specified attribute value in descending order. Only includes users with a truthy value for the attribute. Numeric values are sorted numerically, string values by length and then alphabetically.
+     * @description Retrieves a list of public user profiles ranked by the specified attribute value in descending order. Allowed attributes: age, chessWins, chessLosses, draughtsWins, draughtsLosses, name.
      *
      * @tags leaderboards
      * @name GetLeaderboards
@@ -620,7 +627,7 @@ export class Api<
      */
     getLeaderboards: (
       query: {
-        /** The attribute name to rank users by (e.g., chessScore). Must consist of alphanumeric characters and underscores. */
+        /** The attribute name to rank users by (e.g., chessWins). Allowed attributes: age, chessWins, chessLosses, draughtsWins, draughtsLosses, name. */
         attribute: string;
       },
       params: RequestParams = {},
@@ -632,6 +639,11 @@ export class Api<
           image: string | null;
           createdAt: date | string | number;
           updatedAt: date | string | number;
+          age: number | null;
+          chessWins: number | null;
+          chessLosses: number | null;
+          draughtsWins: number | null;
+          draughtsLosses: number | null;
         }[],
         any
       >({

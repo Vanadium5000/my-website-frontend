@@ -1,5 +1,4 @@
 import { useEffect, useState } from "preact/hooks";
-import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
 import {
   FaUserShield,

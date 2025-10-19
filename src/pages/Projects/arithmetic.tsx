@@ -1,6 +1,5 @@
 import { h } from "preact";
 import { useState, useEffect, useRef } from "preact/hooks";
-import { Navbar } from "../../components/Navbar";
 type Range = {
   min1: number;
   max1: number;

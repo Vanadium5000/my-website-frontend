@@ -1,4 +1,3 @@
-import { Navbar } from "../../components/Navbar.js";
 import { MdLeaderboard } from "react-icons/md";
 import { Leaderboard } from "../../components/Leaderboard.js";
 
@@ -13,13 +12,16 @@ export function Leaderboards() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <h2 className="text-2xl font-bold mb-2">Chess Scores</h2>
-            <Leaderboard attribute="chessScore" attributeTitle="Chess Score" />
+            <Leaderboard
+              attributes={["chessWins", "chessLosses"]}
+              attributeTitles={["Chess Wins", "Chess Losses"]}
+            />
           </div>
           <div>
             <h2 className="text-2xl font-bold mb-2">Draughts Scores</h2>
             <Leaderboard
-              attribute="draughtsScore"
-              attributeTitle="Draughts Score"
+              attributes={["draughtsWins", "draughtsLosses"]}
+              attributeTitles={["Draughts Wins", "Draughts Losses"]}
             />
           </div>
         </div>

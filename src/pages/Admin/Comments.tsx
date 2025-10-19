@@ -1,5 +1,4 @@
 import { useEffect, useState } from "preact/hooks";
-import { Navbar } from "../../components/Navbar";
 import { CommentCard } from "../../components/CommentCard";
 import { api } from "../../api/client";
 import { FaCommentDots } from "react-icons/fa";

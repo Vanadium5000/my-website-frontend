@@ -1,5 +1,3 @@
-import { Navbar } from "../../components/Navbar.jsx";
-import randomImage from "/random-image.jpg";
 import "./style.css";
 
 export function Home() {

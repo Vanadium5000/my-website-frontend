@@ -1,6 +1,5 @@
 // pages/Blog/post.js
 import { useState, useEffect } from "preact/hooks";
-import { Navbar } from "../../components/Navbar.jsx";
 import { CommentCard } from "../../components/CommentCard";
 import { api } from "../../api/client.js";
 import { PostCard, CommentType } from "./index.js";

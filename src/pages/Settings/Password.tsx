@@ -1,5 +1,4 @@
 import { useState } from "preact/hooks";
-import { Navbar } from "../../components/Navbar";
 import { api } from "../../api/client";
 import { useLocation } from "preact-iso";
 import { FaCheck, FaTimes } from "react-icons/fa";

@@ -4,12 +4,20 @@ import { Profile } from "./CommentCard.js";
 import { ProfilePicture } from "./ProfilePicture.js";
 
 interface Props {
-  attribute: string;
+  attribute?: string;
   attributeTitle?: string;
+  attributes?: string[];
+  attributeTitles?: (string | null)[];
 }
 
 export function Leaderboard(props: Props) {
-  if (!props.attribute) return;
+  const primaryAttribute = props.attributes
+    ? props.attributes[0]
+    : props.attribute;
+  if (!primaryAttribute) return;
+
+  const allAttributes = props.attributes || [props.attribute];
+  const allTitles = props.attributeTitles || [props.attributeTitle];
 
   const [leaderboardUsers, setLeaderboardUsers] = useState<Profile[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +28,9 @@ export function Leaderboard(props: Props) {
       try {
         // Fetch users
         const users = (
-          await api.leaderboards.getLeaderboards({ attribute: props.attribute })
+          await api.leaderboards.getLeaderboards({
+            attribute: primaryAttribute,
+          })
         ).data;
         console.log("FETCHED LEADERBOARD");
 
@@ -29,7 +39,7 @@ export function Leaderboard(props: Props) {
       } catch (error) {
         if (error?.status == 404) {
           console.log("404 error: no users with attribute");
-          setError(`No users found with attribute "${props.attribute}"`);
+          setError(`No users found with attribute "${primaryAttribute}"`);
           setLoading(false);
           return;
         }
@@ -41,7 +51,7 @@ export function Leaderboard(props: Props) {
         setLoading(false);
       }
     })();
-  }, [props]);
+  }, [primaryAttribute]);
 
   return (
     <>
@@ -71,10 +81,10 @@ export function Leaderboard(props: Props) {
           <table className="table table-zebra table-fixed w-full">
             <thead>
               <tr>
-                <th className="w-1/2">Name</th>
-                <th className="w-1/2">
-                  {props.attributeTitle || props.attribute}
-                </th>
+                <th>Name</th>
+                {allAttributes.map((attr, i) => (
+                  <th key={attr}>{allTitles[i] || attr}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -89,7 +99,9 @@ export function Leaderboard(props: Props) {
                       <div className="font-bold">{user.name}</div>
                     </a>
                   </td>
-                  <td>{String(user[props.attribute])}</td>
+                  {allAttributes.map((attr) => (
+                    <td key={attr}>{String(user[attr])}</td>
+                  ))}
                 </tr>
               ))}
             </tbody>

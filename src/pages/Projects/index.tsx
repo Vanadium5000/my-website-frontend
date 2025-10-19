@@ -1,4 +1,3 @@
-import { Navbar } from "../../components/Navbar.js";
 import { GameCard } from "../../components/GameCard.js";
 
 export function Projects() {

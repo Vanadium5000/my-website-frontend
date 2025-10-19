@@ -1,4 +1,3 @@
-import { Navbar } from "../../components/Navbar";
 import { FaShieldAlt, FaUserShield, FaCommentDots } from "react-icons/fa";
 
 export function AdminHome() {

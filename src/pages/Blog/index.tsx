@@ -1,5 +1,4 @@
 import { useEffect, useState } from "preact/hooks";
-import { Navbar } from "../../components/Navbar.jsx";
 import { api } from "../../api/client.js";
 import { Reactions } from "../../components/Reactions.js";
 import DOMPurify from "dompurify"; // HTML SANITIZATION

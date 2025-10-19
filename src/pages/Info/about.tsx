@@ -1,4 +1,3 @@
-import { Navbar } from "../../components/Navbar.jsx";
 import logo from "../../assets/logo.png";
 
 export function About() {

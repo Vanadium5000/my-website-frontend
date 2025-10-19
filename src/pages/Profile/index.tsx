@@ -1,6 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
 import { useLocation } from "preact-iso";
-import { Navbar } from "../../components/Navbar.jsx";
 import { ProfilePicture } from "../../components/ProfilePicture";
 import { api } from "../../api/client.js";
 import { FaUser, FaIdCard, FaCalendarAlt, FaEdit } from "react-icons/fa";
