@@ -1,5 +1,7 @@
 import { h } from "preact";
 import { useState, useEffect, useRef } from "preact/hooks";
+import { IoTimer } from "react-icons/io5";
+import { IoMdTrophy } from "react-icons/io";
 type Range = {
   min1: number;
   max1: number;
@@ -18,8 +20,8 @@ const operations: Op[] = ["add", "sub", "mult", "div"];
 export function Arithmetic() {
   const params = new URLSearchParams(window.location.search);
   const configStr = params.get("config");
-  let initialAddRange: Range = { min1: 0, max1: 100, min2: 0, max2: 100 };
-  let initialMultRange: Range = { min1: 2, max1: 20, min2: 2, max2: 20 };
+  let initialAddRange: Range = { min1: 2, max1: 100, min2: 2, max2: 100 };
+  let initialMultRange: Range = { min1: 2, max1: 12, min2: 2, max2: 100 };
   let initialDuration = 120;
   let initialSelectedOps: SelectedOps = {
     add: true,
@@ -361,24 +363,34 @@ export function Arithmetic() {
   } else if (gameState === "playing") {
     return (
       <>
-        <div className="flex flex-col items-center justify-center h-[99%]">
-          <div className="flex justify-between w-full max-w-md mb-4">
-            <p>Time: {timeLeft} s</p>
-            <p>Score: {score}</p>
+        <div className="relative flex flex-col items-center justify-center h-[99%]">
+          <div className="absolute top-4 left-4 text-2xl font-bold">
+            <div className="flex items-center gap-2">
+              <IoTimer />
+              Seconds left: {timeLeft}
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <IoMdTrophy />
+              Score: {score}
+            </div>
           </div>
-          {currentProblem && (
-            <h1 className="text-4xl mb-4">{currentProblem.question}</h1>
-          )}
-          <input
-            type="number"
-            className="border p-2 text-2xl w-32 text-center"
-            value={inputValue}
-            onChange={(e: h.JSX.TargetedEvent<HTMLInputElement>) =>
-              setInputValue(e.currentTarget.value)
-            }
-            onKeyDown={handleKeyDown}
-            ref={inputRef}
-          />
+          <div className="flex flex-col items-center">
+            {currentProblem && (
+              <div className="bg-base-300 w-[100vw] p-4 flex items-center justify-center text-4xl">
+                <span>{currentProblem.question}</span>
+                <input
+                  type="number"
+                  className="border p-2 text-2xl w-32 ml-2"
+                  value={inputValue}
+                  onChange={(e: h.JSX.TargetedEvent<HTMLInputElement>) =>
+                    setInputValue(e.currentTarget.value)
+                  }
+                  onKeyDown={handleKeyDown}
+                  ref={inputRef}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </>
     );

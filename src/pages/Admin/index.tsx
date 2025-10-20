@@ -1,4 +1,9 @@
-import { FaShieldAlt, FaUserShield, FaCommentDots } from "react-icons/fa";
+import {
+  FaShieldAlt,
+  FaUserShield,
+  FaCommentDots,
+  FaPlug,
+} from "react-icons/fa";
 
 export function AdminHome() {
   return (
@@ -31,6 +36,20 @@ export function AdminHome() {
               <FaCommentDots className="w-12 h-12 text-secondary mb-4" />
               <h2 className="card-title">Pending Comments</h2>
               <p>Review and accept pending blog comments</p>
+            </div>
+          </a>
+
+          <a
+            href="/admin/connections"
+            className="card shadow-lg hover:shadow-xl transition-shadow duration-300"
+          >
+            <div className="card-body items-center text-center">
+              <FaPlug className="w-12 h-12 text-success mb-4" />
+              <h2 className="card-title">Connection Management</h2>
+              <p>
+                Monitor active WebSocket connections, send events and
+                notifications
+              </p>
             </div>
           </a>
         </div>

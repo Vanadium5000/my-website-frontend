@@ -14,6 +14,7 @@ import { Signup } from "./pages/Signup/index.js";
 import { AdminHome } from "./pages/Admin/index";
 import { AdminUsers } from "./pages/Admin/Users";
 import { AdminComments } from "./pages/Admin/Comments";
+import { AdminConnections } from "./pages/Admin/Connections";
 import { Settings } from "./pages/Settings/index";
 import { NameSettings } from "./pages/Settings/Name";
 import { PasswordSettings } from "./pages/Settings/Password";
@@ -26,11 +27,13 @@ import "./style.css";
 import { Leaderboards } from "./pages/Leaderboards/index.js";
 import { Navbar } from "./components/Navbar.js";
 import { ToastProvider } from "./components/technical/ToastProvider.js";
+import { Connection } from "./components/technical/Connection.js";
 
 export function App() {
   return (
     <LocationProvider>
       <ToastProvider>
+        <Connection />
         <div class="flex min-h-screen flex-col">
           <Navbar />
           <main>
@@ -49,6 +52,7 @@ export function App() {
               <Route path="/admin" component={AdminHome} />
               <Route path="/admin/users" component={AdminUsers} />
               <Route path="/admin/comments" component={AdminComments} />
+              <Route path="/admin/connections" component={AdminConnections} />
               <Route path="/settings" component={Settings} />
               <Route path="/settings/name" component={NameSettings} />
               <Route path="/settings/password" component={PasswordSettings} />

@@ -654,6 +654,121 @@ export class Api<
         ...params,
       }),
   };
+  connections = {
+    /**
+     * @description Returns detailed information about all active connections including user data and socket info. Admin only.
+     *
+     * @tags admin, connections
+     * @name GetConnections
+     * @summary List all active WebSocket connections
+     * @request GET:/connections/
+     * @secure
+     */
+    getConnections: (params: RequestParams = {}) =>
+      this.request<
+        {
+          total: number;
+          connections: {
+            socketId: string;
+            userData:
+              | {
+                  id: string;
+                  createdAt: date | string | number;
+                  updatedAt: date | string | number;
+                  email: string;
+                  emailVerified: boolean;
+                  name: string;
+                  image?: string | null;
+                  banned?: boolean | null;
+                  role?: string | null;
+                  banReason?: string | null;
+                  banExpires?: (date | string | number) | null;
+                }
+              | undefined;
+            connectedAt: date | string | number;
+            route: string;
+            socketInfo: {
+              ip?: string;
+              userAgent?: string;
+              origin?: string;
+            };
+          }[];
+          timestamp: date | string | number;
+        },
+        any
+      >({
+        path: `/connections/`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Send a custom WebSocket event to a specific socket (if socketId provided) or broadcast to all connections in the namespace. Admin only.
+     *
+     * @tags admin, connections, events
+     * @name PostConnectionsSendEvent
+     * @summary Send custom event to connection(s)
+     * @request POST:/connections/send-event
+     * @secure
+     */
+    postConnectionsSendEvent: (
+      data: {
+        socketId?: string;
+        event: string;
+        data?: any;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success: boolean;
+          message: string;
+          recipients?: number;
+        },
+        any
+      >({
+        path: `/connections/send-event`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Forcefully disconnect a specific WebSocket connection. Connection will reconnect automatically if client supports reconnection. Admin only.
+     *
+     * @tags admin, connections, disconnect
+     * @name PostConnectionsDisconnect
+     * @summary Force disconnect a WebSocket connection
+     * @request POST:/connections/disconnect
+     * @secure
+     */
+    postConnectionsDisconnect: (
+      data: {
+        socketId: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success: boolean;
+          message: string;
+        },
+        any
+      >({
+        path: `/connections/disconnect`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
   me = {
     /**
      * No description

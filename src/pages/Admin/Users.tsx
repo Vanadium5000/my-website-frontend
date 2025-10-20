@@ -261,7 +261,7 @@ export function AdminUsers() {
                             setSelectedUser(user);
                             setShowCustomFieldModal(true);
                           }}
-                          title="Add custom field"
+                          title="Set user data"
                         >
                           <FaPlus />
                         </button>
@@ -327,12 +327,17 @@ export function AdminUsers() {
             <div className="modal-box">
               <h3 className="font-bold text-lg flex items-center gap-2">
                 <FaEdit />
-                Add Custom Field for {selectedUser.name}
+                Set User Data for {selectedUser.name}
               </h3>
+              <p className="text-sm text-base-content/70 mb-4">
+                Store arbitrary JSON data with this user (e.g., custom fields,
+                metadata). This will be stored as {'{ "customField": "value" }'}
+                .
+              </p>
               <div className="py-4">
                 <input
                   type="text"
-                  placeholder="Enter custom field value"
+                  placeholder="Enter value (e.g., admin notes, internal flags)"
                   className="input input-bordered w-full"
                   value={customField}
                   onChange={(e) => setCustomField(e.currentTarget.value)}
@@ -354,7 +359,7 @@ export function AdminUsers() {
                   onClick={handleAddCustomField}
                   disabled={!customField.trim()}
                 >
-                  Add Field
+                  Save Data
                 </button>
               </div>
             </div>

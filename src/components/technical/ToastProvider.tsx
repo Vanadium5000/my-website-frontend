@@ -1,4 +1,4 @@
-import { useContext, useState } from "preact/hooks";
+import { useContext, useState, useCallback } from "preact/hooks";
 import { createContext } from "preact";
 
 interface Toast {
@@ -19,13 +19,13 @@ export function ToastProvider({
 }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const addToast: AddToast = (newToast) => {
+  const addToast: AddToast = useCallback((newToast) => {
     const id = Date.now();
     setToasts((prev) => [...prev, { ...newToast, id }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, newToast.time);
-  };
+  }, []);
 
   return (
     <ToastContext.Provider value={addToast}>
