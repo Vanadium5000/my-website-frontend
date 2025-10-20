@@ -10,21 +10,7 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import { ProfilePicture } from "../../components/ProfilePicture";
-
-interface User {
-  id?: string;
-  name: string;
-  email: string;
-  emailVerified: boolean;
-  image?: string;
-  createdAt: string;
-  updatedAt: string;
-  role?: string;
-  banned?: boolean;
-  banReason?: string;
-  banExpires?: string;
-  age?: number;
-}
+import { User } from "../../api/api";
 
 export function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);

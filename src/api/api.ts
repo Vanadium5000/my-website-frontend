@@ -10,6 +10,29 @@
  * ---------------------------------------------------------------
  */
 
+export interface Comment {
+  _id?: string;
+  blogId: string;
+  authorId: string;
+  content: string;
+  accepted: boolean;
+  createdAt: date | string | number;
+}
+
+export interface PublicUser {
+  id: string;
+  name: string;
+  image: string | null;
+  createdAt: date | string | number;
+  updatedAt: date | string | number;
+  age: number | null;
+  chessWins: number | null;
+  chessLosses: number | null;
+  draughtsWins: number | null;
+  draughtsLosses: number | null;
+  arithmeticScore: number | null;
+}
+
 export interface User {
   id?: string;
   name: string;
@@ -31,6 +54,7 @@ export interface User {
   chessLosses?: number;
   draughtsWins?: number;
   draughtsLosses?: number;
+  arithmeticScore?: number;
 }
 
 export interface Session {
@@ -607,11 +631,56 @@ export class Api<
           chessLosses: number | null;
           draughtsWins: number | null;
           draughtsLosses: number | null;
+          arithmeticScore: number | null;
         },
         any
       >({
         path: `/profile/${userId}`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Log arithmetic score
+     *
+     * @tags profile
+     * @name PostProfileLogArithmetic
+     * @summary Log arithmetic score
+     * @request POST:/profile/log-arithmetic
+     * @secure
+     */
+    postProfileLogArithmetic: (
+      data: {
+        additionRange: {
+          min1: number;
+          max1: number;
+          min2: number;
+          max2: number;
+        };
+        multiplicationRange: {
+          min1: number;
+          max1: number;
+          min2: number;
+          max2: number;
+        };
+        duration: number;
+        finalScore: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          counted: boolean;
+          message: string;
+        },
+        any
+      >({
+        path: `/profile/log-arithmetic`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -644,6 +713,7 @@ export class Api<
           chessLosses: number | null;
           draughtsWins: number | null;
           draughtsLosses: number | null;
+          arithmeticScore: number | null;
         }[],
         any
       >({

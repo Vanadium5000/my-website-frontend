@@ -3,7 +3,7 @@ import "./style.css";
 export function Home() {
   return (
     <>
-      <div className="h-[99%] grid place-items-center" id="homescreen">
+      <div className="h-[100%] grid place-items-center" id="homescreen">
         <div className="min-w-1/4 text-center p-8 bg-black/80 text-white">
           <h1 className="text-8xl font-semibold mb-2">
             My

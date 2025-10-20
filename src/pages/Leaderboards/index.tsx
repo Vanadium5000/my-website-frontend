@@ -11,17 +11,24 @@ export function Leaderboards() {
         </h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Chess Scores</h2>
+            <h2 className="text-2xl font-bold mb-2">Chess Wins/Losses</h2>
             <Leaderboard
               attributes={["chessWins", "chessLosses"]}
               attributeTitles={["Chess Wins", "Chess Losses"]}
             />
           </div>
           <div>
-            <h2 className="text-2xl font-bold mb-2">Draughts Scores</h2>
+            <h2 className="text-2xl font-bold mb-2">Draughts Wins/Losses</h2>
             <Leaderboard
               attributes={["draughtsWins", "draughtsLosses"]}
               attributeTitles={["Draughts Wins", "Draughts Losses"]}
+            />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Arithmetic Score</h2>
+            <Leaderboard
+              attributes={["arithmeticScore"]}
+              attributeTitles={["Arithmetic Score"]}
             />
           </div>
         </div>

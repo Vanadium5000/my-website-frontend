@@ -21,10 +21,12 @@ export function GameCard({
           <div>
             <h2 className="card-title text-3xl mb-3 text-balance">{title}</h2>
             <p className="mb-4 leading-relaxed">{description}</p>
-            <div className="text-sm bg-base-100 text-base-content p-3 rounded border border-base-300 my-4">
-              <span className="font-semibold text-accent">Technical:</span>{" "}
-              {technicalSpecs}
-            </div>
+            {technicalSpecs && (
+              <div className="text-sm bg-base-100 text-base-content p-3 rounded border border-base-300 my-4">
+                <span className="font-semibold text-accent">Technical:</span>{" "}
+                {technicalSpecs}
+              </div>
+            )}
           </div>
           <div className="card-actions">
             <a

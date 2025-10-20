@@ -2,18 +2,10 @@ import { useEffect, useState } from "preact/hooks";
 import { CommentCard } from "../../components/CommentCard";
 import { api } from "../../api/client";
 import { FaCommentDots } from "react-icons/fa";
-
-interface PendingComment {
-  _id?: string;
-  blogId: string;
-  authorId: string;
-  content: string;
-  accepted: boolean;
-  createdAt: string | number | Date;
-}
+import { Comment } from "../../api/api";
 
 export function AdminComments() {
-  const [comments, setComments] = useState<PendingComment[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 

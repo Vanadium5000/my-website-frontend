@@ -47,6 +47,11 @@ export function Profile({ id }: ProfileProps) {
           emailVerified: false, // Not available publicly
           createdAt: profileResponse.data.createdAt,
           updatedAt: profileResponse.data.updatedAt,
+          chessWins: profileResponse.data.chessWins,
+          chessLosses: profileResponse.data.chessLosses,
+          draughtsWins: profileResponse.data.draughtsWins,
+          draughtsLosses: profileResponse.data.draughtsLosses,
+          arithmeticScore: profileResponse.data.arithmeticScore,
           role: null,
           banned: false,
           banReason: null,
@@ -80,7 +85,7 @@ export function Profile({ id }: ProfileProps) {
     return (
       <>
         <div
-          className="h-[99%] flex items-center justify-center"
+          className="h-[100%] flex items-center justify-center"
           id="profile-background"
         >
           <span className="loading loading-spinner loading-lg"></span>
@@ -93,7 +98,7 @@ export function Profile({ id }: ProfileProps) {
     return (
       <>
         <div
-          className="h-[99%] flex items-center justify-center"
+          className="h-[100%] flex items-center justify-center"
           id="profile-background"
         >
           <div className="alert alert-error">
@@ -107,7 +112,7 @@ export function Profile({ id }: ProfileProps) {
   return (
     <>
       <div
-        className="h-[99%] flex items-center justify-center"
+        className="h-[100%] flex items-center justify-center"
         id="profile-background"
       >
         <div className="card bg-base-100 shadow-2xl max-w-md w-full mx-4">

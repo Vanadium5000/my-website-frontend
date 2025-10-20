@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../api/client.js";
-import { Profile } from "./CommentCard.js";
 import { ProfilePicture } from "./ProfilePicture.js";
+import { PublicUser } from "../api/api.js";
 
 interface Props {
   attribute?: string;
@@ -19,7 +19,7 @@ export function Leaderboard(props: Props) {
   const allAttributes = props.attributes || [props.attribute];
   const allTitles = props.attributeTitles || [props.attributeTitle];
 
-  const [leaderboardUsers, setLeaderboardUsers] = useState<Profile[]>([]);
+  const [leaderboardUsers, setLeaderboardUsers] = useState<PublicUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 

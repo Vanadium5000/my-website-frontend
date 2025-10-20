@@ -3,14 +3,7 @@ import { api } from "../api/client";
 import DOMPurify from "dompurify";
 import { FaCheck, FaTrash } from "react-icons/fa";
 import { ProfilePicture } from "./ProfilePicture";
-
-export interface Profile {
-  id: string;
-  name: string;
-  image?: string;
-  createdAt: string | number;
-  updatedAt: string | number;
-}
+import { PublicUser } from "../api/api";
 
 interface CommentCardProps {
   content: string;
@@ -33,7 +26,7 @@ export function CommentCard({
   onDelete,
   commentId,
 }: CommentCardProps) {
-  const [author, setAuthor] = useState<Profile | null>(null);
+  const [author, setAuthor] = useState<PublicUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

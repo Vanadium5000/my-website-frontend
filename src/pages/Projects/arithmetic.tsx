@@ -2,6 +2,8 @@ import { h } from "preact";
 import { useState, useEffect, useRef } from "preact/hooks";
 import { IoTimer } from "react-icons/io5";
 import { IoMdTrophy } from "react-icons/io";
+import { api } from "../../api/client";
+import { GoStop } from "react-icons/go";
 type Range = {
   min1: number;
   max1: number;
@@ -52,6 +54,7 @@ export function Arithmetic() {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [inputValue, setInputValue] = useState<string>("");
+  const [recorded, setRecorded] = useState(false); // Whether or not the game result counted
   const inputRef = useRef<HTMLInputElement>(null);
   const generateProblem = () => {
     const selectedOperations = operations.filter((op) => selectedOps[op]);
@@ -119,20 +122,24 @@ export function Arithmetic() {
     }
   }, [gameState, currentProblem]);
   useEffect(() => {
-    if (gameState === "ended") {
-      console.log(
-        JSON.stringify(
-          {
-            additionRange: addRange,
-            multiplicationRange: multRange,
-            duration: duration,
-            finalScore: score,
-          },
-          null,
-          2
-        )
-      );
-    }
+    (async () => {
+      if (gameState === "ended") {
+        const gameData = {
+          additionRange: addRange,
+          multiplicationRange: multRange,
+          duration: duration,
+          finalScore: score,
+        };
+
+        console.log(JSON.stringify(gameData, null, 2));
+
+        // Log game stats
+        const response = (await api.profile.postProfileLogArithmetic(gameData))
+          .data;
+
+        setRecorded(response.counted);
+      }
+    })();
   }, [gameState, addRange, multRange, duration, score]);
   const handleSubmit = () => {
     if (!currentProblem) return;
@@ -363,7 +370,7 @@ export function Arithmetic() {
   } else if (gameState === "playing") {
     return (
       <>
-        <div className="relative flex flex-col items-center justify-center h-[99%]">
+        <div className="relative flex flex-col items-center justify-center h-[100%]">
           <div className="absolute top-4 left-4 text-2xl font-bold">
             <div className="flex items-center gap-2">
               <IoTimer />
@@ -373,6 +380,13 @@ export function Arithmetic() {
               <IoMdTrophy />
               Score: {score}
             </div>
+            <button
+              className="flex items-center gap-2 mt-2 btn btn-error"
+              onClick={() => setGameState("ended")}
+            >
+              <GoStop />
+              End Game Early
+            </button>
           </div>
           <div className="flex flex-col items-center">
             {currentProblem && (
@@ -397,9 +411,14 @@ export function Arithmetic() {
   } else {
     return (
       <>
-        <div className="flex flex-col items-center justify-center h-[99%]">
+        <div className="flex flex-col items-center justify-center h-[100%]">
           <h1 className="text-3xl font-bold mb-4">Game Over</h1>
-          <p className="text-2xl mb-4">Score: {score}</p>
+          <p className="text-2xl">Score: {score}</p>
+          <p className="mb-4">
+            {recorded
+              ? "Your result was successfully recorded"
+              : "Your result did not meet the criteria to be recorded"}
+          </p>
           <button
             className="bg-blue-500 text-white p-2 rounded"
             onClick={() => setGameState("start")}
