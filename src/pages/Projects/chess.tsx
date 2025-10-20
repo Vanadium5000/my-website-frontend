@@ -65,13 +65,14 @@ export function ChessGame() {
         }
         setMyName(response.user.name);
 
-        const base_url =
-          import.meta.env.MODE === "production"
-            ? "wss://my-website.space/backend"
-            : "http://localhost:3000";
+        const baseUrl = api.baseUrl;
+        const fullPath = new URL("/sockets/chess", baseUrl).href;
 
-        const newSocket = io(base_url, {
-          path: "/socket.io/",
+        console.log("Using Chess socket base URL:", baseUrl);
+        console.log("Using Chess socket full path:", fullPath);
+
+        const newSocket = io(fullPath, {
+          path: "/sockets/",
           transports: ["websocket", "polling"],
           withCredentials: true,
         });

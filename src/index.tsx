@@ -25,43 +25,49 @@ import { Profile } from "./pages/Profile/index.js";
 import "./style.css";
 import { Leaderboards } from "./pages/Leaderboards/index.js";
 import { Navbar } from "./components/Navbar.js";
+import { ToastProvider } from "./components/technical/ToastProvider.js";
 
 export function App() {
   return (
     <LocationProvider>
-      <div class="flex min-h-screen flex-col">
-        <Navbar />
-        <main>
-          <Router>
-            <Route path="/" component={Home} />
-            <Route path="/blog" component={BlogHome} />
-            {/* Dynamic route */}
-            <Route path="/blog/:id" component={BlogPost} />
-            <Route path="/about" component={About} />
-            <Route path="/leaderboards" component={Leaderboards} />
-            <Route path="/login" component={Login} />
-            <Route path="/projects" component={Projects} />
-            <Route path="/projects/chess" component={ChessGame} />
-            <Route path="/projects/arithmetic" component={Arithmetic} />
-            <Route path="/signup" component={Signup} />
-            <Route path="/admin" component={AdminHome} />
-            <Route path="/admin/users" component={AdminUsers} />
-            <Route path="/admin/comments" component={AdminComments} />
-            <Route path="/settings" component={Settings} />
-            <Route path="/settings/name" component={NameSettings} />
-            <Route path="/settings/password" component={PasswordSettings} />
-            <Route
-              path="/settings/accounts"
-              component={ConnectedAccountsSettings}
-            />
-            <Route path="/settings/sessions" component={SessionsSettings} />
-            <Route path="/settings/delete" component={DeleteAccountSettings} />
-            <Route path="/profile/:id?" component={Profile} />
-            <Route default component={NotFound} />
-          </Router>
-        </main>
-        <Footer />
-      </div>
+      <ToastProvider>
+        <div class="flex min-h-screen flex-col">
+          <Navbar />
+          <main>
+            <Router>
+              <Route path="/" component={Home} />
+              <Route path="/blog" component={BlogHome} />
+              {/* Dynamic route */}
+              <Route path="/blog/:id" component={BlogPost} />
+              <Route path="/about" component={About} />
+              <Route path="/leaderboards" component={Leaderboards} />
+              <Route path="/login" component={Login} />
+              <Route path="/projects" component={Projects} />
+              <Route path="/projects/chess" component={ChessGame} />
+              <Route path="/projects/arithmetic" component={Arithmetic} />
+              <Route path="/signup" component={Signup} />
+              <Route path="/admin" component={AdminHome} />
+              <Route path="/admin/users" component={AdminUsers} />
+              <Route path="/admin/comments" component={AdminComments} />
+              <Route path="/settings" component={Settings} />
+              <Route path="/settings/name" component={NameSettings} />
+              <Route path="/settings/password" component={PasswordSettings} />
+              <Route
+                path="/settings/accounts"
+                component={ConnectedAccountsSettings}
+              />
+              <Route path="/settings/sessions" component={SessionsSettings} />
+              <Route
+                path="/settings/delete"
+                component={DeleteAccountSettings}
+              />
+              <Route path="/profile/:id?" component={Profile} />
+              <Route default component={NotFound} />
+            </Router>
+          </main>
+          <Footer />
+        </div>
+      </ToastProvider>
     </LocationProvider>
   );
 }

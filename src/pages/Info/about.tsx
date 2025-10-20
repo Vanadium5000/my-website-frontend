@@ -1,6 +1,21 @@
+import { useState } from "preact/hooks";
 import logo from "../../assets/logo.png";
+import { useSpawnToast } from "../../components/technical/ToastProvider";
 
 export function About() {
+  const spawnToast = useSpawnToast();
+  const [amount, setAmount] = useState(0);
+
+  const handleClick = () => {
+    spawnToast({
+      text: `Number: ${amount}`,
+      type: "success",
+      time: 3000, // time in milliseconds
+    });
+
+    setAmount(amount + 1);
+  };
+
   return (
     <>
       <div className="sm:float-left sm:w-1/2 p-4">
@@ -17,6 +32,9 @@ export function About() {
       <div className="sm:float-right sm:w-1/2 mx-auto">
         <img src={logo} className="p-4 w-[80%]" />
       </div>
+      <button class="btn btn-active" onClick={handleClick}>
+        Click me
+      </button>
     </>
   );
 }

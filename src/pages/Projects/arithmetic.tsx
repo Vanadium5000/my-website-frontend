@@ -361,7 +361,7 @@ export function Arithmetic() {
   } else if (gameState === "playing") {
     return (
       <>
-        <div className="flex flex-col items-center justify-center h-screen">
+        <div className="flex flex-col items-center justify-center h-[99%]">
           <div className="flex justify-between w-full max-w-md mb-4">
             <p>Time: {timeLeft} s</p>
             <p>Score: {score}</p>
@@ -385,7 +385,7 @@ export function Arithmetic() {
   } else {
     return (
       <>
-        <div className="flex flex-col items-center justify-center h-screen">
+        <div className="flex flex-col items-center justify-center h-[99%]">
           <h1 className="text-3xl font-bold mb-4">Game Over</h1>
           <p className="text-2xl mb-4">Score: {score}</p>
           <button
