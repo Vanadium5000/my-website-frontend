@@ -15,9 +15,9 @@ export function GameCard({
 }: GameCardProps) {
   return (
     <a href={href}>
-      <div className="card card-side bg-neutral text-neutral-content border border-base-200 overflow-hidden relative group transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-accent/20 flex">
+      <div className="h-full card card-side bg-neutral text-neutral-content border border-base-200 overflow-hidden relative group transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-accent/20 flex">
         {/* Text Content - Left Side */}
-        <div className="card-body p-8 flex flex-col justify-between w-3/4">
+        <div className="card-body p-8 flex flex-col justify-between w-3/5">
           <div>
             <h2 className="card-title text-3xl mb-3 text-balance">{title}</h2>
             <p className="mb-4 leading-relaxed">{description}</p>

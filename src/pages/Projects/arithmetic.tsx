@@ -4,21 +4,28 @@ import { IoTimer } from "react-icons/io5";
 import { IoMdTrophy } from "react-icons/io";
 import { api } from "../../api/client";
 import { GoStop } from "react-icons/go";
+
 type Range = {
   min1: number;
   max1: number;
   min2: number;
   max2: number;
 };
+
 type Op = "add" | "sub" | "mult" | "div";
+
 type Problem = {
   question: string;
   answer: number;
 };
+
 type SelectedOps = Record<Op, boolean>;
+
 const randInt = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
+
 const operations: Op[] = ["add", "sub", "mult", "div"];
+
 export function Arithmetic() {
   const params = new URLSearchParams(window.location.search);
   const configStr = params.get("config");
@@ -42,6 +49,7 @@ export function Arithmetic() {
       autoStart = true;
     } catch (e) {}
   }
+
   const [addRange, setAddRange] = useState<Range>(initialAddRange);
   const [multRange, setMultRange] = useState<Range>(initialMultRange);
   const [duration, setDuration] = useState<number>(initialDuration);
@@ -56,6 +64,7 @@ export function Arithmetic() {
   const [inputValue, setInputValue] = useState<string>("");
   const [recorded, setRecorded] = useState(false); // Whether or not the game result counted
   const inputRef = useRef<HTMLInputElement>(null);
+
   const generateProblem = () => {
     const selectedOperations = operations.filter((op) => selectedOps[op]);
     if (selectedOperations.length === 0) return;
@@ -89,6 +98,7 @@ export function Arithmetic() {
     setCurrentProblem({ question, answer });
     setInputValue("");
   };
+
   const startGame = () => {
     const hasOps = Object.values(selectedOps).some((v) => v);
     if (!hasOps) {
@@ -100,11 +110,13 @@ export function Arithmetic() {
     setGameState("playing");
     generateProblem();
   };
+
   useEffect(() => {
     if (autoStart) {
       startGame();
     }
   }, []);
+
   useEffect(() => {
     if (gameState !== "playing") return;
     if (timeLeft <= 0) {
@@ -116,11 +128,13 @@ export function Arithmetic() {
     }, 1000);
     return () => clearInterval(timer);
   }, [gameState, timeLeft]);
+
   useEffect(() => {
     if (gameState === "playing" && inputRef.current) {
       inputRef.current.focus();
     }
   }, [gameState, currentProblem]);
+
   useEffect(() => {
     (async () => {
       if (gameState === "ended") {
@@ -141,6 +155,7 @@ export function Arithmetic() {
       }
     })();
   }, [gameState, addRange, multRange, duration, score]);
+
   const handleSubmit = () => {
     if (!currentProblem) return;
     const userAnswer = parseFloat(inputValue);
@@ -155,11 +170,13 @@ export function Arithmetic() {
       setInputValue("");
     }
   };
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSubmit();
     }
   };
+
   const handleRangeChange = (
     setter: (r: Range) => void,
     range: Range,
@@ -171,6 +188,7 @@ export function Arithmetic() {
       setter({ ...range, [key]: num });
     }
   };
+
   const handleShare = () => {
     const config = {
       addRange,
@@ -184,6 +202,7 @@ export function Arithmetic() {
       alert("Shareable link copied to clipboard!");
     });
   };
+
   if (gameState === "start") {
     return (
       <>
@@ -381,7 +400,7 @@ export function Arithmetic() {
               Score: {score}
             </div>
             <button
-              className="flex items-center gap-2 mt-2 btn btn-error"
+              className="flex items-center gap-2 mt-2 btn btn-error text-lg"
               onClick={() => setGameState("ended")}
             >
               <GoStop />

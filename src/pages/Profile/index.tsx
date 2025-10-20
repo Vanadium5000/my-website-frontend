@@ -2,7 +2,15 @@ import { useState, useEffect } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { ProfilePicture } from "../../components/ProfilePicture";
 import { api } from "../../api/client.js";
-import { FaUser, FaIdCard, FaCalendarAlt, FaEdit } from "react-icons/fa";
+import {
+  FaUser,
+  FaIdCard,
+  FaCalendarAlt,
+  FaEdit,
+  FaChessKnight,
+  FaCircle,
+  FaCalculator,
+} from "react-icons/fa";
 import { User } from "../../api/api";
 
 interface ProfileProps {
@@ -151,6 +159,38 @@ export function Profile({ id }: ProfileProps) {
                 </span>
               </div>
             )}
+
+            {/* Stats */}
+            {/* Chess Stats */}
+            {(profileUser.chessWins !== undefined ||
+              profileUser.chessLosses !== undefined) && (
+              <div className="flex items-center gap-2 text-sm opacity-70 mt-2">
+                <FaChessKnight />
+                <span>
+                  Chess: Wins: {profileUser.chessWins ?? 0}, Losses:{" "}
+                  {profileUser.chessLosses ?? 0}
+                </span>
+              </div>
+            )}
+            {/* Draughts Stats */}
+            {(profileUser.draughtsWins !== undefined ||
+              profileUser.draughtsLosses !== undefined) && (
+              <div className="flex items-center gap-2 text-sm opacity-70 mt-2">
+                <FaCircle />
+                <span>
+                  Draughts: Wins: {profileUser.draughtsWins ?? 0}, Losses:{" "}
+                  {profileUser.draughtsLosses ?? 0}
+                </span>
+              </div>
+            )}
+            {/* Arithmetic Score */}
+            {profileUser.arithmeticScore !== undefined &&
+              profileUser.arithmeticScore !== null && (
+                <div className="flex items-center gap-2 text-sm opacity-70 mt-2">
+                  <FaCalculator />
+                  <span>Arithmetic Score: {profileUser.arithmeticScore}</span>
+                </div>
+              )}
 
             {/* Edit button if viewing own profile */}
             {currentUser &&
