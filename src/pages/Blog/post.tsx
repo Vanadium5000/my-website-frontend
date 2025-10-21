@@ -130,7 +130,7 @@ export function BlogPost({ id }: { id: string }) {
     <>
       <div class="card card-body max-w-full">
         <div class="text-center justify-center">
-          <PostCard post={blogPost.blog} />
+          <PostCard postData={blogPost.blog} />
         </div>
       </div>
       <div

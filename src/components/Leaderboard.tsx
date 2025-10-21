@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import { api } from "../api/client.js";
 import { ProfilePicture } from "./ProfilePicture.js";
 import { PublicUser } from "../api/api.js";
+import { SortableTable, TableColumn } from "./SortableTable.jsx";
 
 interface Props {
   attribute?: string;
@@ -77,36 +78,38 @@ export function Leaderboard(props: Props) {
           <span className="loading loading-spinner loading-lg"></span>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="table table-zebra table-fixed w-full">
-            <thead>
-              <tr>
-                <th>Name</th>
-                {allAttributes.map((attr, i) => (
-                  <th key={attr}>{allTitles[i] || attr}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {leaderboardUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <a
-                      href={`/profile/${user.id}`}
-                      className="flex items-center gap-3"
-                    >
-                      <ProfilePicture name={user.name} image={user.image} />
-                      <div className="font-bold">{user.name}</div>
-                    </a>
-                  </td>
-                  {allAttributes.map((attr) => (
-                    <td key={attr}>{String(user[attr])}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <SortableTable
+          columns={[
+            {
+              key: "name",
+              title: "Name",
+              sortable: true,
+              width: "300px",
+            },
+            ...allAttributes.map((attr, i) => ({
+              key: attr,
+              title: allTitles[i] || attr,
+              sortable: true,
+            })),
+          ]}
+          data={leaderboardUsers}
+          renderCell={(user, columnKey) => {
+            if (columnKey === "name") {
+              return (
+                <a
+                  href={`/profile/${user.id}`}
+                  className="flex items-center gap-3"
+                >
+                  <ProfilePicture name={user.name} image={user.image} />
+                  <div className="font-bold">{user.name}</div>
+                </a>
+              );
+            }
+            return user[columnKey] || "-";
+          }}
+          loading={false}
+          emptyMessage="No users found"
+        />
       )}
     </>
   );

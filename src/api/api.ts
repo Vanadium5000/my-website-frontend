@@ -10,6 +10,30 @@
  * ---------------------------------------------------------------
  */
 
+export interface BlogIndexSchema {
+  id: string;
+  title: string;
+  snippet: string;
+  likes: number;
+  dislikes: number;
+  commentCount: number;
+  createdAt: date | string | number;
+  updatedAt: date | string | number;
+  markdownContent: string;
+}
+
+export interface BlogDetailSchema {
+  id: string;
+  title: string;
+  snippet: string;
+  content: string;
+  likes: number;
+  dislikes: number;
+  commentCount: number;
+  createdAt: date | string | number;
+  updatedAt: date | string | number;
+}
+
 export interface Comment {
   _id?: string;
   blogId: string;
@@ -420,6 +444,7 @@ export class Api<
           commentCount: number;
           createdAt: date | string | number;
           updatedAt: date | string | number;
+          markdownContent: string;
         }[],
         any
       >({
