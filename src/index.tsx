@@ -15,6 +15,7 @@ import { AdminHome } from "./pages/Admin/index";
 import { AdminUsers } from "./pages/Admin/Users";
 import { AdminComments } from "./pages/Admin/Comments";
 import { AdminConnections } from "./pages/Admin/Connections";
+import { AdminProfiles } from "./pages/Admin/Profiles";
 import { Settings } from "./pages/Settings/index";
 import { NameSettings } from "./pages/Settings/Name";
 import { PasswordSettings } from "./pages/Settings/Password";
@@ -53,6 +54,7 @@ export function App() {
               <Route path="/admin/users" component={AdminUsers} />
               <Route path="/admin/comments" component={AdminComments} />
               <Route path="/admin/connections" component={AdminConnections} />
+              <Route path="/admin/profiles" component={AdminProfiles} />
               <Route path="/settings" component={Settings} />
               <Route path="/settings/name" component={NameSettings} />
               <Route path="/settings/password" component={PasswordSettings} />

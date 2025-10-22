@@ -171,6 +171,10 @@ export function NameSettings(props: NameSettingsProps) {
                   <li>Your name should be appropriate and respectful</li>
                   <li>Maximum 50 characters allowed</li>
                   <li>This name will be visible to other users</li>
+                  <li>
+                    Name and profile image require verification before public
+                    display
+                  </li>
                 </ul>
               </div>
             </div>

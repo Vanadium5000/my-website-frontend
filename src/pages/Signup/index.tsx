@@ -170,6 +170,15 @@ export function Signup() {
             <FaXTwitter />
             Twitter (X)
           </button>
+          <div className="alert alert-info mt-3">
+            <div>
+              <h3 className="font-bold">Note</h3>
+              <div className="text-sm">
+                Account name & icon changes require manual verification before
+                being publicly displayed.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </>

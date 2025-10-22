@@ -1,6 +1,6 @@
 import { useLocation } from "preact-iso";
 import { ThemeDropdown } from "./ThemeDropdown";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../api/client.js";
 import { User } from "../api/api";
 import { FaSignInAlt, FaSignOutAlt, FaUser } from "react-icons/fa";
@@ -12,6 +12,8 @@ export function Navbar() {
 
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
+
+  const infoDropdownRef = useRef<HTMLDetailsElement>(null);
 
   // Load user data from backend
   useEffect(() => {
@@ -35,6 +37,26 @@ export function Navbar() {
     fetchUserData();
   }, [url]);
 
+  // Handle click outside to close info dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // infoDropdownRef.current.open = false;
+      if (
+        infoDropdownRef.current &&
+        !infoDropdownRef.current.contains(event.target as Node)
+      ) {
+        infoDropdownRef.current.open = false;
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   function logout() {
     api.auth.apiSignOutCreate({});
     route("/login");
@@ -53,7 +75,7 @@ export function Navbar() {
             <a href="/">Home</a>
           </li>
           <li>
-            <details>
+            <details ref={infoDropdownRef}>
               <summary>Info</summary>
               <ul className="dropdown-content bg-base-300 rounded-box z-1 w-26 p-2 shadow-2xl">
                 <li>

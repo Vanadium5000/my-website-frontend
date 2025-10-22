@@ -3,6 +3,7 @@ import {
   FaUserShield,
   FaCommentDots,
   FaPlug,
+  FaUserCheck,
 } from "react-icons/fa";
 
 export function AdminHome() {
@@ -49,6 +50,20 @@ export function AdminHome() {
               <p>
                 Monitor active WebSocket connections, send events and
                 notifications
+              </p>
+            </div>
+          </a>
+
+          <a
+            href="/admin/profiles"
+            className="card shadow-lg hover:shadow-xl transition-shadow duration-300"
+          >
+            <div className="card-body items-center text-center">
+              <FaUserCheck className="w-12 h-12 text-info mb-4" />
+              <h2 className="card-title">Profile Verification</h2>
+              <p>
+                Verify or reject changes to user profiles including names and
+                icons
               </p>
             </div>
           </a>

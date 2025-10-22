@@ -47,6 +47,7 @@ export interface PublicUser {
   id: string;
   name: string;
   image: string | null;
+  isVerified: boolean;
   createdAt: date | string | number;
   updatedAt: date | string | number;
   age: number | null;
@@ -55,6 +56,15 @@ export interface PublicUser {
   draughtsWins: number | null;
   draughtsLosses: number | null;
   arithmeticScore: number | null;
+}
+
+export interface UnverifiedProfile {
+  id: string;
+  name: string;
+  image: string | null;
+  verifiedName: string | null;
+  verifiedIconUrl: string | null;
+  needsVerification: boolean;
 }
 
 export interface User {
@@ -79,6 +89,8 @@ export interface User {
   draughtsWins?: number;
   draughtsLosses?: number;
   arithmeticScore?: number;
+  verifiedName?: string;
+  verifiedIconUrl?: string;
 }
 
 export interface Session {
@@ -649,6 +661,7 @@ export class Api<
           id: string;
           name: string;
           image: string | null;
+          isVerified: boolean;
           createdAt: date | string | number;
           updatedAt: date | string | number;
           age: number | null;
@@ -710,6 +723,64 @@ export class Api<
         ...params,
       }),
   };
+  admin = {
+    /**
+     * @description Lists profiles where verifiedName != name or verifiedIconUrl != image
+     *
+     * @tags admin, profile
+     * @name GetAdminProfileUnverified
+     * @summary Get list of profiles that need verification
+     * @request GET:/admin/profile/unverified
+     * @secure
+     */
+    getAdminProfileUnverified: (params: RequestParams = {}) =>
+      this.request<
+        {
+          id: string;
+          name: string;
+          image: string | null;
+          verifiedName: string | null;
+          verifiedIconUrl: string | null;
+          needsVerification: boolean;
+        }[],
+        any
+      >({
+        path: `/admin/profile/unverified`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Sets verifiedName to the current name and verifiedIconUrl to the current icon
+     *
+     * @tags admin, profile
+     * @name PostAdminProfileByUserIdVerify
+     * @summary Accept profile verification for a user
+     * @request POST:/admin/profile/{userId}/verify
+     * @secure
+     */
+    postAdminProfileByUserIdVerify: (
+      userId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success: boolean;
+          message: string;
+          verifiedName: string;
+          verifiedIconUrl: string | null;
+        },
+        any
+      >({
+        path: `/admin/profile/${userId}/verify`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
   leaderboards = {
     /**
      * @description Retrieves a list of public user profiles ranked by the specified attribute value in descending order. Allowed attributes: age, chessWins, chessLosses, draughtsWins, draughtsLosses, name.
@@ -731,6 +802,7 @@ export class Api<
           id: string;
           name: string;
           image: string | null;
+          isVerified: boolean;
           createdAt: date | string | number;
           updatedAt: date | string | number;
           age: number | null;

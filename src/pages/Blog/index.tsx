@@ -101,8 +101,9 @@ export function BlogHome() {
   return (
     <>
       <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Blog Posts</h1>
         <div className="mb-4">
-          <label className="input flex items-center gap-2">
+          <label className="input items-center">
             <IoSearch className="opacity-50" />
             <input
               type="text"
@@ -113,7 +114,6 @@ export function BlogHome() {
             />
           </label>
         </div>
-        <h1 className="text-2xl font-bold mb-4">Blog Posts</h1>
         <div className="space-y-6">
           {currentPosts.map((postData, index) => (
             <PostCard key={index} postData={postData} search={search} />

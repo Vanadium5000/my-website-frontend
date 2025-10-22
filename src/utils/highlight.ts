@@ -56,10 +56,10 @@ export function getHighlightedPreview(
 
 /**
  * Highlights all occurrences of search terms in the text.
- * Splits search by whitespace and highlights word boundaries case-insensitively.
+ * Splits search by whitespace and highlights substrings case-insensitively.
  * @param text The original text string.
  * @param search The search string.
- * @returns The text with all matching words wrapped in <mark> tags.
+ * @returns The text with all matching substrings wrapped in <mark> tags.
  */
 export function highlightSearchTerms(text: string, search: string): string {
   if (!search.trim()) return text;
@@ -74,7 +74,7 @@ export function highlightSearchTerms(text: string, search: string): string {
   let result = text;
 
   for (const escapedWord of escapedWords) {
-    const regex = new RegExp(`\\b(${escapedWord})\\b`, "gi");
+    const regex = new RegExp(`(${escapedWord})`, "gi");
     result = result.replace(regex, `<mark class="bg-info">$1</mark>`);
   }
 
