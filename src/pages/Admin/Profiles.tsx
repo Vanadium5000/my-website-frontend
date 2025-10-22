@@ -2,6 +2,8 @@ import { useEffect, useState } from "preact/hooks";
 import { api } from "../../api/client";
 import { FaUserShield, FaCheck, FaBan, FaUnlockAlt } from "react-icons/fa";
 import { ProfilePicture } from "../../components/ProfilePicture";
+import { BanInfo } from "../../components/BanInfo";
+import { useBanDialog, BanDialog } from "./Users";
 import { UnverifiedProfile, User } from "../../api/api";
 
 export function AdminProfiles() {
@@ -9,10 +11,6 @@ export function AdminProfiles() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const fetchData = async () => {
     try {
@@ -31,6 +29,13 @@ export function AdminProfiles() {
       setLoading(false);
     }
   };
+
+  // Use the ban dialog hook after fetchData is defined
+  const banDialog = useBanDialog(fetchData);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const getUserById = (userId: string) => {
     return users.find((user) => user.id === userId);
@@ -160,7 +165,12 @@ export function AdminProfiles() {
                       <td>
                         {user ? (
                           user.banned ? (
-                            <span className="badge badge-error">Banned</span>
+                            <BanInfo
+                              banned={user.banned}
+                              banReason={user.banReason}
+                              banExpires={user.banExpires}
+                              className="text-xs"
+                            />
                           ) : (
                             <span className="badge badge-success">Active</span>
                           )
@@ -188,7 +198,10 @@ export function AdminProfiles() {
                           ) : (
                             <button
                               className="btn btn-sm btn-error"
-                              onClick={() => handleBanUser(profile.id)}
+                              onClick={() => {
+                                const user = getUserById(profile.id);
+                                if (user) banDialog.openBanDialog(user);
+                              }}
                               title="Ban user"
                             >
                               <FaBan />
@@ -203,6 +216,21 @@ export function AdminProfiles() {
             </table>
           </div>
         )}
+
+        {/* Ban Dialog Component */}
+        <BanDialog
+          isOpen={!!banDialog.banUserSelected}
+          user={banDialog.banUserSelected}
+          onClose={() => banDialog.setBanUserSelected(null)}
+          onSubmit={banDialog.handleAdvancedBanUser}
+          banReason={banDialog.banReason}
+          setBanReason={banDialog.setBanReason}
+          banDuration={banDialog.banDuration}
+          setBanDuration={banDialog.setBanDuration}
+          banDurationValue={banDialog.banDurationValue}
+          setBanDurationValue={banDialog.setBanDurationValue}
+          getPresetBanReasons={banDialog.getPresetBanReasons}
+        />
       </div>
     </>
   );

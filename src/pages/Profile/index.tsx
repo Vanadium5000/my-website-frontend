@@ -1,6 +1,7 @@
 import { useState, useEffect } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { ProfilePicture } from "../../components/ProfilePicture";
+import { BanInfo } from "../../components/BanInfo";
 import { api } from "../../api/client.js";
 import {
   FaUser,
@@ -61,9 +62,9 @@ export function Profile({ id }: ProfileProps) {
           draughtsLosses: profileResponse.data.draughtsLosses,
           arithmeticScore: profileResponse.data.arithmeticScore,
           role: null,
-          banned: false,
-          banReason: null,
-          banExpires: null,
+          banned: profileResponse.data.banned,
+          banReason: profileResponse.data.banReason,
+          banExpires: profileResponse.data.banExpires,
           age: null,
         } as User);
       } else {
@@ -127,6 +128,14 @@ export function Profile({ id }: ProfileProps) {
           <div className="card-body items-center text-center">
             {/* Profile Picture */}
             <ProfilePicture name={profileUser.name} image={profileUser.image} />
+
+            {/* Ban Info */}
+            <BanInfo
+              banned={profileUser.banned}
+              banReason={profileUser.banReason}
+              banExpires={profileUser.banExpires}
+              className="w-full max-w-sm"
+            />
 
             {/* Name */}
             <h2 className="card-title text-2xl font-bold mt-4">

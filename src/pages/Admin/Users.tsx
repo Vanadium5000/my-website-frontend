@@ -8,6 +8,9 @@ import {
   FaPlus,
   FaEdit,
   FaTrash,
+  FaClock,
+  FaExclamationTriangle,
+  FaInfinity,
 } from "react-icons/fa";
 import { ProfilePicture } from "../../components/ProfilePicture";
 import { User } from "../../api/api";
@@ -19,8 +22,13 @@ export function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showCustomFieldModal, setShowCustomFieldModal] = useState(false);
+  const [showBanModal, setShowBanModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [customField, setCustomField] = useState("");
+  const [banUserSelected, setBanUserSelected] = useState<User | null>(null);
+  const [banReason, setBanReason] = useState("");
+  const [banDuration, setBanDuration] = useState("permanent");
+  const [banDurationValue, setBanDurationValue] = useState(1);
 
   useEffect(() => {
     fetchUsers();
@@ -124,6 +132,74 @@ export function AdminUsers() {
     });
   };
 
+  const calculateBanExpiry = (
+    duration: string,
+    value: number
+  ): number | null => {
+    if (duration === "permanent") return null;
+
+    const now = new Date();
+    switch (duration) {
+      case "hours":
+        return now.getTime() + value * 60 * 60 * 1000;
+      case "days":
+        return now.getTime() + value * 24 * 60 * 60 * 1000;
+      case "weeks":
+        return now.getTime() + value * 7 * 24 * 60 * 60 * 1000;
+      case "months":
+        return now.getTime() + value * 30 * 24 * 60 * 60 * 1000;
+      default:
+        return null;
+    }
+  };
+
+  const openBanDialog = (user: User) => {
+    setBanUserSelected(user);
+    setBanReason("");
+    setBanDuration("permanent");
+    setBanDurationValue(1);
+    setShowBanModal(true);
+  };
+
+  const handleAdvancedBanUser = async () => {
+    if (!banUserSelected) return;
+
+    const banExpiresIn =
+      banDuration === "permanent"
+        ? undefined
+        : calculateBanExpiry(banDuration, banDurationValue);
+
+    try {
+      const banData: any = { userId: banUserSelected.id! };
+      if (banReason.trim()) {
+        banData.banReason = banReason.trim();
+      }
+      if (banExpiresIn !== undefined && banExpiresIn !== null) {
+        banData.banExpiresIn = Math.floor(banExpiresIn / 1000); // Convert to seconds as expected by API
+      }
+
+      await api.auth.banUser(banData);
+      setShowBanModal(false);
+      setBanUserSelected(null);
+      setBanReason("");
+      await fetchUsers();
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to ban user");
+    }
+  };
+
+  const getPresetBanReasons = () => [
+    "Spam",
+    "Harassment",
+    "Inappropriate content",
+    "Violation of terms",
+    "Multiple complaints",
+    "Impersonation",
+    "Malicious behavior",
+    "Admin discretion",
+  ];
+
   return (
     <>
       <div className="container mx-auto p-4">
@@ -225,7 +301,7 @@ export function AdminUsers() {
                         ) : (
                           <button
                             className="btn btn-sm btn-error"
-                            onClick={() => handleBanUser(user.id!)}
+                            onClick={() => openBanDialog(user)}
                             title="Ban user"
                           >
                             <FaBan />
@@ -351,7 +427,301 @@ export function AdminUsers() {
             </div>
           </div>
         )}
+
+        {/* Ban Dialog Component */}
+        <BanDialog
+          isOpen={showBanModal}
+          user={banUserSelected}
+          onClose={() => {
+            setShowBanModal(false);
+            setBanUserSelected(null);
+            setBanReason("");
+          }}
+          onSubmit={() => handleAdvancedBanUser()}
+          banReason={banReason}
+          setBanReason={setBanReason}
+          banDuration={banDuration}
+          setBanDuration={setBanDuration}
+          banDurationValue={banDurationValue}
+          setBanDurationValue={setBanDurationValue}
+          getPresetBanReasons={getPresetBanReasons}
+        />
       </div>
     </>
+  );
+}
+
+// Utility function for calculating ban expiry
+const calculateBanExpiry = (duration: string, value: number): number | null => {
+  if (duration === "permanent") return null;
+
+  const now = new Date();
+  switch (duration) {
+    case "hours":
+      return now.getTime() + value * 60 * 60 * 1000;
+    case "days":
+      return now.getTime() + value * 24 * 60 * 60 * 1000;
+    case "weeks":
+      return now.getTime() + value * 7 * 24 * 60 * 60 * 1000;
+    case "months":
+      return now.getTime() + value * 30 * 24 * 60 * 60 * 1000;
+    default:
+      return null;
+  }
+};
+
+// Export BanDialog hook for reuse in other admin pages
+export function useBanDialog(refreshCallback: () => void) {
+  const [banUserSelected, setBanUserSelected] = useState<User | null>(null);
+  const [banReason, setBanReason] = useState("");
+  const [banDuration, setBanDuration] = useState("permanent");
+  const [banDurationValue, setBanDurationValue] = useState(1);
+
+  const openBanDialog = (user: User) => {
+    setBanUserSelected(user);
+    setBanReason("");
+    setBanDuration("permanent");
+    setBanDurationValue(1);
+  };
+
+  const handleAdvancedBanUser = async () => {
+    if (!banUserSelected) return;
+
+    const banExpiresIn =
+      banDuration === "permanent"
+        ? undefined
+        : calculateBanExpiry(banDuration, banDurationValue);
+
+    try {
+      const banData: any = { userId: banUserSelected.id! };
+      if (banReason.trim()) {
+        banData.banReason = banReason.trim();
+      }
+      if (banExpiresIn !== undefined && banExpiresIn !== null) {
+        banData.banExpiresIn = Math.floor(banExpiresIn / 1000);
+      }
+
+      await api.auth.banUser(banData);
+      setBanUserSelected(null);
+      setBanReason("");
+      refreshCallback();
+    } catch (err) {
+      console.error("Failed to ban user:", err);
+    }
+  };
+
+  const getPresetBanReasons = () => [
+    "Spam",
+    "Harassment",
+    "Inappropriate content",
+    "Violation of terms",
+    "Multiple complaints",
+    "Impersonation",
+    "Malicious behavior",
+    "Admin discretion",
+  ];
+
+  return {
+    banUserSelected,
+    setBanUserSelected,
+    banReason,
+    setBanReason,
+    banDuration,
+    setBanDuration,
+    banDurationValue,
+    setBanDurationValue,
+    openBanDialog,
+    handleAdvancedBanUser,
+    getPresetBanReasons,
+  };
+}
+
+// Export BanDialog component for reuse
+export function BanDialog({
+  isOpen,
+  user,
+  onClose,
+  onSubmit,
+  banReason,
+  setBanReason,
+  banDuration,
+  setBanDuration,
+  banDurationValue,
+  setBanDurationValue,
+  getPresetBanReasons,
+}: {
+  isOpen: boolean;
+  user: User | null;
+  onClose: () => void;
+  onSubmit: () => void;
+  banReason: string;
+  setBanReason: (reason: string) => void;
+  banDuration: string;
+  setBanDuration: (duration: string) => void;
+  banDurationValue: number;
+  setBanDurationValue: (value: number) => void;
+  getPresetBanReasons: () => string[];
+}) {
+  if (!isOpen || !user) return null;
+
+  const calculateBanExpiry = (
+    duration: string,
+    value: number
+  ): number | null => {
+    if (duration === "permanent") return null;
+
+    const now = new Date();
+    switch (duration) {
+      case "hours":
+        return now.getTime() + value * 60 * 60 * 1000;
+      case "days":
+        return now.getTime() + value * 24 * 60 * 60 * 1000;
+      case "weeks":
+        return now.getTime() + value * 7 * 24 * 60 * 60 * 1000;
+      case "months":
+        return now.getTime() + value * 30 * 24 * 60 * 60 * 1000;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="modal modal-open">
+      <div className="modal-box max-w-md">
+        <h3 className="font-bold text-lg flex items-center gap-2 mb-4">
+          <FaExclamationTriangle className="text-error" />
+          Ban User: {user.name}
+        </h3>
+
+        <div className="space-y-4">
+          {/* Ban Reason */}
+          <div>
+            <label className="label">
+              <span className="label-text">Ban Reason (Optional)</span>
+            </label>
+            <textarea
+              className="textarea textarea-bordered w-full h-24 resize-none"
+              placeholder="Enter reason for ban..."
+              value={banReason}
+              onChange={(e) => setBanReason(e.currentTarget.value)}
+              maxLength={500}
+            />
+            <div className="label">
+              <span className="label-text-alt text-base-content/60">
+                {banReason.length}/500 characters
+              </span>
+            </div>
+
+            {/* Preset Reasons */}
+            <div className="mt-2">
+              <label className="label">
+                <span className="label-text text-sm">Quick Select:</span>
+              </label>
+              <div className="flex flex-wrap gap-1">
+                {getPresetBanReasons().map((reason) => (
+                  <button
+                    key={reason}
+                    className="btn btn-xs btn-outline"
+                    onClick={() => setBanReason(reason)}
+                    type="button"
+                  >
+                    {reason}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Ban Duration */}
+          <div>
+            <label className="label">
+              <span className="label-text">Ban Duration</span>
+            </label>
+            <div className="flex gap-2">
+              <select
+                className="select select-bordered flex-1"
+                value={banDuration}
+                onChange={(e) => setBanDuration(e.currentTarget.value)}
+              >
+                <option value="permanent">
+                  <FaInfinity className="inline mr-2" />
+                  Permanent
+                </option>
+                <option value="hours">
+                  <FaClock className="inline mr-2" />
+                  Hours
+                </option>
+                <option value="days">
+                  <FaClock className="inline mr-2" />
+                  Days
+                </option>
+                <option value="weeks">
+                  <FaClock className="inline mr-2" />
+                  Weeks
+                </option>
+                <option value="months">
+                  <FaClock className="inline mr-2" />
+                  Months
+                </option>
+              </select>
+              {banDuration !== "permanent" && (
+                <input
+                  type="number"
+                  className="input input-bordered w-20"
+                  min="1"
+                  max="999"
+                  value={banDurationValue}
+                  onChange={(e) =>
+                    setBanDurationValue(parseInt(e.currentTarget.value) || 1)
+                  }
+                />
+              )}
+            </div>
+
+            {/* Preview expiration */}
+            {banDuration !== "permanent" && (
+              <div className="label">
+                <span className="label-text-alt text-base-content/60">
+                  Expires:{" "}
+                  {calculateBanExpiry(banDuration, banDurationValue)
+                    ? new Date(
+                        calculateBanExpiry(banDuration, banDurationValue)!
+                      ).toLocaleString()
+                    : "Invalid date"}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Warning */}
+        <div className="alert alert-warning mt-4">
+          <FaExclamationTriangle />
+          <div>
+            <div className="font-semibold">Warning</div>
+            <div className="text-sm">
+              This will restrict the user's access. Ensure the ban is justified
+              and follows community guidelines.
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-action">
+          <button
+            className="btn btn-ghost"
+            onClick={() => {
+              onClose();
+              setBanReason("");
+            }}
+          >
+            Cancel
+          </button>
+          <button className="btn btn-error" onClick={onSubmit}>
+            <FaBan className="mr-2" />
+            Ban User
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

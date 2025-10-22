@@ -56,6 +56,9 @@ export interface PublicUser {
   draughtsWins: number | null;
   draughtsLosses: number | null;
   arithmeticScore: number | null;
+  banned?: boolean | null;
+  banReason?: string | null;
+  banExpires?: (date | string | number) | null;
 }
 
 export interface UnverifiedProfile {
@@ -79,7 +82,6 @@ export interface User {
   /** @default "Generated at runtime" */
   updatedAt: string;
   role?: string;
-  /** @default false */
   banned?: boolean;
   banReason?: string;
   banExpires?: string;
@@ -670,6 +672,9 @@ export class Api<
           draughtsWins: number | null;
           draughtsLosses: number | null;
           arithmeticScore: number | null;
+          banned?: boolean | null;
+          banReason?: string | null;
+          banExpires?: (date | string | number) | null;
         },
         any
       >({
@@ -811,6 +816,9 @@ export class Api<
           draughtsWins: number | null;
           draughtsLosses: number | null;
           arithmeticScore: number | null;
+          banned?: boolean | null;
+          banReason?: string | null;
+          banExpires?: (date | string | number) | null;
         }[],
         any
       >({

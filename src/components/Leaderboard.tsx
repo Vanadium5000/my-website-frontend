@@ -3,6 +3,7 @@ import { api } from "../api/client.js";
 import { ProfilePicture } from "./ProfilePicture.js";
 import { PublicUser } from "../api/api.js";
 import { SortableTable, TableColumn } from "./SortableTable.jsx";
+import { FaBan } from "react-icons/fa";
 
 interface Props {
   attribute?: string;
@@ -95,13 +96,27 @@ export function Leaderboard(props: Props) {
           data={leaderboardUsers}
           renderCell={(user, columnKey) => {
             if (columnKey === "name") {
+              // Check if user is currently banned (not expired)
+              const now = new Date();
+              const isBanned =
+                user.banned &&
+                (!user.banExpires || new Date(user.banExpires) > now);
+
               return (
                 <a
                   href={`/profile/${user.id}`}
                   className="flex items-center gap-3"
                 >
                   <ProfilePicture name={user.name} image={user.image} />
-                  <div className="font-bold">{user.name}</div>
+                  <div className="font-bold flex items-center gap-2">
+                    {user.name}
+                    {isBanned && (
+                      <FaBan
+                        className="text-error text-sm"
+                        title="Banned user"
+                      />
+                    )}
+                  </div>
                 </a>
               );
             }
