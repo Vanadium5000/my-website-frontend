@@ -93,6 +93,9 @@ export interface User {
   arithmeticScore?: number;
   verifiedName?: string;
   verifiedIconUrl?: string;
+  imagesStoredSize?: number;
+  lastUploadDay?: string;
+  imagesUploadedToday?: number;
 }
 
 export interface Session {
@@ -644,6 +647,126 @@ export class Api<
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  images = {
+    /**
+     * No description
+     *
+     * @tags images
+     * @name PostImagesUpload
+     * @summary Upload an image
+     * @request POST:/images/upload
+     * @secure
+     */
+    postImagesUpload: (
+      data: {
+        /**
+         * Image file (max 5MB)
+         * @format binary
+         * @default "File"
+         */
+        image: File;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          success: boolean;
+          imageId: string;
+          size: number;
+          url: string;
+        },
+        {
+          error: string;
+        }
+      >({
+        path: `/images/upload`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags images
+     * @name GetImages
+     * @summary Get user's uploaded images
+     * @request GET:/images/
+     * @secure
+     */
+    getImages: (params: RequestParams = {}) =>
+      this.request<
+        {
+          images: {
+            id: string;
+            filename: string;
+            url: string;
+            uploadedAt: number;
+          }[];
+        },
+        {
+          error: string;
+        }
+      >({
+        path: `/images/`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Serves an image file if the authenticated user owns it.
+     *
+     * @tags images
+     * @name GetImagesByImageId
+     * @summary Get an image file
+     * @request GET:/images/{imageId}
+     * @secure
+     */
+    getImagesByImageId: (imageId: string, params: RequestParams = {}) =>
+      this.request<
+        any,
+        {
+          error: string;
+        }
+      >({
+        path: `/images/${imageId}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Deletes the specified image if it belongs to the authenticated user. Updates storage quota accordingly.
+     *
+     * @tags images
+     * @name DeleteImagesByImageId
+     * @summary Delete an uploaded image
+     * @request DELETE:/images/{imageId}
+     * @secure
+     */
+    deleteImagesByImageId: (imageId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          success: boolean;
+          deleted: string;
+        },
+        {
+          error: string;
+        }
+      >({
+        path: `/images/${imageId}`,
+        method: "DELETE",
+        secure: true,
         format: "json",
         ...params,
       }),

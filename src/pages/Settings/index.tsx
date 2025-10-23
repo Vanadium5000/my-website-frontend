@@ -6,6 +6,7 @@ import {
   FaLock,
   FaLink,
   FaMobileAlt,
+  FaImages,
   FaExclamationTriangle,
   FaCheck,
   FaTimes,
@@ -117,18 +118,32 @@ export function Settings(props: SettingsPageProps) {
                 </div>
                 <div>
                   <label className="label">
-                    <span className="label-text">Email Verified</span>
+                    <span className="label-text">Verified</span>
                   </label>
                   <div className="flex items-center gap-2">
                     {currentUser.emailVerified ? (
                       <>
                         <FaCheck className="text-success" />
-                        <span>Verified</span>
+                        <span>Email Verified</span>
                       </>
                     ) : (
                       <>
                         <FaTimes className="text-error" />
-                        <span>Not verified</span>
+                        <span>Email Not verified</span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {currentUser.verifiedName == currentUser.name &&
+                    currentUser.verifiedIconUrl == currentUser.image ? (
+                      <>
+                        <FaCheck className="text-success" />
+                        <span>Profile Verified</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaTimes className="text-error" />
+                        <span>Profile Not verified</span>
                       </>
                     )}
                   </div>
@@ -226,6 +241,25 @@ export function Settings(props: SettingsPageProps) {
                     className="btn btn-primary btn-sm"
                   >
                     View Sessions
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+              <div className="card-body">
+                <div className="flex items-center gap-3">
+                  <FaImages size={32} />
+                  <div>
+                    <h3 className="card-title text-lg">Uploaded Images</h3>
+                    <p className="text-sm opacity-70">
+                      Manage your account images, including profile picture
+                    </p>
+                  </div>
+                </div>
+                <div className="card-actions justify-end mt-4">
+                  <a href="/settings/images" className="btn btn-primary btn-sm">
+                    Manage Images
                   </a>
                 </div>
               </div>
