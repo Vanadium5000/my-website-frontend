@@ -133,7 +133,7 @@ export function AdminProfiles() {
                         >
                           <ProfilePicture
                             name={profile.verifiedName || "No Name"}
-                            image={profile.verifiedIconUrl}
+                            image={profile.verifiedImage}
                           />
                           <div>
                             <div className="font-bold">
@@ -155,7 +155,7 @@ export function AdminProfiles() {
                             <div className="font-bold">{profile.name}</div>
                             <div className="text-sm opacity-70">
                               New Icon:{" "}
-                              {profile.image != profile.verifiedIconUrl
+                              {profile.image != profile.verifiedImage
                                 ? "Yes"
                                 : "No"}
                             </div>

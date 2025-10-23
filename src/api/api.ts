@@ -66,7 +66,7 @@ export interface UnverifiedProfile {
   name: string;
   image: string | null;
   verifiedName: string | null;
-  verifiedIconUrl: string | null;
+  verifiedImage: string | null;
   needsVerification: boolean;
 }
 
@@ -92,7 +92,7 @@ export interface User {
   draughtsLosses?: number;
   arithmeticScore?: number;
   verifiedName?: string;
-  verifiedIconUrl?: string;
+  verifiedImage?: string;
   imagesStoredSize?: number;
   lastUploadDay?: string;
   imagesUploadedToday?: number;
@@ -853,7 +853,7 @@ export class Api<
   };
   admin = {
     /**
-     * @description Lists profiles where verifiedName != name or verifiedIconUrl != image
+     * @description Lists profiles where verifiedName != name or verifiedImage != image
      *
      * @tags admin, profile
      * @name GetAdminProfileUnverified
@@ -868,7 +868,7 @@ export class Api<
           name: string;
           image: string | null;
           verifiedName: string | null;
-          verifiedIconUrl: string | null;
+          verifiedImage: string | null;
           needsVerification: boolean;
         }[],
         any
@@ -881,7 +881,7 @@ export class Api<
       }),
 
     /**
-     * @description Sets verifiedName to the current name and verifiedIconUrl to the current icon
+     * @description Sets verifiedName to the current name and verifiedImage to the current icon
      *
      * @tags admin, profile
      * @name PostAdminProfileByUserIdVerify
@@ -898,7 +898,7 @@ export class Api<
           success: boolean;
           message: string;
           verifiedName: string;
-          verifiedIconUrl: string | null;
+          verifiedImage: string | null;
         },
         any
       >({

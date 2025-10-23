@@ -135,7 +135,8 @@ export function Settings(props: SettingsPageProps) {
                   </div>
                   <div className="flex items-center gap-2">
                     {currentUser.verifiedName == currentUser.name &&
-                    currentUser.verifiedIconUrl == currentUser.image ? (
+                    (currentUser.verifiedImage || null) ==
+                      (currentUser.image || null) ? (
                       <>
                         <FaCheck className="text-success" />
                         <span>Profile Verified</span>

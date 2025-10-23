@@ -167,16 +167,16 @@ export function ImagesSettings(props: ImagesSettingsProps) {
     }
   };
 
-  const handleSetProfileImage = async (imageId: string) => {
+  const handleSetProfileImage = async (image: string) => {
     try {
       setUpdatingProfile(true);
 
       await api.auth.apiUpdateUserCreate({
-        image: new URL("/images/" + imageId, api.baseUrl).href,
+        image,
       });
 
       // Update the current user state
-      setCurrentUser((prev) => (prev ? { ...prev, image: imageId } : null));
+      setCurrentUser((prev) => (prev ? { ...prev, image } : null));
 
       toast({
         text: "Profile picture updated successfully!",
@@ -281,7 +281,15 @@ export function ImagesSettings(props: ImagesSettingsProps) {
           {/* Current Profile Picture */}
           <div className="card bg-base-100 shadow-xl mb-6">
             <div className="card-body">
-              <h2 className="card-title">Current Profile Picture</h2>
+              <h2 className="card-title">
+                Current Profile Picture{" "}
+                <button
+                  class="btn btn-error btn-xs"
+                  onClick={() => handleSetProfileImage("")}
+                >
+                  Reset Profile Picture
+                </button>
+              </h2>
               <div className="flex items-center gap-4">
                 {currentUser && (
                   <ProfilePicture
@@ -398,7 +406,11 @@ export function ImagesSettings(props: ImagesSettingsProps) {
                             className={`btn btn-primary btn-xs ${
                               updatingProfile ? "loading" : ""
                             }`}
-                            onClick={() => handleSetProfileImage(image.id)}
+                            onClick={() =>
+                              handleSetProfileImage(
+                                new URL("/images/" + image.id, api.baseUrl).href
+                              )
+                            }
                             disabled={
                               updatingProfile || currentUser?.image === image.id
                             }
