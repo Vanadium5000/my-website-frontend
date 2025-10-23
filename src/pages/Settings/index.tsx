@@ -4,6 +4,7 @@ import { Session, User } from "../../api/api";
 import {
   FaUser,
   FaLock,
+  FaEnvelope,
   FaLink,
   FaMobileAlt,
   FaImages,
@@ -204,6 +205,33 @@ export function Settings(props: SettingsPageProps) {
                 </div>
               </div>
             </div>
+
+            {!currentUser.emailVerified && (
+              <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow border-warning border-2">
+                <div className="card-body">
+                  <div className="flex items-center gap-3">
+                    <FaEnvelope size={32} className="text-warning" />
+                    <div>
+                      <h3 className="card-title text-lg">Verify Email</h3>
+                      <p className="text-sm opacity-70">
+                        Your email is not verified. Verify it to access all
+                        features.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="card-actions justify-end mt-4">
+                    <a
+                      href={`/email-verification?email=${encodeURIComponent(
+                        currentUser.email
+                      )}`}
+                      className="btn btn-warning btn-sm"
+                    >
+                      Verify Email
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">

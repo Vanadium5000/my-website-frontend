@@ -37,14 +37,25 @@ export function Signup() {
     }
 
     try {
-      await api.auth.apiSignUpEmailCreate({
+      const response = await api.auth.apiSignUpEmailCreate({
         name,
         email,
         password,
         rememberMe: true,
       });
 
-      // Redirect to home page, as register didn't fail
+      // If user exists and is returned in response
+      if (response.data?.user) {
+        const user = response.data.user;
+
+        // If email is not verified, redirect to email verification page
+        if (!user.emailVerified) {
+          route(`/email-verification?email=${encodeURIComponent(email)}`);
+          return;
+        }
+      }
+
+      // If email is already verified, redirect to home page
       route("/");
     } catch (error) {
       console.log(error);

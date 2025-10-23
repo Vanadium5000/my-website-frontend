@@ -11,6 +11,7 @@ import { Projects } from "./pages/Projects/index.js";
 import { ChessGame } from "./pages/Projects/chess.js";
 import { Arithmetic } from "./pages/Projects/arithmetic.js";
 import { Signup } from "./pages/Signup/index.js";
+import { EmailVerification } from "./pages/EmailVerification/index.js";
 import { AdminHome } from "./pages/Admin/index";
 import { AdminUsers } from "./pages/Admin/Users";
 import { AdminComments } from "./pages/Admin/Comments";
@@ -51,6 +52,7 @@ export function App() {
               <Route path="/projects/chess" component={ChessGame} />
               <Route path="/projects/arithmetic" component={Arithmetic} />
               <Route path="/signup" component={Signup} />
+              <Route path="/email-verification" component={EmailVerification} />
               <Route path="/admin" component={AdminHome} />
               <Route path="/admin/users" component={AdminUsers} />
               <Route path="/admin/comments" component={AdminComments} />
