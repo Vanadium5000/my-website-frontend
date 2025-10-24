@@ -93,6 +93,130 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
   const VAPID_PUBLIC_KEY =
     "BP7lZ9EBTKuO9ArR-ymCZoCauu0VJYxCrn09weZ7fCPMVpTxvUHoUoG2TY_I2ELGx512TOc1AuP3uMAk2nMug1Y"; // Set to valid public key when available
 
+  // Registration lock to prevent concurrent operations
+  const [registrationLock, setRegistrationLock] = useState(false);
+  const [retryLoading, setRetryLoading] = useState(false);
+
+  // VAPID key validation
+  const validateVapidKey = (key: string): boolean => {
+    try {
+      // VAPID keys should be URL-safe base64 encoded
+      const decoded = urlBase64ToUint8Array(key);
+      // Should be 65 bytes (public key length for p256)
+      return decoded.length === 65;
+    } catch {
+      return false;
+    }
+  };
+
+  // Error categorization types
+  type NotificationErrorType =
+    | "browser_not_supported"
+    | "permission_denied"
+    | "permission_not_granted"
+    | "service_worker_failed"
+    | "vapid_key_invalid"
+    | "push_service_unavailable"
+    | "network_error"
+    | "unknown";
+
+  interface NotificationError {
+    type: NotificationErrorType;
+    message: string;
+    recoverable: boolean;
+    userMessage: string;
+    actionRequired: string;
+  }
+
+  // Categorize errors for better handling
+  const categorizeError = (error: any, context: string): NotificationError => {
+    const errorMessage = error?.message || error?.toString() || "Unknown error";
+
+    // Service Worker errors
+    if (context === "service_worker_registration") {
+      if (errorMessage.includes("Script URL")) {
+        return {
+          type: "service_worker_failed",
+          message: errorMessage,
+          recoverable: true,
+          userMessage:
+            "Service worker registration failed. This is usually recoverable.",
+          actionRequired:
+            "Try refreshing the page or checking your browser console.",
+        };
+      }
+      if (errorMessage.includes("permission")) {
+        return {
+          type: "permission_denied",
+          message: errorMessage,
+          recoverable: false,
+          userMessage: "Service worker permission denied.",
+          actionRequired: "Check your browser settings and try again.",
+        };
+      }
+    }
+
+    // Permission errors
+    if (context === "permission_request" && errorMessage.includes("denied")) {
+      return {
+        type: "permission_denied",
+        message: errorMessage,
+        recoverable: false,
+        userMessage: "Notification permission was denied.",
+        actionRequired: "Enable notifications in your browser settings.",
+      };
+    }
+
+    // VAPID key errors
+    if (
+      context === "push_subscription" &&
+      errorMessage.includes("applicationServerKey")
+    ) {
+      return {
+        type: "vapid_key_invalid",
+        message: errorMessage,
+        recoverable: true,
+        userMessage: "Invalid VAPID key configuration.",
+        actionRequired:
+          "Contact administrator to fix the server configuration.",
+      };
+    }
+
+    // Push service errors
+    if (
+      context === "push_subscription" &&
+      (errorMessage.includes("service") || errorMessage.includes("unavailable"))
+    ) {
+      return {
+        type: "push_service_unavailable",
+        message: errorMessage,
+        recoverable: true,
+        userMessage: "Push notification service is temporarily unavailable.",
+        actionRequired: "Try again later or check your internet connection.",
+      };
+    }
+
+    // Network errors
+    if (errorMessage.includes("network") || errorMessage.includes("fetch")) {
+      return {
+        type: "network_error",
+        message: errorMessage,
+        recoverable: true,
+        userMessage: "Network connection issue.",
+        actionRequired: "Check your internet connection and try again.",
+      };
+    }
+
+    // Default unknown error
+    return {
+      type: "unknown",
+      message: errorMessage,
+      recoverable: true,
+      userMessage: "An unexpected error occurred.",
+      actionRequired: "Try again or contact support if the issue persists.",
+    };
+  };
+
   useEffect(() => {
     initializeNotifications();
   }, []);
@@ -104,7 +228,7 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
   const initializeNotifications = async () => {
     try {
       // Check browser support for push notifications
-      const isPushSupported =
+      const isBrowserSupported =
         "serviceWorker" in navigator &&
         "PushManager" in window &&
         "Notification" in window;
@@ -113,17 +237,22 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
         serviceWorker: "serviceWorker" in navigator,
         PushManager: "PushManager" in window,
         Notification: "Notification" in window,
-        isPushSupported,
+        isBrowserSupported,
       });
 
-      // Consider push supported only if browser supports it AND we have a valid VAPID key
-      const hasValidVapidKey = VAPID_PUBLIC_KEY && VAPID_PUBLIC_KEY.length > 0;
-      setPushSupported(isPushSupported && hasValidVapidKey);
+      // Validate VAPID key
+      const hasValidVapidKey =
+        VAPID_PUBLIC_KEY &&
+        VAPID_PUBLIC_KEY.length > 0 &&
+        validateVapidKey(VAPID_PUBLIC_KEY);
+      const isPushSupported = isBrowserSupported && hasValidVapidKey;
+
+      setPushSupported(isPushSupported);
 
       // Update push method support (only enable if both browser supports AND valid VAPID key)
-      NOTIFICATION_METHODS[1].supported = isPushSupported && hasValidVapidKey;
+      NOTIFICATION_METHODS[1].supported = isPushSupported;
 
-      if (isPushSupported) {
+      if (isBrowserSupported) {
         // Check permission status safely
         try {
           setPushPermission(Notification.permission);
@@ -135,7 +264,38 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
           setPushPermission("default");
         }
 
-        await registerServiceWorker();
+        // Only attempt SW registration if we have a valid VAPID key
+        if (hasValidVapidKey) {
+          try {
+            console.log(
+              "🔄 Init: Attempting initial service worker registration..."
+            );
+            await registerServiceWorker();
+            console.log("✅ Init: Service worker registered successfully");
+          } catch (swError) {
+            console.error(
+              "⚠️ Init: Initial service worker registration failed:",
+              swError
+            );
+            console.log("🔄 Init: Attempting automatic retry in 2 seconds...");
+
+            // Wait a bit and retry once automatically
+            setTimeout(async () => {
+              try {
+                console.log("🔄 Init: Retrying service worker registration...");
+                await registerServiceWorker();
+                console.log("✅ Init: Service worker registered on retry!");
+              } catch (retryError) {
+                console.error(
+                  "❌ Init: Retry also failed, user will need manual intervention:",
+                  retryError
+                );
+                // At this point, user will need to click the manual retry button
+                // The error is already set by registerServiceWorker
+              }
+            }, 2000);
+          }
+        }
       }
 
       // Load existing notification subscriptions
@@ -148,32 +308,164 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
 
   /**
    * Register service worker for push notifications
+   * Checks for existing registrations, provides comprehensive logging,
+   * and handles automatic retries
    */
   const registerServiceWorker = async (): Promise<void> => {
-    if (!pushSupported) return;
+    // Prevent concurrent registrations
+    if (registrationLock) {
+      console.log("🟡 SW Registration: Already in progress, skipping");
+      return;
+    }
+
+    console.log("🔵 SW Registration: Starting registration process...");
+
+    // Check if push is supported (browser + VAPID) - we still try to register SW even if VAPID is invalid
+    const hasValidVapidKey =
+      VAPID_PUBLIC_KEY &&
+      VAPID_PUBLIC_KEY.length > 0 &&
+      validateVapidKey(VAPID_PUBLIC_KEY);
+    const browserSupported = "serviceWorker" in navigator;
+    const pushActuallySupported = browserSupported && hasValidVapidKey;
+
+    if (!pushActuallySupported) {
+      console.log(
+        "🔴 SW Registration: Invalid/missing VAPID key or browser not supported",
+        {
+          hasVapidKey: !!VAPID_PUBLIC_KEY,
+          vapidLength: VAPID_PUBLIC_KEY?.length || 0,
+          vapidValid: hasValidVapidKey,
+          browserSupported,
+        }
+      );
+      // Don't return here - we can still register SW, just can't do push
+    }
+
+    setRegistrationLock(true);
 
     try {
-      console.log("Attempting to register service worker...");
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      console.log("Service Worker registered successfully:", registration);
+      // First check if service worker is already registered
+      console.log("🔍 SW Registration: Checking existing registrations...");
+      const existingRegistrations =
+        await navigator.serviceWorker.getRegistrations();
+      const siteRegistration = existingRegistrations.find((reg) => {
+        // Check if this registration handles our site
+        const regScope = new URL(reg.scope);
+        const currentOrigin = new URL(window.location.origin);
+        return regScope.origin === currentOrigin.origin;
+      });
 
-      // Wait for the service worker to be ready
-      await navigator.serviceWorker.ready;
-      console.log("Service Worker is ready");
+      if (siteRegistration) {
+        console.log(
+          "🟢 SW Registration: Found existing registration:",
+          siteRegistration
+        );
+
+        // Check if it's active and has push manager
+        if (siteRegistration.active && siteRegistration.pushManager) {
+          console.log(
+            "🟢 SW Registration: Existing registration is active with push manager"
+          );
+          setServiceWorkerRegistered(true);
+          setRegistrationLock(false);
+          return;
+        } else if (siteRegistration.active) {
+          console.log(
+            "🟡 SW Registration: Existing registration active but no push manager, re-registering"
+          );
+          // Service worker active but no push manager - unregister and re-register
+          await siteRegistration.unregister();
+          console.log(
+            "✅ SW Registration: Unregistered inactive/old service worker"
+          );
+        } else {
+          console.log(
+            "🟡 SW Registration: Existing registration not active, cleaning up"
+          );
+          await siteRegistration.unregister();
+        }
+      } else {
+        console.log(
+          "🔍 SW Registration: No existing registration found for this site"
+        );
+      }
+
+      // Attempt to register the service worker
+      console.log("🚀 SW Registration: Registering /sw.js...");
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      console.log("✅ SW Registration: Registration successful:", {
+        scope: registration.scope,
+        state: registration.active?.state || "installing",
+        url: registration.active?.scriptURL || "pending",
+      });
+
+      // Wait for the service worker to be ready with timeout
+      console.log(
+        "⏳ SW Registration: Waiting for service worker ready state..."
+      );
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Service worker ready timeout (10s)")),
+          10000
+        )
+      );
+
+      await Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
+      console.log("✅ SW Registration: Service worker is ready");
+
+      // Refresh reference to ensure we have the latest registration
+      const finalRegistration = await navigator.serviceWorker.ready;
 
       // Verify push manager is available
-      const pushManager = registration.pushManager;
-      if (pushManager) {
-        console.log("Push manager is available");
+      if (finalRegistration.pushManager) {
+        console.log("✅ SW Registration: Push manager available");
         setServiceWorkerRegistered(true);
+
+        // Log successful registration details
+        console.log("🎉 SW Registration: Complete success!", {
+          scope: finalRegistration.scope,
+          hasPushManager: !!finalRegistration.pushManager,
+          workerState: finalRegistration.active?.state,
+        });
       } else {
-        throw new Error("Push manager not available on registration");
+        throw new Error("Push manager not available on final registration");
       }
     } catch (err) {
-      console.error("Service Worker registration failed:", err);
-      setError("Failed to register service worker for push notifications");
+      console.error("❌ SW Registration: Failed:", err);
+      const errorDetails = {
+        message: err?.message || "Unknown error",
+        name: err?.name || "Error",
+        stack: err?.stack?.split("\n")[0] || "No stack trace",
+      };
+      console.error("❌ SW Registration: Error details:", errorDetails);
+
       setServiceWorkerRegistered(false);
+
+      // Categorize the error for better user feedback
+      const categorizedError = categorizeError(
+        err,
+        "service_worker_registration"
+      );
+
+      // For recoverable errors, show helpful message with automatic retry suggestion
+      if (categorizedError.recoverable) {
+        console.log(
+          "🔄 SW Registration: Error is recoverable, suggesting manual retry"
+        );
+        setError(
+          `Service worker registration failed: ${categorizedError.userMessage}. ${categorizedError.actionRequired}`
+        );
+      } else {
+        console.log("🛑 SW Registration: Error is permanent");
+        setError(
+          `Service worker registration failed permanently: ${categorizedError.userMessage}`
+        );
+      }
+
       throw err;
+    } finally {
+      setRegistrationLock(false);
+      console.log("🔒 SW Registration: Process complete, lock released");
     }
   };
 
@@ -291,6 +583,7 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
 
   /**
    * Toggle notification subscription for a specific event and method
+   * Handles both email and push methods independently, allowing both to be enabled simultaneously
    */
   const toggleSubscription = async (
     eventType: string,
@@ -303,14 +596,31 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
       setSuccess(null);
 
       const existingSubscription = subscriptions.find(
-        (sub) => sub.eventType === eventType && sub.methods.includes(method)
+        (sub) => sub.eventType === eventType
       );
 
-      if (existingSubscription) {
-        // Unsubscribe from notification
-        await api.notifications.postNotificationsUnsubscribe({
-          eventType: eventType as "chess_match_created",
-        });
+      // Determine if the specific method is currently subscribed
+      const methodSubscribed =
+        existingSubscription?.methods.includes(method) ?? false;
+
+      if (methodSubscribed) {
+        // Remove only this specific method from the subscription
+        // If this was the only method, unsubscribe entirely from the event
+        if (existingSubscription.methods.length === 1) {
+          // Only one method remains, unsubscribe from the event entirely
+          await api.notifications.postNotificationsUnsubscribe({
+            eventType: eventType as "chess_match_created",
+          });
+        } else {
+          // Multiple methods exist, update subscription to remove only this method
+          const remainingMethods = existingSubscription.methods.filter(
+            (m) => m !== method
+          );
+          await api.notifications.postNotificationsSubscribe({
+            eventType: eventType as "chess_match_created",
+            methods: remainingMethods,
+          });
+        }
 
         setSuccess(
           `${
@@ -318,8 +628,18 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
           } notifications disabled for ${eventType.replace("_", " ")}`
         );
       } else {
-        // Subscribe to notification
-        await handleNewSubscription(eventType, method);
+        // Add this method to the existing subscription (or create new if none exists)
+        if (existingSubscription) {
+          // Add the new method to existing methods
+          const updatedMethods = [...existingSubscription.methods, method];
+          await api.notifications.postNotificationsSubscribe({
+            eventType: eventType as "chess_match_created",
+            methods: updatedMethods,
+          });
+        } else {
+          // No existing subscription for this event, create new one
+          await handleNewSubscription(eventType, method);
+        }
 
         setSuccess(
           `${
@@ -525,45 +845,6 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
                 <p>
                   <strong>⚠️ VAPID Key Missing:</strong> Push notifications are
                   disabled because no valid VAPID public key is configured.
-                </p>
-
-                <div className="bg-base-200 p-3 rounded text-xs font-mono">
-                  <p className="font-semibold mb-2">
-                    To enable push notifications:
-                  </p>
-                  <div className="space-y-1">
-                    <p className="text-primary">
-                      1. Install web-push CLI tool globally:
-                    </p>
-                    <code className="block bg-base-300 p-1 rounded mt-1">
-                      npm install -g web-push
-                    </code>
-
-                    <p className="text-primary mt-2">
-                      2. Generate VAPID keypair:
-                    </p>
-                    <code className="block bg-base-300 p-1 rounded mt-1">
-                      web-push generate-vapid-keys
-                    </code>
-
-                    <p className="text-primary mt-2">
-                      3. Copy the PUBLIC key output and:
-                    </p>
-                    <code className="block bg-base-300 p-1 rounded mt-1">
-                      const VAPID_PUBLIC_KEY = "YOUR_PUBLIC_KEY_HERE";
-                    </code>
-
-                    <p className="text-primary mt-2">
-                      4. Also save the PRIVATE key for your backend server.
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-xs opacity-70">
-                  <strong>What are VAPID keys?</strong> They identify your
-                  application server for push notifications, enabling secure
-                  communication between your backend and push services (FCM,
-                  Apple, Mozilla, etc.).
                 </p>
               </div>
             </div>
