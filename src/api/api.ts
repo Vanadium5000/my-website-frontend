@@ -96,6 +96,8 @@ export interface User {
   imagesStoredSize?: number;
   lastUploadDay?: string;
   imagesUploadedToday?: number;
+  pushSubscriptions?: json;
+  notificationSubscriptions?: json;
 }
 
 export interface Session {
@@ -973,14 +975,37 @@ export class Api<
                   id: string;
                   createdAt: date | string | number;
                   updatedAt: date | string | number;
-                  email: string;
-                  emailVerified: boolean;
-                  name: string;
+                  email?: string | null;
+                  emailVerified?: boolean | null;
+                  name?: string | null;
                   image?: string | null;
+                  age?: number | null;
+                  chessWins?: number | null;
+                  chessLosses?: number | null;
+                  draughtsWins?: number | null;
+                  draughtsLosses?: number | null;
+                  arithmeticScore?: number | null;
+                  verifiedName?: string | null;
+                  verifiedImage?: string | null;
                   banned?: boolean | null;
                   role?: string | null;
                   banReason?: string | null;
                   banExpires?: (date | string | number) | null;
+                  imagesStoredSize?: number | null;
+                  lastUploadDay?: string | null;
+                  imagesUploadedToday?: number | null;
+                  pushSubscriptions?: {
+                    keys: {
+                      p256dh: string;
+                      auth: string;
+                    };
+                    endpoint: string;
+                  }[];
+                  notificationSubscriptions?: {
+                    eventType: string;
+                    methods: ("email" | "push")[];
+                    createdAt: date | string | number;
+                  }[];
                 }
               | undefined;
             connectedAt: date | string | number;
@@ -1059,6 +1084,130 @@ export class Api<
         any
       >({
         path: `/connections/disconnect`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  notifications = {
+    /**
+     * @description Retrieves all notification subscriptions for the current user.
+     *
+     * @tags notifications
+     * @name GetNotificationsSubscriptions
+     * @summary Get user's notification subscriptions
+     * @request GET:/notifications/subscriptions
+     * @secure
+     */
+    getNotificationsSubscriptions: (params: RequestParams = {}) =>
+      this.request<
+        {
+          id: string;
+          eventType: string;
+          methods: ("email" | "push")[];
+          createdAt: date | string | number;
+        }[],
+        any
+      >({
+        path: `/notifications/subscriptions`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Subscribe to a notification event type with specified methods.
+     *
+     * @tags notifications
+     * @name PostNotificationsSubscribe
+     * @summary Subscribe to notifications
+     * @request POST:/notifications/subscribe
+     * @secure
+     */
+    postNotificationsSubscribe: (
+      data: {
+        eventType: string;
+        methods: ("email" | "push")[];
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          message: string;
+        },
+        any
+      >({
+        path: `/notifications/subscribe`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Unsubscribe from a notification event type.
+     *
+     * @tags notifications
+     * @name PostNotificationsUnsubscribe
+     * @summary Unsubscribe from notifications
+     * @request POST:/notifications/unsubscribe
+     * @secure
+     */
+    postNotificationsUnsubscribe: (
+      data: {
+        eventType: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          message: string;
+        },
+        any
+      >({
+        path: `/notifications/unsubscribe`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Register a browser push notification subscription to receive push notifications.
+     *
+     * @tags notifications
+     * @name PostNotificationsRegisterPush
+     * @summary Register push notification subscription
+     * @request POST:/notifications/register-push
+     * @secure
+     */
+    postNotificationsRegisterPush: (
+      data: {
+        pushSubscription: {
+          endpoint: string;
+          keys: {
+            p256dh: string;
+            auth: string;
+          };
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          message: string;
+        },
+        any
+      >({
+        path: `/notifications/register-push`,
         method: "POST",
         body: data,
         secure: true,

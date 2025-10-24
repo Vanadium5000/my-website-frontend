@@ -8,6 +8,7 @@ import {
   FaLink,
   FaMobileAlt,
   FaImages,
+  FaBell,
   FaExclamationTriangle,
   FaCheck,
   FaTimes,
@@ -270,6 +271,28 @@ export function Settings(props: SettingsPageProps) {
                     className="btn btn-primary btn-sm"
                   >
                     View Sessions
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+              <div className="card-body">
+                <div className="flex items-center gap-3">
+                  <FaBell size={32} />
+                  <div>
+                    <h3 className="card-title text-lg">Notifications</h3>
+                    <p className="text-sm opacity-70">
+                      Manage email and push notification preferences
+                    </p>
+                  </div>
+                </div>
+                <div className="card-actions justify-end mt-4">
+                  <a
+                    href="/settings/notifications"
+                    className="btn btn-primary btn-sm"
+                  >
+                    Notification Settings
                   </a>
                 </div>
               </div>

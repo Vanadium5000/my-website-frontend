@@ -23,6 +23,7 @@ import { PasswordSettings } from "./pages/Settings/Password";
 import { ConnectedAccountsSettings } from "./pages/Settings/ConnectedAccounts";
 import { SessionsSettings } from "./pages/Settings/Sessions";
 import { ImagesSettings } from "./pages/Settings/Images";
+import { NotificationsSettings } from "./pages/Settings/Notifications";
 import { DeleteAccountSettings } from "./pages/Settings/DeleteAccount";
 import { NotFound } from "./pages/404.js";
 import { Profile } from "./pages/Profile/index.js";
@@ -66,6 +67,10 @@ export function App() {
                 component={ConnectedAccountsSettings}
               />
               <Route path="/settings/sessions" component={SessionsSettings} />
+              <Route
+                path="/settings/notifications"
+                component={NotificationsSettings}
+              />
               <Route path="/settings/images" component={ImagesSettings} />
               <Route
                 path="/settings/delete"
