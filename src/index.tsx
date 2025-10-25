@@ -6,6 +6,7 @@ import { BlogHome } from "./pages/Blog/index.js";
 import { BlogPost } from "./pages/Blog/post.js";
 import { Home } from "./pages/Home/index.jsx";
 import { About } from "./pages/Info/about.js";
+import { Changelog } from "./pages/Info/changelog.js";
 import { Login } from "./pages/Login/index.js";
 import { Projects } from "./pages/Projects/index.js";
 import { ChessGame } from "./pages/Projects/chess.js";
@@ -47,6 +48,7 @@ export function App() {
               {/* Dynamic route */}
               <Route path="/blog/:id" component={BlogPost} />
               <Route path="/about" component={About} />
+              <Route path="/changelog" component={Changelog} />
               <Route path="/leaderboards" component={Leaderboards} />
               <Route path="/login" component={Login} />
               <Route path="/projects" component={Projects} />

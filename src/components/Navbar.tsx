@@ -88,6 +88,11 @@ export function Navbar() {
                     Contact
                   </a>
                 </li>
+                <li>
+                  <a href="/changelog" className="btn btn-sm btn-block">
+                    Changelog
+                  </a>
+                </li>
               </ul>
             </details>
           </li>

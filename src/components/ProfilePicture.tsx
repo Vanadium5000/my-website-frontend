@@ -4,6 +4,7 @@ import { api } from "../api/client.js";
 interface Props {
   name: string;
   image: string;
+  widthClass?: string;
 }
 
 export function ProfilePicture(props: Props) {
@@ -49,8 +50,8 @@ export function ProfilePicture(props: Props) {
   }, [getImageURL]);
 
   return (
-    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-      <div className="w-10 rounded-full">
+    <div tabIndex={0} className="avatar cursor-pointer">
+      <div className={"rounded-full " + (props.widthClass || "w-10")}>
         <img alt="USER ICON" src={imageURL} />
       </div>
     </div>

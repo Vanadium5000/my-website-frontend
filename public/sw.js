@@ -33,6 +33,7 @@ self.addEventListener('push', event => {
 
   const options = {
     body: data.body || 'You have a new notification',
+    tag: data.tag,
     icon: '/logo.png',
     badge: '/favicon.ico',
     vibrate: [200, 100, 200],
