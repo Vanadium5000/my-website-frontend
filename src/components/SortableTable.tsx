@@ -1,6 +1,12 @@
-import { useState, useMemo } from "preact/hooks";
+import { useState, useMemo, useEffect } from "preact/hooks";
 import { JSX } from "preact";
-import { FiChevronUp, FiChevronDown, FiChevronsRight } from "react-icons/fi";
+import {
+  FiChevronUp,
+  FiChevronDown,
+  FiChevronsRight,
+  FiChevronLeft,
+  FiChevronRight,
+} from "react-icons/fi";
 
 export interface TableColumn<T> {
   key: string;
@@ -20,6 +26,11 @@ export interface SortableTableProps<T> {
   className?: string;
   loading?: boolean;
   emptyMessage?: string;
+  pagination?: {
+    enabled?: boolean;
+    pageSize?: number;
+    showWhenOver?: number;
+  };
 }
 
 export function SortableTable<T>({
@@ -30,11 +41,17 @@ export function SortableTable<T>({
   className = "",
   loading = false,
   emptyMessage = "No data available",
+  pagination = { enabled: true, pageSize: 50, showWhenOver: 50 },
 }: SortableTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: "asc" | "desc";
   } | null>(initialSort || null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const shouldShowPagination =
+    pagination.enabled && data.length > (pagination.showWhenOver || 50);
 
   const sortedData = useMemo(() => {
     if (!sortConfig || !data?.length) return data || [];
@@ -65,6 +82,18 @@ export function SortableTable<T>({
     return sorted;
   }, [data, sortConfig]);
 
+  const paginatedData = useMemo(() => {
+    if (!shouldShowPagination) return sortedData;
+    const pageSize = pagination.pageSize || 50;
+    const startIndex = (currentPage - 1) * pageSize;
+    return sortedData.slice(startIndex, startIndex + pageSize);
+  }, [sortedData, currentPage, shouldShowPagination, pagination.pageSize]);
+
+  const totalPages = useMemo(() => {
+    if (!shouldShowPagination) return 1;
+    return Math.ceil(sortedData.length / (pagination.pageSize || 50));
+  }, [sortedData.length, shouldShowPagination, pagination.pageSize]);
+
   const handleSort = (key: string) => {
     setSortConfig((current) => {
       if (current?.key === key) {
@@ -78,6 +107,12 @@ export function SortableTable<T>({
         return { key, direction: "asc" };
       }
     });
+    // Reset to first page when sorting changes
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const getSortIcon = (key: string) => {
@@ -127,7 +162,7 @@ export function SortableTable<T>({
           </tr>
         </thead>
         <tbody>
-          {sortedData.length === 0 ? (
+          {paginatedData.length === 0 ? (
             <tr>
               <td
                 colSpan={columns.length}
@@ -137,7 +172,7 @@ export function SortableTable<T>({
               </td>
             </tr>
           ) : (
-            sortedData.map((item, index) => (
+            paginatedData.map((item, index) => (
               <tr key={(item as any).id || index}>
                 {columns.map((column) => (
                   <td key={column.key}>
@@ -151,6 +186,37 @@ export function SortableTable<T>({
           )}
         </tbody>
       </table>
+      {shouldShowPagination && totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <div className="join">
+            <button
+              className="join-item btn btn-sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <FiChevronLeft className="w-4 h-4" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                className={`join-item btn btn-sm ${
+                  page === currentPage ? "btn-active" : ""
+                }`}
+                onClick={() => handlePageChange(page)}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              className="join-item btn btn-sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <FiChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

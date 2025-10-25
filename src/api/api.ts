@@ -1216,6 +1216,328 @@ export class Api<
         ...params,
       }),
   };
+  quizspire = {
+    /**
+     * No description
+     *
+     * @tags quizspire
+     * @name GetQuizspireDecks
+     * @summary Get user's flashcard decks
+     * @request GET:/quizspire/decks
+     * @secure
+     */
+    getQuizspireDecks: (
+      query?: {
+        limit?: string;
+        skip?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          _id?: string;
+          userId: string;
+          title: string;
+          lastModified: string;
+          publishedTimestamp: string;
+          description: string;
+          thumbnail: string;
+          cards: {
+            word: (
+              | {
+                  text: string;
+                  type: "text";
+                }
+              | {
+                  mediaUrl: string;
+                  type: "media";
+                }
+            )[];
+            definition: (
+              | {
+                  text: string;
+                  type: "text";
+                }
+              | {
+                  mediaUrl: string;
+                  type: "media";
+                }
+            )[];
+          }[];
+          createdAt: date | string | number;
+        }[],
+        any
+      >({
+        path: `/quizspire/decks`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags quizspire
+     * @name PostQuizspireDecks
+     * @summary Create a new flashcard deck
+     * @request POST:/quizspire/decks
+     * @secure
+     */
+    postQuizspireDecks: (
+      data: {
+        /**
+         * Title of the flashcard deck
+         * @minLength 1
+         * @maxLength 100
+         */
+        title: string;
+        /**
+         * Description of the flashcard deck
+         * @maxLength 500
+         */
+        description: string;
+        /** URL to thumbnail image */
+        thumbnail: string;
+        /**
+         * Array of flashcards, max 1000 cards
+         * @maxItems 1000
+         */
+        cards: {
+          word: (
+            | {
+                text: string;
+                type: "text";
+              }
+            | {
+                mediaUrl: string;
+                type: "media";
+              }
+          )[];
+          definition: (
+            | {
+                text: string;
+                type: "text";
+              }
+            | {
+                mediaUrl: string;
+                type: "media";
+              }
+          )[];
+        }[];
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          _id?: string;
+          userId: string;
+          title: string;
+          lastModified: string;
+          publishedTimestamp: string;
+          description: string;
+          thumbnail: string;
+          cards: {
+            word: (
+              | {
+                  text: string;
+                  type: "text";
+                }
+              | {
+                  mediaUrl: string;
+                  type: "media";
+                }
+            )[];
+            definition: (
+              | {
+                  text: string;
+                  type: "text";
+                }
+              | {
+                  mediaUrl: string;
+                  type: "media";
+                }
+            )[];
+          }[];
+          createdAt: date | string | number;
+        },
+        any
+      >({
+        path: `/quizspire/decks`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags quizspire
+     * @name GetQuizspireDecksById
+     * @summary Get a specific flashcard deck
+     * @request GET:/quizspire/decks/{id}
+     * @secure
+     */
+    getQuizspireDecksById: (id: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          _id?: string;
+          userId: string;
+          title: string;
+          lastModified: string;
+          publishedTimestamp: string;
+          description: string;
+          thumbnail: string;
+          cards: {
+            word: (
+              | {
+                  text: string;
+                  type: "text";
+                }
+              | {
+                  mediaUrl: string;
+                  type: "media";
+                }
+            )[];
+            definition: (
+              | {
+                  text: string;
+                  type: "text";
+                }
+              | {
+                  mediaUrl: string;
+                  type: "media";
+                }
+            )[];
+          }[];
+          createdAt: date | string | number;
+        },
+        any
+      >({
+        path: `/quizspire/decks/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags quizspire
+     * @name PutQuizspireDecksById
+     * @summary Update a flashcard deck
+     * @request PUT:/quizspire/decks/{id}
+     * @secure
+     */
+    putQuizspireDecksById: (
+      id: string,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 100
+         */
+        title?: string;
+        /** @maxLength 500 */
+        description?: string;
+        thumbnail?: string;
+        /** @maxItems 1000 */
+        cards?: {
+          word: (
+            | {
+                text: string;
+                type: "text";
+              }
+            | {
+                mediaUrl: string;
+                type: "media";
+              }
+          )[];
+          definition: (
+            | {
+                text: string;
+                type: "text";
+              }
+            | {
+                mediaUrl: string;
+                type: "media";
+              }
+          )[];
+        }[];
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          _id?: string;
+          userId: string;
+          title: string;
+          lastModified: string;
+          publishedTimestamp: string;
+          description: string;
+          thumbnail: string;
+          cards: {
+            word: (
+              | {
+                  text: string;
+                  type: "text";
+                }
+              | {
+                  mediaUrl: string;
+                  type: "media";
+                }
+            )[];
+            definition: (
+              | {
+                  text: string;
+                  type: "text";
+                }
+              | {
+                  mediaUrl: string;
+                  type: "media";
+                }
+            )[];
+          }[];
+          createdAt: date | string | number;
+        },
+        any
+      >({
+        path: `/quizspire/decks/${id}`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags quizspire
+     * @name DeleteQuizspireDecksById
+     * @summary Delete a flashcard deck
+     * @request DELETE:/quizspire/decks/{id}
+     * @secure
+     */
+    deleteQuizspireDecksById: (id: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          success: boolean;
+        },
+        any
+      >({
+        path: `/quizspire/decks/${id}`,
+        method: "DELETE",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
   me = {
     /**
      * No description

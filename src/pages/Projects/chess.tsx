@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from "preact/hooks";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import { api } from "../../api/client.js"; // Assuming this is the OpenAPI-generated client
+import { ProfilePicture } from "../../components/ProfilePicture.js";
 import {
   FaCopy,
   FaChessPawn,
@@ -12,6 +13,9 @@ import {
   FaClock,
   FaUser,
   FaExclamationTriangle,
+  FaHandshake,
+  FaFlag,
+  FaHourglassHalf,
 } from "react-icons/fa";
 
 export function ChessGame() {
@@ -27,9 +31,18 @@ export function ChessGame() {
   const [whiteTime, setWhiteTime] = useState(0);
   const [blackTime, setBlackTime] = useState(0);
   const [bidSent, setBidSent] = useState(false);
+  const [biddingCountdown, setBiddingCountdown] = useState(null);
+  const [myUserId, setMyUserId] = useState(null);
   const [myName, setMyName] = useState(null);
+  const [myImage, setMyImage] = useState(null);
+  const [opponentUser, setOpponentUser] = useState(null);
+  const [winnerUser, setWinnerUser] = useState(null);
+  const [drawOfferUser, setDrawOfferUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [drawOfferPending, setDrawOfferPending] = useState(false);
+  const [opponentDrawOffer, setOpponentDrawOffer] = useState(null);
+  const [showDrawModal, setShowDrawModal] = useState(false);
 
   // Derived draggable state
   const [draggable, setDraggable] = useState(false);
@@ -63,7 +76,9 @@ export function ChessGame() {
           window.location.href = "/login";
           return;
         }
+        setMyUserId(response.user.id);
         setMyName(response.user.name);
+        setMyImage(response.user.image);
 
         const baseUrl = api.baseUrl;
         const fullPath = new URL("/sockets/chess", baseUrl).href;
@@ -89,17 +104,33 @@ export function ChessGame() {
           setStatus("Waiting for opponent...");
         });
 
-        newSocket.on("paired", (data) => {
+        newSocket.on("paired", async (data) => {
           console.log("Received paired message:", data);
-          setOpponent(data.opponent);
-          setPhase("bidding");
-          setBidSent(false);
-          setStatus(
-            `Paired with ${data.opponent}. Bid your preferred game time (min 60s):`
-          );
+          try {
+            const profileResponse = await api.profile.getProfileByUserId(
+              data.opponent
+            );
+            setOpponentUser(profileResponse.data);
+            setOpponent(data.opponent);
+            setPhase("bidding");
+            setBidSent(false);
+            setBiddingCountdown(10); // Start countdown at 10 seconds
+            setStatus(
+              `Paired with ${profileResponse.data.name}. Bid your preferred game time (min 60s):`
+            );
+          } catch (error) {
+            console.error("Failed to fetch opponent profile:", error);
+            setOpponent(data.opponent);
+            setPhase("bidding");
+            setBidSent(false);
+            setBiddingCountdown(10); // Start countdown at 10 seconds
+            setStatus(
+              `Paired with opponent. Bid your preferred game time (min 60s):`
+            );
+          }
         });
 
-        newSocket.on("start", (data) => {
+        newSocket.on("start", async (data) => {
           console.log("Received start message:", data);
           chess.load(data.fen);
           setFen(chess.fen());
@@ -108,7 +139,19 @@ export function ChessGame() {
           setWhiteTime(data.whiteTime);
           setBlackTime(data.blackTime);
           setPhase("playing");
-          setStatus(`Playing as ${data.your_color} against ${data.opponent}`);
+          setBiddingCountdown(null); // Clear countdown when game starts
+          try {
+            const profileResponse = await api.profile.getProfileByUserId(
+              data.opponent
+            );
+            setOpponentUser(profileResponse.data);
+            setStatus(
+              `Playing as ${data.your_color} against ${profileResponse.data.name}`
+            );
+          } catch (error) {
+            console.error("Failed to fetch opponent profile:", error);
+            setStatus(`Playing as ${data.your_color} against opponent`);
+          }
           console.log(
             `Game started. Your color: ${
               data.your_color
@@ -131,6 +174,7 @@ export function ChessGame() {
           setOpponent(null);
           setWhiteTime(0);
           setBlackTime(0);
+          setBiddingCountdown(null); // Clear countdown on disconnect
           console.warn("Opponent disconnected");
         });
 
@@ -139,18 +183,42 @@ export function ChessGame() {
           chess.load(data.fen);
           setFen(chess.fen());
           setPending(false);
+          setDrawOfferPending(false);
+          setOpponentDrawOffer(null);
           console.log(
             `Board updated. Turn: ${chess.turn()}, Your turn: ${isYourTurn()}`
           );
         });
 
-        newSocket.on("win", (data) => {
+        newSocket.on("win", async (data) => {
           console.log("Received win message:", data);
           setPhase("ended");
-          const youWin = data.winner === myName;
-          const message = youWin ? "You win!" : `${data.winner} wins!`;
+          const youWin = data.winner === myUserId;
+          try {
+            const profileResponse = await api.profile.getProfileByUserId(
+              data.winner
+            );
+            setWinnerUser(profileResponse.data);
+            const message = youWin
+              ? "You win!"
+              : `${profileResponse.data.name} wins!`;
+            const reason = data.reason ? ` (${data.reason})` : "";
+            setStatus(`Game over: ${message}${reason}`);
+          } catch (error) {
+            console.error("Failed to fetch winner profile:", error);
+            const message = youWin ? "You win!" : "Opponent wins!";
+            const reason = data.reason ? ` (${data.reason})` : "";
+            setStatus(`Game over: ${message}${reason}`);
+          }
           const reason = data.reason ? ` (${data.reason})` : "";
-          setStatus(`Game over: ${message}${reason}`);
+          let message;
+          if (youWin) {
+            message = "You win!";
+          } else {
+            message = winnerUser
+              ? `${winnerUser.name} wins!`
+              : "Opponent wins!";
+          }
           console.log(`Game ended: ${message}${reason}`);
         });
 
@@ -174,6 +242,38 @@ export function ChessGame() {
           console.error("Server error:", data);
         });
 
+        newSocket.on("draw_offered", async (data) => {
+          console.log("Received draw_offered message:", data);
+          try {
+            const profileResponse = await api.profile.getProfileByUserId(
+              data.from
+            );
+            setDrawOfferUser(profileResponse.data);
+          } catch (error) {
+            console.error("Failed to fetch draw offer user profile:", error);
+          }
+          setOpponentDrawOffer(data.from);
+          setShowDrawModal(true);
+        });
+
+        newSocket.on("draw_offer_sent", () => {
+          console.log("Draw offer sent successfully");
+          setDrawOfferPending(true);
+          setErrorMessage(null);
+        });
+
+        newSocket.on("draw_declined", () => {
+          console.log("Draw offer declined");
+          setDrawOfferPending(false);
+          setErrorMessage("Draw offer declined");
+        });
+
+        newSocket.on("draw_offer_cancelled", () => {
+          console.log("Draw offer cancelled");
+          setOpponentDrawOffer(null);
+          setShowDrawModal(false);
+        });
+
         newSocket.on("connect_error", (error) => {
           setErrorMessage(`Connection error: ${error.message}`);
           console.error("Connect error:", error);
@@ -181,7 +281,13 @@ export function ChessGame() {
 
         newSocket.on("disconnect", (reason) => {
           setStatus(`Disconnected: ${reason}`);
+          setBiddingCountdown(null); // Clear countdown on disconnect
           console.warn("Socket disconnected:", reason);
+        });
+
+        newSocket.on("bidding_time_update", (data) => {
+          console.log("Received bidding_time_update:", data);
+          setBiddingCountdown(data.timeLeft);
         });
       } catch (error) {
         console.error("Initialization error:", error);
@@ -203,6 +309,7 @@ export function ChessGame() {
       socket.emit("bid", { time });
       setBidSent(true);
       setStatus(`Bid sent (${time}s), waiting for opponent...`);
+      setBiddingCountdown(null); // Clear countdown when bid is sent
     } else if (time < 60) {
       setErrorMessage("Bid time must be at least 60s");
     } else {
@@ -275,6 +382,34 @@ export function ChessGame() {
     }
   };
 
+  const resign = () => {
+    if (socket && phase === "playing") {
+      socket.emit("resign");
+    }
+  };
+
+  const offerDraw = () => {
+    if (socket && phase === "playing" && !drawOfferPending) {
+      socket.emit("offer_draw");
+    }
+  };
+
+  const acceptDraw = () => {
+    if (socket && opponentDrawOffer) {
+      socket.emit("accept_draw");
+      setShowDrawModal(false);
+      setOpponentDrawOffer(null);
+    }
+  };
+
+  const declineDraw = () => {
+    if (socket && opponentDrawOffer) {
+      socket.emit("decline_draw");
+      setShowDrawModal(false);
+      setOpponentDrawOffer(null);
+    }
+  };
+
   console.log("Your color", yourColor);
 
   return (
@@ -325,18 +460,42 @@ export function ChessGame() {
 
             {/* Players */}
             <div className="flex flex-col gap-2 mb-4">
-              <div className="flex items-center gap-2">
-                <FaUser className="h-5 w-5" />
-                <span>
+              <a
+                href={`/profile/${myUserId}`}
+                className="flex items-center gap-1 hover:text-info"
+              >
+                <ProfilePicture
+                  name={myName}
+                  image={myImage}
+                  widthClass="w-6"
+                />
+                <div className="font-bold flex items-center gap-1">
                   <strong>You:</strong> {myName || "Loading..."}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FaUser className="h-5 w-5" />
-                <span>
-                  <strong>Opponent:</strong> {opponent || "Waiting..."}
-                </span>
-              </div>
+                </div>
+              </a>
+              {opponentUser ? (
+                <a
+                  href={`/profile/${opponentUser.id}`}
+                  className="flex items-center gap-1 hover:text-info"
+                >
+                  <ProfilePicture
+                    name={opponentUser.name}
+                    image={opponentUser.image}
+                    widthClass="w-6"
+                  />
+                  <div className="font-bold flex items-center gap-1">
+                    <strong>Opponent:</strong> {opponentUser.name}
+                  </div>
+                </a>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <FaUser className="h-5 w-5" />
+                  <span>
+                    <strong>Opponent:</strong>{" "}
+                    {opponent ? "Loading..." : "Waiting..."}
+                  </span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <FaChessPawn className="h-5 w-5" />
                 <span>
@@ -410,6 +569,32 @@ export function ChessGame() {
               </div>
             )}
 
+            {/* Draw Offer Alert */}
+            {drawOfferPending && (
+              <div className="alert alert-info mb-4">
+                <FaHandshake className="h-5 w-5" />
+                <span>Draw offer sent, waiting for opponent...</span>
+              </div>
+            )}
+
+            {/* Game Actions */}
+            {phase === "playing" && (
+              <div className="flex flex-col gap-2 mb-4">
+                <button
+                  onClick={offerDraw}
+                  disabled={drawOfferPending}
+                  className="btn btn-outline btn-info"
+                >
+                  <FaHandshake className="h-5 w-5 mr-2" />
+                  {drawOfferPending ? "Draw Offered" : "Offer Draw"}
+                </button>
+                <button onClick={resign} className="btn btn-outline btn-error">
+                  <FaFlag className="h-5 w-5 mr-2" />
+                  Resign
+                </button>
+              </div>
+            )}
+
             {/* Bidding */}
             {phase === "bidding" && !bidSent && (
               <div className="form-control mb-4">
@@ -436,6 +621,12 @@ export function ChessGame() {
                     Submit Bid
                   </button>
                 </div>
+                {biddingCountdown !== null && (
+                  <div className="alert alert-warning mt-2">
+                    <FaHourglassHalf className="h-5 w-5" />
+                    <span>Time left to bid: {biddingCountdown}s</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -455,6 +646,41 @@ export function ChessGame() {
           </div>
         </div>
       </div>
+
+      {/* Draw Offer Modal */}
+      {showDrawModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Draw Offer</h3>
+            <p className="py-4">
+              {drawOfferUser ? (
+                <a
+                  href={`/profile/${drawOfferUser.id}`}
+                  className="flex items-center gap-1 inline-flex"
+                >
+                  <ProfilePicture
+                    name={drawOfferUser.name}
+                    image={drawOfferUser.image}
+                    widthClass="w-6"
+                  />
+                  <span className="font-bold">{drawOfferUser.name}</span>
+                </a>
+              ) : (
+                "Your opponent"
+              )}{" "}
+              has offered a draw. Do you accept?
+            </p>
+            <div className="modal-action">
+              <button onClick={declineDraw} className="btn btn-outline">
+                Decline
+              </button>
+              <button onClick={acceptDraw} className="btn btn-primary">
+                Accept Draw
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
