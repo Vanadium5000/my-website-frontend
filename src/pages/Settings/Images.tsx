@@ -2,7 +2,10 @@ import { useState, useEffect, useRef } from "preact/hooks";
 import { api } from "../../api/client";
 import { User } from "../../api/api";
 import { FaImages, FaTrash, FaCheck, FaTimes, FaUpload } from "react-icons/fa";
-import { ProfilePicture } from "../../components/ProfilePicture";
+import {
+  getApiImageUrl,
+  ProfilePicture,
+} from "../../components/ProfilePicture";
 import { useSpawnToast } from "../../components/technical/ToastProvider";
 
 interface ImageData {
@@ -233,16 +236,6 @@ export function ImagesSettings(props: ImagesSettingsProps) {
     }
   };
 
-  const getImageUrl = (imageId: string) => {
-    // Use the image API endpoint to get the image URL
-    // Since this is a GET request, we need to construct the URL
-    const baseUrl =
-      import.meta.env.MODE === "production"
-        ? "http://my-website.space/backend"
-        : "http://localhost:3000";
-    return `${baseUrl}/images/${imageId}`;
-  };
-
   if (loading) {
     return (
       <>
@@ -265,6 +258,11 @@ export function ImagesSettings(props: ImagesSettingsProps) {
         </div>
       </>
     );
+  }
+
+  for (let x of images) {
+    console.log(x?.id);
+    console.log(getApiImageUrl(x?.id));
   }
 
   return (
@@ -389,7 +387,7 @@ export function ImagesSettings(props: ImagesSettingsProps) {
                     >
                       <figure className="px-4 pt-4">
                         <img
-                          src={getImageUrl(image.id)}
+                          src={getApiImageUrl("/images/" + image.id)}
                           alt={image.filename}
                           className="rounded-xl w-full h-32 object-cover"
                           onError={(e) => {
@@ -407,22 +405,18 @@ export function ImagesSettings(props: ImagesSettingsProps) {
                               updatingProfile ? "loading" : ""
                             }`}
                             onClick={() =>
-                              handleSetProfileImage(
-                                new URL("/images/" + image.id, api.baseUrl).href
-                              )
+                              handleSetProfileImage("/images/" + image.id)
                             }
                             disabled={
                               updatingProfile || currentUser?.image === image.id
                             }
                             aria-label={
-                              currentUser?.image ===
-                              new URL("/images/" + image.id, api.baseUrl).href
+                              currentUser?.image === "/images/" + image.id
                                 ? `Current profile picture: ${image.filename}`
                                 : `Set ${image.filename} as profile picture`
                             }
                           >
-                            {currentUser?.image ===
-                            new URL("/images/" + image.id, api.baseUrl).href ? (
+                            {currentUser?.image === "/images/" + image.id ? (
                               <>
                                 <FaCheck size={12} />
                                 Current

@@ -7,6 +7,19 @@ interface Props {
   widthClass?: string;
 }
 
+/**
+ * Constructs a full URL for API-hosted images.
+ * @param imagePath The relative image path (e.g., "/images/...") or a http url
+ * @returns Full URL to the image on the API server
+ */
+export const getApiImageUrl = (imagePath: string): string => {
+  if (!imagePath.startsWith("/")) {
+    return imagePath;
+  } else {
+    return new URL(imagePath, api.baseUrl).href;
+  }
+};
+
 export function ProfilePicture(props: Props) {
   if (!props.name) return;
 
@@ -52,7 +65,7 @@ export function ProfilePicture(props: Props) {
   return (
     <div tabIndex={0} className="avatar cursor-pointer">
       <div className={"rounded-full " + (props.widthClass || "w-10")}>
-        <img alt="USER ICON" src={imageURL} />
+        <img alt="USER ICON" src={getApiImageUrl(imageURL)} />
       </div>
     </div>
   );

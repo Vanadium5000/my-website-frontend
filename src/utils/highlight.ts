@@ -16,7 +16,7 @@ export function highlightText(text: string, indices: number[][]): string {
   for (const [start, end] of sortedIndices) {
     if (start >= lastEnd || end > text.length) continue; // Invalid indices
     parts.unshift(text.substring(end, lastEnd));
-    parts.unshift(`<mark class="bg-info">${text.substring(start, end)}</mark>`);
+    parts.unshift(`<span class="bg-info">${text.substring(start, end)}</span>`);
     lastEnd = start;
   }
 
@@ -71,11 +71,13 @@ export function highlightSearchTerms(text: string, search: string): string {
   const escapedWords = words.map((word) =>
     word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   );
-  let result = text;
 
-  for (const escapedWord of escapedWords) {
+  // Process replacements in reverse order to avoid offset issues
+  let result = text;
+  for (let i = escapedWords.length - 1; i >= 0; i--) {
+    const escapedWord = escapedWords[i];
     const regex = new RegExp(`(${escapedWord})`, "gi");
-    result = result.replace(regex, `<mark class="bg-info">$1</mark>`);
+    result = result.replace(regex, `<span class="bg-info">$1</span>`);
   }
 
   return result;

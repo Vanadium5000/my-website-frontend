@@ -2,6 +2,7 @@
 import { GameCard } from "../../components/GameCard";
 import { ProjectCard } from "../../components/ProjectCard";
 import { FaChessKnight, FaCalculator } from "react-icons/fa";
+import { FiBookOpen } from "react-icons/fi";
 
 export function Projects() {
   return (
@@ -57,6 +58,15 @@ export function Projects() {
           technicalSpecs="Dynamic problem generation • Multiplayer leaderboards • Timed solo mode"
           backgroundImage="/stragedy-rush.png"
           href="/projects/arithmetic"
+        />
+      </div>
+      <div class="m-8">
+        <GameCard
+          title="Quizspire"
+          description="Master your flashcards with various study modes and revision games."
+          technicalSpecs="Flashcard decks • Multiple study modes • Progress tracking"
+          backgroundImage="/colorful-tetris.png"
+          href="/projects/quizspire"
         />
       </div>
       <a

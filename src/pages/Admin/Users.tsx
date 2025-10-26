@@ -261,7 +261,7 @@ export function AdminUsers() {
                           <div className="font-bold">{user.name}</div>
                           {user.emailVerified && (
                             <span className="badge badge-success badge-sm">
-                              Verified EMail
+                              Verified Email
                             </span>
                           )}
                         </div>

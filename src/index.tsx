@@ -11,6 +11,7 @@ import { Login } from "./pages/Login/index.js";
 import { Projects } from "./pages/Projects/index.js";
 import { ChessGame } from "./pages/Projects/chess.js";
 import { Arithmetic } from "./pages/Projects/arithmetic.js";
+import { Quizspire } from "./pages/Projects/quizspire.js";
 import { Signup } from "./pages/Signup/index.js";
 import { EmailVerification } from "./pages/EmailVerification/index.js";
 import { AdminHome } from "./pages/Admin/index";
@@ -54,6 +55,7 @@ export function App() {
               <Route path="/projects" component={Projects} />
               <Route path="/projects/chess" component={ChessGame} />
               <Route path="/projects/arithmetic" component={Arithmetic} />
+              <Route path="/projects/quizspire" component={Quizspire} />
               <Route path="/signup" component={Signup} />
               <Route path="/email-verification" component={EmailVerification} />
               <Route path="/admin" component={AdminHome} />
