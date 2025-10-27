@@ -65,7 +65,7 @@ export function Projects() {
           title="Quizspire"
           description="Master your flashcards with various study modes and revision games."
           technicalSpecs="Flashcard decks • Multiple study modes • Progress tracking"
-          backgroundImage="/colorful-tetris.png"
+          backgroundImage="/quizspire.png"
           href="/projects/quizspire"
         />
       </div>
