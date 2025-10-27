@@ -15,6 +15,7 @@ import {
   FaInfoCircle,
   FaCopy,
   FaCheck,
+  FaGamepad,
 } from "react-icons/fa";
 import { User } from "../../api/api";
 
@@ -77,6 +78,7 @@ export function Profile({ id }: ProfileProps) {
           draughtsWins: profileResponse.data.draughtsWins,
           draughtsLosses: profileResponse.data.draughtsLosses,
           arithmeticScore: profileResponse.data.arithmeticScore,
+          tetrisScore: profileResponse.data.tetrisScore,
           role: null,
           banned: profileResponse.data.banned,
           banReason: profileResponse.data.banReason,
@@ -264,6 +266,15 @@ export function Profile({ id }: ProfileProps) {
                     <td>-</td>
                     <td>-</td>
                     <td>{profileUser.arithmeticScore || 0}</td>
+                  </tr>
+                  <tr className="hover">
+                    <td className="flex items-center gap-2">
+                      <FaGamepad />
+                      Tetris
+                    </td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{profileUser.tetrisScore || 0}</td>
                   </tr>
                 </tbody>
               </table>

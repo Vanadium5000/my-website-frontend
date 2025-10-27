@@ -69,6 +69,15 @@ export function Projects() {
           href="/projects/quizspire"
         />
       </div>
+      <div class="m-8">
+        <GameCard
+          title="Tetris"
+          description="Classic Tetris game built with PixiJS."
+          technicalSpecs="Real-time gameplay • High score tracking"
+          backgroundImage="/colorful-tetris.png"
+          href="/projects/tetris"
+        />
+      </div>
       <a
         href="https://altus.deno.dev/projects"
         class="mx-8 my-4 btn btn-success"

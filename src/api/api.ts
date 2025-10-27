@@ -56,6 +56,7 @@ export interface PublicUser {
   draughtsWins: number | null;
   draughtsLosses: number | null;
   arithmeticScore: number | null;
+  tetrisScore: number | null;
   banned?: boolean | null;
   banReason?: string | null;
   banExpires?: (date | string | number) | null;
@@ -91,6 +92,7 @@ export interface User {
   draughtsWins?: number;
   draughtsLosses?: number;
   arithmeticScore?: number;
+  tetrisScore?: number;
   verifiedName?: string;
   verifiedImage?: string;
   imagesStoredSize?: number;
@@ -172,7 +174,7 @@ export interface ApiConfig<SecurityDataType = unknown> {
   baseUrl?: string;
   baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
   securityWorker?: (
-    securityData: SecurityDataType | null,
+    securityData: SecurityDataType | null
   ) => Promise<RequestParams | void> | RequestParams | void;
   customFetch?: typeof fetch;
 }
@@ -218,7 +220,9 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected encodeQueryParam(key: string, value: any) {
     const encodedKey = encodeURIComponent(key);
-    return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;
+    return `${encodedKey}=${encodeURIComponent(
+      typeof value === "number" ? value : `${value}`
+    )}`;
   }
 
   protected addQueryParam(query: QueryParamsType, key: string) {
@@ -233,13 +237,13 @@ export class HttpClient<SecurityDataType = unknown> {
   protected toQueryString(rawQuery?: QueryParamsType): string {
     const query = rawQuery || {};
     const keys = Object.keys(query).filter(
-      (key) => "undefined" !== typeof query[key],
+      (key) => "undefined" !== typeof query[key]
     );
     return keys
       .map((key) =>
         Array.isArray(query[key])
           ? this.addArrayQueryParam(query, key)
-          : this.addQueryParam(query, key),
+          : this.addQueryParam(query, key)
       )
       .join("&");
   }
@@ -274,8 +278,8 @@ export class HttpClient<SecurityDataType = unknown> {
           property instanceof Blob
             ? property
             : typeof property === "object" && property !== null
-              ? JSON.stringify(property)
-              : `${property}`,
+            ? JSON.stringify(property)
+            : `${property}`
         );
         return formData;
       }, new FormData());
@@ -285,7 +289,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected mergeRequestParams(
     params1: RequestParams,
-    params2?: RequestParams,
+    params2?: RequestParams
   ): RequestParams {
     return {
       ...this.baseApiParams,
@@ -300,7 +304,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }
 
   protected createAbortSignal = (
-    cancelToken: CancelToken,
+    cancelToken: CancelToken
   ): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
       const abortController = this.abortControllers.get(cancelToken);
@@ -346,7 +350,9 @@ export class HttpClient<SecurityDataType = unknown> {
     const responseFormat = format || requestParams.format;
 
     return this.customFetch(
-      `${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`,
+      `${baseUrl || this.baseUrl || ""}${path}${
+        queryString ? `?${queryString}` : ""
+      }`,
       {
         ...requestParams,
         headers: {
@@ -363,7 +369,7 @@ export class HttpClient<SecurityDataType = unknown> {
           typeof body === "undefined" || body === null
             ? null
             : payloadFormatter(body),
-      },
+      }
     ).then(async (response) => {
       const r = response.clone() as HttpResponse<T, E>;
       r.data = null as unknown as T;
@@ -402,7 +408,7 @@ export class HttpClient<SecurityDataType = unknown> {
  * Development documentation
  */
 export class Api<
-  SecurityDataType extends unknown,
+  SecurityDataType extends unknown
 > extends HttpClient<SecurityDataType> {
   /**
    * No description
@@ -434,7 +440,7 @@ export class Api<
          */
         name: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<string, any>({
         path: `/avatar/`,
@@ -527,7 +533,7 @@ export class Api<
         /** Comment content */
         content: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -577,7 +583,7 @@ export class Api<
       data: {
         type: "like" | "dislike";
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -636,7 +642,7 @@ export class Api<
       data: {
         action: "accept" | "deny" | "delete";
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -672,7 +678,7 @@ export class Api<
          */
         image: File;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -797,6 +803,7 @@ export class Api<
           draughtsWins: number | null;
           draughtsLosses: number | null;
           arithmeticScore: number | null;
+          tetrisScore: number | null;
           banned?: boolean | null;
           banReason?: string | null;
           banExpires?: (date | string | number) | null;
@@ -835,7 +842,7 @@ export class Api<
         duration: number;
         finalScore: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -845,6 +852,36 @@ export class Api<
         any
       >({
         path: `/profile/log-arithmetic`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Log Tetris score
+     *
+     * @tags profile
+     * @name PostProfileLogTetris
+     * @summary Log Tetris score
+     * @request POST:/profile/log-tetris
+     * @secure
+     */
+    postProfileLogTetris: (
+      data: {
+        finalScore: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          message: string;
+        },
+        any
+      >({
+        path: `/profile/log-tetris`,
         method: "POST",
         body: data,
         secure: true,
@@ -893,7 +930,7 @@ export class Api<
      */
     postAdminProfileByUserIdVerify: (
       userId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -925,7 +962,7 @@ export class Api<
         /** The attribute name to rank users by (e.g., chessWins). Allowed attributes: age, chessWins, chessLosses, draughtsWins, draughtsLosses, name. */
         attribute: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -941,6 +978,7 @@ export class Api<
           draughtsWins: number | null;
           draughtsLosses: number | null;
           arithmeticScore: number | null;
+          tetrisScore: number | null;
           banned?: boolean | null;
           banReason?: string | null;
           banExpires?: (date | string | number) | null;
@@ -985,6 +1023,7 @@ export class Api<
                   draughtsWins?: number | null;
                   draughtsLosses?: number | null;
                   arithmeticScore?: number | null;
+                  tetrisScore?: number | null;
                   verifiedName?: string | null;
                   verifiedImage?: string | null;
                   banned?: boolean | null;
@@ -1042,7 +1081,7 @@ export class Api<
         event: string;
         data?: any;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1074,7 +1113,7 @@ export class Api<
       data: {
         socketId: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1133,7 +1172,7 @@ export class Api<
         eventType: string;
         methods: ("email" | "push")[];
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1163,7 +1202,7 @@ export class Api<
       data: {
         eventType: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1199,7 +1238,7 @@ export class Api<
           };
         };
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1231,7 +1270,7 @@ export class Api<
         limit?: string;
         skip?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1327,7 +1366,7 @@ export class Api<
           )[];
         }[];
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1469,7 +1508,7 @@ export class Api<
           )[];
         }[];
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1590,7 +1629,7 @@ export class Api<
         /** The login hint to use for the authorization code request */
         loginHint?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1694,7 +1733,7 @@ export class Api<
         /** If this is false, the session will not be remembered. Default is `true`. */
         rememberMe?: boolean;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1763,7 +1802,7 @@ export class Api<
         callbackURL?: string | null;
         rememberMe?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1814,7 +1853,7 @@ export class Api<
         /** The URL to redirect the user to reset their password. If the token isn't valid or expired, it'll be redirected with a query parameter `?error=INVALID_TOKEN`. If the token is valid, it'll be redirected with a query parameter `?token=VALID_TOKEN */
         redirectTo?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1852,7 +1891,7 @@ export class Api<
         /** The token to reset the password */
         token?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1889,7 +1928,7 @@ export class Api<
         /** The URL to redirect to after email verification */
         callbackURL?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1948,7 +1987,7 @@ export class Api<
          */
         callbackURL?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -1996,7 +2035,7 @@ export class Api<
         /** The URL to redirect to after email verification */
         callbackURL?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2038,7 +2077,7 @@ export class Api<
         /** Must be a boolean value */
         revokeOtherSessions?: boolean | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2104,7 +2143,7 @@ export class Api<
         /** The image of the user */
         image?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2144,7 +2183,7 @@ export class Api<
         /** The token to delete the user is required */
         token?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2183,7 +2222,7 @@ export class Api<
         /** The URL to redirect the user to reset their password */
         callbackURL?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2219,7 +2258,7 @@ export class Api<
         /** The URL to redirect the user to reset their password. If the token isn't valid or expired, it'll be redirected with a query parameter `?error=INVALID_TOKEN`. If the token is valid, it'll be redirected with a query parameter `?token=VALID_TOKEN */
         redirectTo?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2280,7 +2319,7 @@ export class Api<
         /** The token to revoke */
         token: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2391,7 +2430,7 @@ export class Api<
         /** Disable automatic redirection to the provider. Useful for handling the redirection yourself */
         disableRedirect?: boolean | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2466,7 +2505,7 @@ export class Api<
         /** The URL to redirect to after deletion */
         callbackURL?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2503,7 +2542,7 @@ export class Api<
         providerId: string;
         accountId?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2542,7 +2581,7 @@ export class Api<
         /** The user ID associated with the account */
         userId?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2589,7 +2628,7 @@ export class Api<
         /** The user ID associated with the account */
         userId?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2632,7 +2671,7 @@ export class Api<
         /** The provider given account id for which to get the account info */
         accountId: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2728,7 +2767,7 @@ export class Api<
         /** The role to set, this can be a string or an array of strings. Eg: `admin` or `[admin, user]` */
         role: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2763,7 +2802,7 @@ export class Api<
         /** The id of the User */
         id?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2803,7 +2842,7 @@ export class Api<
         role?: string | null;
         data?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2840,7 +2879,7 @@ export class Api<
         /** The user data to update */
         data: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2889,7 +2928,7 @@ export class Api<
         /** The operator to use for the filter */
         filterOperator?: string | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2926,7 +2965,7 @@ export class Api<
         /** The user id */
         userId: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -2961,7 +3000,7 @@ export class Api<
         /** The user id */
         userId: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -3000,7 +3039,7 @@ export class Api<
         /** The number of seconds until the ban expires */
         banExpiresIn?: number | null;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -3035,7 +3074,7 @@ export class Api<
         /** The user id */
         userId: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -3095,7 +3134,7 @@ export class Api<
         /** The session token */
         sessionToken: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -3130,7 +3169,7 @@ export class Api<
         /** The user id */
         userId: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -3165,7 +3204,7 @@ export class Api<
         /** The user id */
         userId: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -3202,7 +3241,7 @@ export class Api<
         /** The user id */
         userId: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {
@@ -3242,7 +3281,7 @@ export class Api<
         /** The permission to check */
         permissions: object;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         {

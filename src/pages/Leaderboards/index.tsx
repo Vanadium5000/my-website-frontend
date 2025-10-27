@@ -35,6 +35,13 @@ export function Leaderboards() {
               attributeTitles={["Arithmetic Score"]}
             />
           </div>
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Tetris Score</h2>
+            <Leaderboard
+              attributes={["tetrisScore"]}
+              attributeTitles={["Tetris Score"]}
+            />
+          </div>
         </div>
       </div>
     </>
