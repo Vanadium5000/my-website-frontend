@@ -11,6 +11,10 @@ import {
   FaChessKnight,
   FaCircle,
   FaCalculator,
+  FaInfo,
+  FaInfoCircle,
+  FaCopy,
+  FaCheck,
 } from "react-icons/fa";
 import { User } from "../../api/api";
 
@@ -24,6 +28,18 @@ export function Profile({ id }: ProfileProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const handleCopyToClipboard = async () => {
+    const profileUrl = `${window.location.origin}/profile/${profileUser.id}`;
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
+  };
 
   useEffect(() => {
     loadProfile();
@@ -126,27 +142,68 @@ export function Profile({ id }: ProfileProps) {
       >
         <div className="card bg-base-100 shadow-2xl max-w-md w-full mx-4">
           <div className="card-body items-center text-center">
-            {/* Profile Picture */}
-            <ProfilePicture name={profileUser.name} image={profileUser.image} />
+            {/* Verification Status for Own Profile */}
+            {profileUser.verifiedName &&
+              (profileUser.verifiedName !== profileUser.name ||
+                profileUser.verifiedImage !== profileUser.image) && (
+                <div className="w-full alert alert-info mb-4">
+                  <FaInfoCircle />
+                  <div>
+                    <h3 className="font-bold">Profile Verification Pending</h3>
+                    <p>What others currently see:</p>
+                    <div className="flex items-center gap-2">
+                      <ProfilePicture
+                        name={profileUser.verifiedName}
+                        image={profileUser.verifiedImage}
+                        widthClass="w-8"
+                      />
 
-            {/* Ban Info */}
-            <BanInfo
-              banned={profileUser.banned}
-              banReason={profileUser.banReason}
-              banExpires={profileUser.banExpires}
-              className="w-full max-w-sm"
-            />
+                      <span className="text-lg font-semibold">
+                        {profileUser.verifiedName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            {/* Name */}
-            <h2 className="card-title text-2xl font-bold mt-4">
-              <FaUser className="inline mr-2" />
-              {profileUser.name}
-            </h2>
+            <a href={`/profile/${profileUser.id}`}>
+              {/* Profile Picture */}
+              <ProfilePicture
+                name={profileUser.name}
+                image={profileUser.image}
+                widthClass="w-16"
+              />
+
+              {/* Ban Info */}
+              <BanInfo
+                banned={profileUser.banned}
+                banReason={profileUser.banReason}
+                banExpires={profileUser.banExpires}
+                className="w-full max-w-sm"
+              />
+
+              {/* Name */}
+              <h2 className="card-title text-2xl font-bold mt-2">
+                <FaUser className="inline mr-2" />
+                {profileUser.name}
+              </h2>
+            </a>
 
             {/* User ID */}
             <div className="flex items-center gap-2 text-sm opacity-70">
               <FaIdCard />
               <span>{profileUser.id}</span>
+              <button
+                className="btn btn-ghost btn-xs"
+                onClick={handleCopyToClipboard}
+                title="Copy profile link"
+              >
+                {copySuccess ? (
+                  <FaCheck className="text-success" />
+                ) : (
+                  <FaCopy />
+                )}
+              </button>
             </div>
 
             {/* Dates */}
@@ -169,37 +226,48 @@ export function Profile({ id }: ProfileProps) {
               </div>
             )}
 
-            {/* Stats */}
-            {/* Chess Stats */}
-            {(profileUser.chessWins !== undefined ||
-              profileUser.chessLosses !== undefined) && (
-              <div className="flex items-center gap-2 text-sm opacity-70 mt-2">
-                <FaChessKnight />
-                <span>
-                  Chess: Wins: {profileUser.chessWins ?? 0}, Losses:{" "}
-                  {profileUser.chessLosses ?? 0}
-                </span>
-              </div>
-            )}
-            {/* Draughts Stats */}
-            {(profileUser.draughtsWins !== undefined ||
-              profileUser.draughtsLosses !== undefined) && (
-              <div className="flex items-center gap-2 text-sm opacity-70 mt-2">
-                <FaCircle />
-                <span>
-                  Draughts: Wins: {profileUser.draughtsWins ?? 0}, Losses:{" "}
-                  {profileUser.draughtsLosses ?? 0}
-                </span>
-              </div>
-            )}
-            {/* Arithmetic Score */}
-            {profileUser.arithmeticScore !== undefined &&
-              profileUser.arithmeticScore !== null && (
-                <div className="flex items-center gap-2 text-sm opacity-70 mt-2">
-                  <FaCalculator />
-                  <span>Arithmetic Score: {profileUser.arithmeticScore}</span>
-                </div>
-              )}
+            {/* Stats Table */}
+            <div className="overflow-x-auto mt-4">
+              <table className="table table-zebra w-full">
+                <thead>
+                  <tr>
+                    <th>Game</th>
+                    <th>Wins</th>
+                    <th>Losses</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover">
+                    <td className="flex items-center gap-2">
+                      <FaChessKnight />
+                      Chess
+                    </td>
+                    <td>{profileUser.chessWins || 0}</td>
+                    <td>{profileUser.chessLosses || 0}</td>
+                    <td>-</td>
+                  </tr>
+                  <tr className="hover">
+                    <td className="flex items-center gap-2">
+                      <FaCircle />
+                      Draughts
+                    </td>
+                    <td>{profileUser.draughtsWins || 0}</td>
+                    <td>{profileUser.draughtsLosses || 0}</td>
+                    <td>-</td>
+                  </tr>
+                  <tr className="hover">
+                    <td className="flex items-center gap-2">
+                      <FaCalculator />
+                      Arithmetic
+                    </td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{profileUser.arithmeticScore || 0}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
             {/* Edit button if viewing own profile */}
             {currentUser &&

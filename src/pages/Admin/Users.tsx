@@ -260,10 +260,18 @@ export function AdminUsers() {
                         <div>
                           <div className="font-bold">{user.name}</div>
                           {user.emailVerified && (
-                            <span className="badge badge-success badge-sm">
+                            <span className="badge badge-success badge-sm mr-1">
                               Verified Email
                             </span>
                           )}
+                          {/* TODO: Add a verified profile badge/indicator */}
+                          {/* {user.name === user.verifiedName &&
+                            (user.image || null) ===
+                              (user.verifiedImage || null) && (
+                              <span className="badge badge-success badge-sm">
+                                Verified Profile
+                              </span>
+                            )} */}
                         </div>
                       </a>
                     </td>
