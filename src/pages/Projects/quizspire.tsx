@@ -301,7 +301,7 @@ export function Quizspire() {
                     <button
                       class="btn btn-info btn-sm"
                       onClick={() =>
-                        (window.location.href = `/projects/quizspire/${deck._id}`)
+                        (window.location.href = `/projects/quizspire/${deck._id}?fullscreen=true`)
                       }
                     >
                       <FiBookOpen class="w-4 h-4 mr-1" />

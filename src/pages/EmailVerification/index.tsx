@@ -94,7 +94,7 @@ export function EmailVerification() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200 px-4">
+    <div className="min-h-full flex items-center justify-center bg-base-200 px-4">
       <div className="max-w-md w-full">
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body text-center">

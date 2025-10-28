@@ -15,10 +15,17 @@ import {
   FiGrid,
   FiZap,
   FiShuffle,
+  FiMaximize,
+  FiMinimize,
 } from "react-icons/fi";
 import { getApiImageUrl } from "../../components/ProfilePicture";
 import { ProfilePicture } from "../../components/ProfilePicture";
 import { DeckModal } from "./quizspire";
+import {
+  fetchDeck,
+  fetchUserProfile,
+  fetchCurrentUser,
+} from "../../utils/quizspire";
 
 /**
  * Full-screen flashcard viewer component for Quizspire.
@@ -35,50 +42,29 @@ export function QuizspireView() {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isCardFullscreen, setIsCardFullscreen] = useState(false);
+  const [isBrowserFullscreen, setIsBrowserFullscreen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   /**
-   * Fetches the deck data by ID from the API.
+   * Loads the deck data by ID from the API.
    */
-  const fetchDeck = async () => {
+  const loadDeck = async () => {
     if (!id) {
       setError("Invalid deck ID");
       setLoading(false);
       return;
     }
     try {
-      const response = await api.quizspire.getQuizspireDecksById(id);
-      setDeck(response.data);
+      const deckData = await fetchDeck(id);
+      setDeck(deckData);
       // Fetch user information
-      if (response.data.userId) {
+      if (deckData.userId) {
         try {
-          const userResponse = await api.profile.getProfileByUserId(
-            response.data.userId
-          );
-          // Convert profile data to User-like structure (limited data)
-          setUser({
-            id: userResponse.data.id,
-            name: userResponse.data.name,
-            image: userResponse.data.image,
-            email: "", // Not available publicly
-            emailVerified: false, // Not available publicly
-            createdAt: userResponse.data.createdAt,
-            updatedAt: userResponse.data.updatedAt,
-            chessWins: userResponse.data.chessWins,
-            chessLosses: userResponse.data.chessLosses,
-            draughtsWins: userResponse.data.draughtsWins,
-            draughtsLosses: userResponse.data.draughtsLosses,
-            arithmeticScore: userResponse.data.arithmeticScore,
-            tetrisScore: userResponse.data.tetrisScore,
-            role: null,
-            banned: userResponse.data.banned,
-            banReason: userResponse.data.banReason,
-            banExpires: userResponse.data.banExpires,
-            age: null,
-          } as User);
-
-          const currentUserResponse = (await api.auth.apiGetSessionList()).data;
-          setCurrentUser(currentUserResponse.user);
+          const userData = await fetchUserProfile(deckData.userId);
+          setUser(userData);
+          const currentUserData = await fetchCurrentUser();
+          setCurrentUser(currentUserData);
         } catch (userErr) {
           console.error("Failed to fetch user profile:", userErr);
         }
@@ -96,7 +82,10 @@ export function QuizspireView() {
   };
 
   useEffect(() => {
-    fetchDeck();
+    loadDeck();
+    // Check URL for fullscreen parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    setIsCardFullscreen(urlParams.get("fullscreen") === "true");
   }, [id]);
 
   /**
@@ -105,10 +94,7 @@ export function QuizspireView() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!deck) return;
-      // Check if the card is focused or if the event target is the card
-      const isCardFocused =
-        cardRef.current?.contains(e.target as Node) ||
-        document.activeElement === cardRef.current;
+
       switch (e.key) {
         case "ArrowLeft":
           e.preventDefault();
@@ -119,15 +105,8 @@ export function QuizspireView() {
           goToNextCard();
           break;
         case " ":
-          // Only prevent default and toggle flip if the card is focused or the event is from within the card
-          if (isCardFocused) {
-            e.preventDefault();
-            toggleFlip();
-          }
-          break;
-        case "Escape":
           e.preventDefault();
-          location.route("/projects/quizspire");
+          toggleFlip();
           break;
       }
     };
@@ -165,6 +144,36 @@ export function QuizspireView() {
   };
 
   /**
+   * Toggles the card full-screen mode.
+   */
+  const toggleCardFullscreen = () => {
+    setIsCardFullscreen((prev) => !prev);
+  };
+
+  /**
+   * Toggles the browser full-screen mode.
+   */
+  const toggleBrowserFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      setIsBrowserFullscreen(true);
+    } else {
+      await document.exitFullscreen();
+      setIsBrowserFullscreen(false);
+    }
+  };
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsBrowserFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  /**
    * Handles deck update after editing.
    */
   const handleUpdateDeck = async (
@@ -174,7 +183,7 @@ export function QuizspireView() {
     try {
       await api.quizspire.putQuizspireDecksById(deckId, deckData);
       setShowEditModal(false);
-      fetchDeck(); // Refresh the deck data
+      loadDeck(); // Refresh the deck data
     } catch (err) {
       console.error("Failed to update deck:", err);
       setError("Failed to update deck");
@@ -323,53 +332,72 @@ export function QuizspireView() {
       </div>
 
       {/* Main content */}
-      <div class="flex flex-col items-center p-4">
-        {/* Card counter */}
+      <div
+        class={`flex flex-col items-center ${
+          isBrowserFullscreen ? "pt-8" : "pt-4"
+        } h-[95%]`}
+      >
+        {/* Card counter - don't hide in fullscreen */}
+        {/* {!isCardFullscreen && ( */}
         <div class="mb-4 text-base-content/70">
           {currentCardIndex + 1} / {deck.cards.length}
         </div>
+        {/* )} */}
 
-        {/* Card titles outside */}
-        <div class="mb-4 text-center">
-          <h3 class="text-lg font-semibold text-base-content/80">
-            {isFlipped ? "Definition/Answer" : "Word/Question"}
-          </h3>
-        </div>
-
-        {/* Quiz buttons */}
-        <div class="mb-8 w-full max-w-4xl">
-          <div class="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 w-full">
-            <button class="btn btn-info btn-sm">
-              <FiBookOpen class="w-4 h-4 mr-1" />
-              Flashcards
-            </button>
-            <button class="btn btn-info btn-sm">
-              <FiPlay class="w-4 h-4 mr-1" />
-              Learn
-            </button>
-            <button class="btn btn-info btn-sm">
-              <FiTarget class="w-4 h-4 mr-1" />
-              Test
-            </button>
-            <button class="btn btn-info btn-sm">
-              <FiGrid class="w-4 h-4 mr-1" />
-              Blocks
-            </button>
-            <button class="btn btn-info btn-sm">
-              <FiZap class="w-4 h-4 mr-1" />
-              Blast
-            </button>
-            <button class="btn btn-info btn-sm">
-              <FiShuffle class="w-4 h-4 mr-1" />
-              Match
-            </button>
+        {/* Card titles outside - hide in fullscreen */}
+        {!isCardFullscreen && (
+          <div class="mb-4 text-center">
+            <h3 class="text-lg font-semibold text-base-content/80">
+              {isFlipped ? "Definition/Answer" : "Word/Question"}
+            </h3>
           </div>
-        </div>
+        )}
+
+        {/* Quiz buttons - hide in fullscreen */}
+        {!isCardFullscreen && (
+          <div class="mb-8 w-full max-w-4xl">
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 w-full">
+              <button
+                class={`btn btn-sm ${
+                  isCardFullscreen ? "btn-primary" : "btn-info"
+                }`}
+                onClick={toggleCardFullscreen}
+              >
+                <FiBookOpen class="w-4 h-4 mr-1" />
+                Flashcards
+              </button>
+              <button class="btn btn-info btn-sm">
+                <FiPlay class="w-4 h-4 mr-1" />
+                Learn
+              </button>
+              <button class="btn btn-info btn-sm">
+                <FiTarget class="w-4 h-4 mr-1" />
+                Test
+              </button>
+              <button class="btn btn-info btn-sm">
+                <FiGrid class="w-4 h-4 mr-1" />
+                Blocks
+              </button>
+              <button class="btn btn-info btn-sm">
+                <FiZap class="w-4 h-4 mr-1" />
+                Blast
+              </button>
+              <button class="btn btn-info btn-sm">
+                <FiShuffle class="w-4 h-4 mr-1" />
+                Match
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Flashcard */}
         <div
           ref={cardRef}
-          class="relative w-full max-w-4xl h-128 cursor-pointer transition-transform duration-300 hover:scale-105 focus:outline focus:outline-2 focus:outline-primary"
+          class={`w-full ${
+            isCardFullscreen
+              ? "max-w-[90%] h-[75%] min-h-128"
+              : "max-w-4xl h-128"
+          } cursor-pointer transition-transform duration-300 hover:scale-105 focus:outline focus:outline-primary`}
           onClick={toggleFlip}
           role="button"
           tabIndex={0}
@@ -494,33 +522,58 @@ export function QuizspireView() {
         </div>
 
         {/* Controls */}
-        <div class="flex items-center gap-4 mt-8">
-          <button
-            class="btn btn-outline btn-lg"
-            onClick={goToPreviousCard}
-            disabled={deck.cards.length <= 1}
-            aria-label="Previous card"
-          >
-            <FiChevronLeft class="w-6 h-6" />
-          </button>
+        <div
+          className={`relative h-16 flex items-center w-full ${
+            isCardFullscreen ? "max-w-[90%]" : "max-w-4xl"
+          } mt-8`}
+        >
+          {/* Centered middle buttons - perfectlycentered regardless of sides */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform flex space-x-4">
+            <button
+              className="btn btn-outline btn-lg"
+              onClick={goToPreviousCard}
+              disabled={deck.cards.length <= 1}
+              aria-label="Previous card"
+            >
+              <FiChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              className="btn btn-primary btn-lg"
+              onClick={toggleFlip}
+              aria-label="Flip card"
+            >
+              <FiRotateCcw className="w-6 h-6 mr-2" />
+              Flip
+            </button>
+            <button
+              className="btn btn-outline btn-lg"
+              onClick={goToNextCard}
+              disabled={deck.cards.length <= 1}
+              aria-label="Next card"
+            >
+              <FiChevronRight className="w-6 h-6" />
+            </button>
+          </div>
 
-          <button
-            class="btn btn-primary btn-lg"
-            onClick={toggleFlip}
-            aria-label="Flip card"
-          >
-            <FiRotateCcw class="w-6 h-6 mr-2" />
-            Flip
-          </button>
-
-          <button
-            class="btn btn-outline btn-lg"
-            onClick={goToNextCard}
-            disabled={deck.cards.length <= 1}
-            aria-label="Next card"
-          >
-            <FiChevronRight class="w-6 h-6" />
-          </button>
+          {/* Right-aligned fullscreen button */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 transform">
+            {/* Card Fullscreen Toggle */}
+            <button
+              className="btn btn-outline btn-lg"
+              onClick={toggleCardFullscreen}
+              aria-label={
+                isCardFullscreen
+                  ? "Exit card fullscreen"
+                  : "Enter card fullscreen"
+              }
+            >
+              {isCardFullscreen ? (
+                <FiMinimize className="w-6 h-6" />
+              ) : (
+                <FiMaximize className="w-6 h-6" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Keyboard shortcuts hint */}
