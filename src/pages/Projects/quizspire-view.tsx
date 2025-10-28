@@ -31,9 +31,8 @@ import {
  * Full-screen flashcard viewer component for Quizspire.
  * Displays a specific deck with navigation, flip functionality, and metadata.
  */
-export function QuizspireView() {
-  const location = useLocation();
-  const id = location.path.split("/").pop();
+export function QuizspireView({ id }: { id: string }) {
+  const { route, url } = useLocation();
   const [deck, setDeck] = useState<FlashcardDeckSchema | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -71,7 +70,7 @@ export function QuizspireView() {
       }
     } catch (err: any) {
       if (err.status === 401) {
-        location.route("/login");
+        route("/login");
         return;
       }
       setError("Failed to load deck");
@@ -234,7 +233,7 @@ export function QuizspireView() {
           </div>
           <button
             class="btn btn-primary mt-4"
-            onClick={() => location.route("/projects/quizspire")}
+            onClick={() => route("/projects/quizspire")}
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
             Back to Quizspire
@@ -253,7 +252,7 @@ export function QuizspireView() {
           </div>
           <button
             class="btn btn-primary mt-4"
-            onClick={() => location.route("/projects/quizspire")}
+            onClick={() => route("/projects/quizspire")}
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
             Back to Quizspire
@@ -276,7 +275,7 @@ export function QuizspireView() {
             <div class="flex items-center gap-4">
               <button
                 class="btn btn-ghost btn-sm"
-                onClick={() => location.route("/projects/quizspire")}
+                onClick={() => route("/projects/quizspire")}
                 aria-label="Back to Quizspire"
               >
                 <FiArrowLeft class="w-4 h-4" />
@@ -317,7 +316,7 @@ export function QuizspireView() {
               <FiShare2 class="w-4 h-4 mr-1" />
               Share
             </button>
-            {currentUser.id === user.id && (
+            {currentUser?.id === user.id && (
               <button
                 class="btn btn-primary btn-sm"
                 onClick={() => setShowEditModal(true)}
@@ -366,7 +365,16 @@ export function QuizspireView() {
                 <FiBookOpen class="w-4 h-4 mr-1" />
                 Flashcards
               </button>
-              <button class="btn btn-info btn-sm">
+              <button
+                class="btn btn-info btn-sm"
+                onClick={() => {
+                  const targetUrl = `/projects/quizspire/${
+                    deck._id
+                  }/learn?referrer=${encodeURIComponent(url)}`;
+
+                  route(targetUrl);
+                }}
+              >
                 <FiPlay class="w-4 h-4 mr-1" />
                 Learn
               </button>

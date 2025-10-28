@@ -42,5 +42,5 @@ export async function fetchUserProfile(userId: string): Promise<User> {
  */
 export async function fetchCurrentUser(): Promise<User> {
   const response = (await api.auth.apiGetSessionList()).data;
-  return response.user;
+  return response?.user || null;
 }

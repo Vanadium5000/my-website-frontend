@@ -13,6 +13,7 @@ import { ChessGame } from "./pages/Projects/chess.js";
 import { Arithmetic } from "./pages/Projects/arithmetic.js";
 import { Quizspire } from "./pages/Projects/quizspire.js";
 import { QuizspireView } from "./pages/Projects/quizspire-view.js";
+import { QuizspireLearn } from "./pages/Projects/quizspire-learn.js";
 import { Tetris } from "./pages/Projects/tetris.js";
 import { Signup } from "./pages/Signup/index.js";
 import { EmailVerification } from "./pages/EmailVerification/index.js";
@@ -59,6 +60,10 @@ export function App() {
               <Route path="/projects/arithmetic" component={Arithmetic} />
               <Route path="/projects/quizspire" component={Quizspire} />
               <Route path="/projects/quizspire/:id" component={QuizspireView} />
+              <Route
+                path="/projects/quizspire/:id/learn"
+                component={QuizspireLearn}
+              />
               <Route path="/projects/tetris" component={Tetris} />
               <Route path="/signup" component={Signup} />
               <Route path="/email-verification" component={EmailVerification} />

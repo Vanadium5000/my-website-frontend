@@ -19,6 +19,7 @@ import { highlightSearchTerms } from "../../utils/highlight";
 import { getApiImageUrl } from "../../components/ProfilePicture";
 
 import { FlashcardDeckSchema } from "../../api/api";
+import { useLocation } from "preact-iso";
 
 type Deck = FlashcardDeckSchema;
 
@@ -27,6 +28,8 @@ type Deck = FlashcardDeckSchema;
  * Provides functionality to create, edit, delete, search, export, and import decks.
  */
 export function Quizspire() {
+  const { route, url } = useLocation();
+
   // State management for decks and UI
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +79,11 @@ export function Quizspire() {
         }
       }
     } catch (err) {
+      if (err.status === 401) {
+        route("/login");
+        return;
+      }
+
       setError("Failed to load decks");
       console.error(err);
     } finally {
@@ -301,13 +309,22 @@ export function Quizspire() {
                     <button
                       class="btn btn-info btn-sm"
                       onClick={() =>
-                        (window.location.href = `/projects/quizspire/${deck._id}?fullscreen=true`)
+                        route(`/projects/quizspire/${deck._id}?fullscreen=true`)
                       }
                     >
                       <FiBookOpen class="w-4 h-4 mr-1" />
                       Flashcards
                     </button>
-                    <button class="btn btn-info btn-sm">
+                    <button
+                      class="btn btn-info btn-sm"
+                      onClick={() => {
+                        const targetUrl = `/projects/quizspire/${
+                          deck._id
+                        }/learn?referrer=${encodeURIComponent(url)}`;
+
+                        route(targetUrl);
+                      }}
+                    >
                       <FiPlay class="w-4 h-4 mr-1" />
                       Learn
                     </button>
