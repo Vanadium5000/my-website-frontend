@@ -91,11 +91,11 @@ export function Connection() {
 
     try {
       const baseUrl = api.baseUrl;
+      const fullPath = new URL("/sockets/connection", baseUrl).href;
 
       // Paths not beginning with / with be added to baseUrl, those beginning with / will replace every after the main host
-      const fullPath = new URL("sockets/connection", `${baseUrl}/`).href;
-
       // Append relative path to baseUrl for transport (e.g., /backend/sockets/)
+      // baseUrl needs to end in "/" for sockets/ to be amended
       const transportPath = new URL("sockets/", `${baseUrl}/`).pathname;
 
       console.log(

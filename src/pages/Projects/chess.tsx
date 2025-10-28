@@ -82,13 +82,15 @@ export function ChessGame() {
 
         const baseUrl = api.baseUrl;
         // Paths not beginning with / with be added to baseUrl, those beginning with / will replace every after the main host
-        const fullPath = new URL("sockets/chess", baseUrl).href;
+        const fullPath = new URL("/sockets/chess", baseUrl).href;
+        const transportPath = new URL("sockets/", `${baseUrl}/`).pathname;
 
         console.log("Using Chess socket base URL:", baseUrl);
         console.log("Using Chess socket full path:", fullPath);
+        console.log("Using Chess socket transport path:", transportPath);
 
         const newSocket = io(fullPath, {
-          path: "/sockets/",
+          path: transportPath,
           transports: ["websocket", "polling"],
           withCredentials: true,
         });
