@@ -13,30 +13,14 @@ import {
   FiSearch,
   FiDownload,
   FiUpload,
+  FiShare2,
 } from "react-icons/fi";
 import { highlightSearchTerms } from "../../utils/highlight";
 import { getApiImageUrl } from "../../components/ProfilePicture";
 
-interface Deck {
-  _id?: string;
-  userId: string;
-  title: string;
-  lastModified: string;
-  publishedTimestamp: string;
-  description: string;
-  thumbnail: string;
-  cards: {
-    word: (
-      | { text: string; type: "text" }
-      | { mediaUrl: string; type: "media" }
-    )[];
-    definition: (
-      | { text: string; type: "text" }
-      | { mediaUrl: string; type: "media" }
-    )[];
-  }[];
-  createdAt: string;
-}
+import { FlashcardDeckSchema } from "../../api/api";
+
+type Deck = FlashcardDeckSchema;
 
 /**
  * Main Quizspire component for managing flashcard decks.
@@ -230,7 +214,7 @@ export function Quizspire() {
             }}
           >
             <FiDownload class="w-4 h-4 mr-2" />
-            Export
+            Export All
           </button>
           <input
             type="file"
@@ -311,10 +295,15 @@ export function Quizspire() {
               : deck.description;
 
             return (
-              <div key={deck._id} class="card bg-base-100 shadow-xl">
+              <div key={deck._id} class="card bg-base-100 shadow-2xl">
                 <div class="card-actions justify-center mb-4">
                   <div class="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 w-full">
-                    <button class="btn btn-info btn-sm">
+                    <button
+                      class="btn btn-info btn-sm"
+                      onClick={() =>
+                        (window.location.href = `/projects/quizspire/${deck._id}`)
+                      }
+                    >
                       <FiBookOpen class="w-4 h-4 mr-1" />
                       Flashcards
                     </button>
@@ -349,13 +338,19 @@ export function Quizspire() {
                           "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkE0IiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+TG9hZGluZy4uLjwvdGV4dD4KPHN2Zz4="
                     }
                     alt={deck.title}
-                    class="w-full h-48 object-cover"
+                    class="w-full h-48 object-cover cursor-pointer"
+                    onClick={() =>
+                      (window.location.href = `/projects/quizspire/${deck._id}`)
+                    }
                   />
                 </figure>
                 <div class="card-body">
                   <h2
-                    class="card-title gap-0"
+                    class="card-title gap-0 cursor-pointer"
                     dangerouslySetInnerHTML={{ __html: highlightedTitle }}
+                    onClick={() =>
+                      (window.location.href = `/projects/quizspire/${deck._id}`)
+                    }
                   />
                   <p
                     class="text-sm text-base-content/70"
@@ -368,6 +363,32 @@ export function Quizspire() {
                   </p>
                   <div class="card-actions justify-end mt-4">
                     <div class="flex gap-2 w-full">
+                      <button
+                        class="btn btn-outline btn-wide flex-1"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(
+                              `${window.location.origin}/projects/quizspire/${deck._id}`
+                            );
+                            // Simple visual feedback - could be enhanced with toast
+                            const btn =
+                              event?.currentTarget as HTMLButtonElement;
+                            if (btn) {
+                              const originalText = btn.innerHTML;
+                              btn.innerHTML =
+                                '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Copied!';
+                              setTimeout(() => {
+                                btn.innerHTML = originalText;
+                              }, 2000);
+                            }
+                          } catch (err) {
+                            console.error("Failed to copy link:", err);
+                          }
+                        }}
+                      >
+                        <FiShare2 class="w-4 h-4 mr-2" />
+                        Share
+                      </button>
                       <button
                         class="btn btn-outline btn-wide flex-1"
                         onClick={() => setEditingDeck(deck)}
@@ -427,11 +448,17 @@ interface DeckModalProps {
   onClose: () => void;
 }
 
+interface DeckModalProps {
+  deck: Deck | null;
+  onSave: (deckData: Partial<Deck>) => void;
+  onClose: () => void;
+}
+
 /**
  * Modal component for creating or editing flashcard decks.
  * Handles form state, image uploads, and card management.
  */
-function DeckModal({ deck, onSave, onClose }: DeckModalProps) {
+export function DeckModal({ deck, onSave, onClose }: DeckModalProps) {
   // Form state
   const [title, setTitle] = useState(deck?.title || "");
   const [description, setDescription] = useState(deck?.description || "");
