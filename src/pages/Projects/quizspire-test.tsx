@@ -1029,10 +1029,10 @@ export function QuizspireTest({ deckId }: { deckId: string }) {
         <div class="text-center mt-4">
           <button
             class="btn btn-primary"
-            onClick={() => route("/projects/quizspire")}
+            onClick={() => route(query.referrer || "/projects/quizspire")}
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
-            Back to Quizspire
+            Back
           </button>
         </div>
       </div>

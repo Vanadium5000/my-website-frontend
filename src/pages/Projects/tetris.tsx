@@ -2,7 +2,11 @@ import { useEffect } from "preact/hooks";
 import { api } from "../../api/client";
 import { useLocation } from "preact-iso";
 
-export function Tetris() {
+export function Tetris({
+  intermediateCallback,
+}: {
+  intermediateCallback?: () => Promise<void>;
+}) {
   const { query } = useLocation();
 
   if (!query.reloaded) {
@@ -22,6 +26,7 @@ export function Tetris() {
   useEffect(() => {
     (window as any).tetrisConfig = {
       logHighScore,
+      intermediateCallback,
     };
 
     const script = document.createElement("script");

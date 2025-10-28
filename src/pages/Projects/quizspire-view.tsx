@@ -443,12 +443,27 @@ export function QuizspireView({ id }: { id: string }) {
               </button>
               <button
                 class="btn btn-info btn-sm"
-                onClick={() => route(`/projects/quizspire/${deck._id}/test`)}
+                onClick={() => {
+                  const targetUrl = `/projects/quizspire/${
+                    deck._id
+                  }/test?referrer=${encodeURIComponent(url)}`;
+
+                  route(targetUrl);
+                }}
               >
                 <FiTarget class="w-4 h-4 mr-1" />
                 Test
               </button>
-              <button class="btn btn-info btn-sm">
+              <button
+                class="btn btn-info btn-sm"
+                onClick={() => {
+                  const targetUrl = `/projects/quizspire/${
+                    deck._id
+                  }/tetris?referrer=${encodeURIComponent(url)}`;
+
+                  route(targetUrl);
+                }}
+              >
                 <FiGrid class="w-4 h-4 mr-1" />
                 Tetris
               </button>

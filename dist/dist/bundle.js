@@ -30491,6 +30491,7 @@ class Game {
   linesCleared = 0;
   gameOver = false;
   paused = false;
+  intermediateBlocked = false;
   dropInterval;
   timer = null;
   frontend;
@@ -30498,7 +30499,8 @@ class Game {
   lastAction = "";
   highScore = 0;
   highScoreCallback;
-  constructor(frontend, highScoreCallback) {
+  intermediateCallback;
+  constructor(frontend, highScoreCallback, intermediateCallback) {
     this.frontend = frontend;
     try {
       this.highScore = parseInt(localStorage.getItem("tetris-high-score") || "0", 10);
@@ -30506,6 +30508,7 @@ class Game {
     this.highScoreCallback = highScoreCallback || ((num) => {
       console.log("WARNING: HIGHSCORECALLBACK FUNCTION RESORTED TO FALLBACK");
     });
+    this.intermediateCallback = intermediateCallback;
     this.reset();
     this.setupInput();
     this.startGameLoop();
@@ -30525,6 +30528,7 @@ class Game {
     this.linesCleared = 0;
     this.gameOver = false;
     this.paused = false;
+    this.intermediateBlocked = false;
     this.dropInterval = 1000;
     this.dropPoints = 0;
     this.lastAction = "";
@@ -30548,6 +30552,7 @@ class Game {
       linesCleared: this.linesCleared,
       gameOver: this.gameOver,
       paused: this.paused,
+      intermediateBlocked: this.intermediateBlocked,
       ghostPosition: this.getGhostPosition(),
       lastAction: this.lastAction,
       highScore: this.highScore
@@ -30615,7 +30620,7 @@ class Game {
       this.timer = null;
     }
   }
-  tick() {
+  async tick() {
     if (this.paused || this.gameOver)
       return;
     if (!this.moveDown()) {
@@ -30629,12 +30634,23 @@ class Game {
         this.updateHighScore();
         if (this.frontend.playSound)
           this.frontend.playSound("gameover");
+      } else if (this.intermediateCallback) {
+        this.intermediateBlocked = true;
+        this.paused = true;
+        this.stopGameLoop();
+        this.frontend.render(this.getState());
+        await this.intermediateCallback();
+        this.intermediateBlocked = false;
+        this.paused = false;
+        this.startGameLoop();
       }
       this.dropPoints = 0;
     }
     this.frontend.render(this.getState());
   }
   togglePause() {
+    if (this.intermediateBlocked)
+      return;
     this.paused = !this.paused;
     if (this.paused) {
       this.stopGameLoop();
@@ -30677,7 +30693,7 @@ class Game {
       this.frontend.playSound("harddrop");
     return rows;
   }
-  placePieceImmediately() {
+  async placePieceImmediately() {
     this.placePiece();
     this.clearLines();
     this.spawnNewPiece();
@@ -30688,6 +30704,15 @@ class Game {
       this.updateHighScore();
       if (this.frontend.playSound)
         this.frontend.playSound("gameover");
+    } else if (this.intermediateCallback) {
+      this.intermediateBlocked = true;
+      this.paused = true;
+      this.stopGameLoop();
+      this.frontend.render(this.getState());
+      await this.intermediateCallback();
+      this.intermediateBlocked = false;
+      this.paused = false;
+      this.startGameLoop();
     }
     this.dropPoints = 0;
     this.frontend.render(this.getState());
@@ -34691,6 +34716,7 @@ class PixiJSFrontend {
   rightInterval = null;
   pauseMenuContainer;
   gameOverMenuContainer;
+  blockedMenuContainer;
   highScoreText;
   initialTouchX = 0;
   initialTouchY = 0;
@@ -34754,11 +34780,14 @@ class PixiJSFrontend {
     this.pauseMenuContainer.visible = false;
     this.gameOverMenuContainer = new Container;
     this.gameOverMenuContainer.visible = false;
+    this.blockedMenuContainer = new Container;
+    this.blockedMenuContainer.visible = false;
     this.app.stage.addChild(this.boardContainer);
     this.app.stage.addChild(this.nextPieceContainer);
     this.app.stage.addChild(this.holdPieceContainer);
     this.app.stage.addChild(this.pauseMenuContainer);
     this.app.stage.addChild(this.gameOverMenuContainer);
+    this.app.stage.addChild(this.blockedMenuContainer);
     const textStyle = new TextStyle({
       fill: "#ffffff",
       fontSize: 20,
@@ -35093,6 +35122,21 @@ Tap: Rotate`,
         this.inputCallback("r");
     });
     this.gameOverMenuContainer.addChild(gameOverRestartButton);
+    const blockedMenuBg = new Graphics().rect(50, 70, this.boardWidth * this.blockSize, this.boardHeight * this.blockSize).fill(0);
+    blockedMenuBg.alpha = 0.7;
+    this.blockedMenuContainer.addChild(blockedMenuBg);
+    const blockedText = new Text({
+      text: "Gameplay Blocked",
+      style: { fill: "#ffffff", fontSize: 32, fontFamily: "Arial, sans-serif" }
+    });
+    blockedText.position.set((this.boardWidth * this.blockSize - blockedText.width) / 2 + 50, this.boardHeight * this.blockSize / 2 + 70 - 50);
+    this.blockedMenuContainer.addChild(blockedText);
+    const blockedSubText = new Text({
+      text: "Please wait...",
+      style: { fill: "#cccccc", fontSize: 20, fontFamily: "Arial, sans-serif" }
+    });
+    blockedSubText.position.set((this.boardWidth * this.blockSize - blockedSubText.width) / 2 + 50, this.boardHeight * this.blockSize / 2 + 70 + 10);
+    this.blockedMenuContainer.addChild(blockedSubText);
   }
   async loadTextures() {
     console.log("PixiJSFrontend: Loading textures...");
@@ -35295,9 +35339,14 @@ Tap: Rotate`,
     this.levelText.text = `Level: ${state.level}`;
     this.linesText.text = `Lines: ${state.linesCleared}`;
     this.highScoreText.text = `High Score: ${state.highScore}`;
-    this.pauseMenuContainer.visible = state.paused;
+    this.pauseMenuContainer.visible = state.paused && !state.intermediateBlocked;
     this.gameOverMenuContainer.visible = state.gameOver;
+    this.blockedMenuContainer.visible = state.intermediateBlocked;
     if (state.gameOver) {
+      this.messageText.text = "";
+      this.pauseMenuContainer.visible = false;
+      this.blockedMenuContainer.visible = false;
+    } else if (state.intermediateBlocked) {
       this.messageText.text = "";
       this.pauseMenuContainer.visible = false;
     } else if (state.paused) {
@@ -35505,8 +35554,10 @@ Tap: Rotate`,
     try {
       await frontend.init();
       const highScoreCallback = window?.tetrisConfig?.logHighScore;
+      const intermediateCallback = window?.tetrisConfig?.intermediateCallback;
       console.log("highScoreCallback:", highScoreCallback);
-      game = new Game(frontend, highScoreCallback);
+      console.log("intermediateCallback:", intermediateCallback);
+      game = new Game(frontend, highScoreCallback, intermediateCallback);
     } catch (error) {
       console.error("Failed to initialize Tetris:", error);
     }
