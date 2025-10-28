@@ -34682,6 +34682,9 @@ class PixiJSFrontend {
   touchStartX = 0;
   touchStartY = 0;
   touchStartTime = 0;
+  dragDeltaX = 0;
+  dragDeltaY = 0;
+  touchDirection = "none";
   effectsEnabled = false;
   musicEnabled = false;
   currentTrackIndex = 0;
@@ -34780,12 +34783,14 @@ class PixiJSFrontend {
     this.controlsText = new Text({
       text: `Controls:
 Arrows: Move/Rotate
-Space: Drop
+Space: Hard Drop
 C: Hold
 P: Pause
 R: Restart
-Swipe: Move/Drop
-Tap: Rotate`,
+Tap: Rotate
+Drag L/R: Move
+Swipe Down: Hard Drop
+Swipe Up: Hold`,
       style: controlsStyle
     });
     this.controlsText.position.set(this.boardWidth * this.blockSize + 100, 450);
@@ -35227,50 +35232,91 @@ Tap: Rotate`,
     this.textures = {};
   }
   handleKey = (event) => {
+    sound.context.audioContext.resume().catch(() => {});
     if (this.inputCallback) {
       this.inputCallback(event.key.toLowerCase());
     }
   };
   handleTouchStart = (event) => {
     event.preventDefault();
+    sound.context.audioContext.resume().catch(() => {});
     if (event.touches.length > 0) {
-      this.touchStartX = event.touches[0].clientX;
-      this.touchStartY = event.touches[0].clientY;
+      this.touchStartX = event.touches[0]?.clientX || 0;
+      this.touchStartY = event.touches[0]?.clientY || 0;
       this.touchStartTime = Date.now();
+      this.touchDirection = "none";
+      this.dragDeltaX = 0;
+      this.dragDeltaY = 0;
     }
   };
   handleTouchMove = (event) => {
     event.preventDefault();
+    if (event.touches.length === 0 || !this.inputCallback)
+      return;
+    const touch = event.touches[0];
+    const dx = (touch?.clientX || 0) - this.touchStartX;
+    const dy = (touch?.clientY || 0) - this.touchStartY;
+    if (this.touchDirection === "none") {
+      const threshold = 20;
+      if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+        this.touchDirection = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+      }
+    }
+    const moveThreshold = this.blockSize;
+    if (this.touchDirection === "horizontal") {
+      const currentDx = (touch?.clientX || 0) - this.touchStartX + this.dragDeltaX;
+      const dir = Math.sign(currentDx);
+      const numMoves = Math.floor(Math.abs(currentDx) / moveThreshold);
+      if (dir !== 0 && numMoves > 0) {
+        const key = dir > 0 ? "arrowright" : "arrowleft";
+        for (let i2 = 0;i2 < numMoves; i2++) {
+          this.inputCallback(key);
+        }
+        this.dragDeltaX = currentDx - numMoves * moveThreshold * dir;
+      } else {
+        this.dragDeltaX = currentDx;
+      }
+    } else if (this.touchDirection === "vertical") {
+      const currentDy = (touch?.clientY || 0) - this.touchStartY + this.dragDeltaY;
+      const numMoves = Math.floor(currentDy / moveThreshold);
+      if (numMoves > 0) {
+        for (let i2 = 0;i2 < numMoves; i2++) {
+          this.inputCallback("arrowdown");
+        }
+        this.dragDeltaY = currentDy - numMoves * moveThreshold;
+      } else {
+        this.dragDeltaY = currentDy;
+      }
+    }
   };
   handleTouchEnd = (event) => {
     event.preventDefault();
-    if (event.changedTouches.length > 0 && this.inputCallback) {
-      const touchEndX = event.changedTouches[0].clientX;
-      const touchEndY = event.changedTouches[0].clientY;
-      const dx = touchEndX - this.touchStartX;
-      const dy = touchEndY - this.touchStartY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const duration = Date.now() - this.touchStartTime;
-      if (duration < 200 && dist < 20) {
-        this.inputCallback("ArrowUp");
-      } else if (dist > 30) {
-        if (Math.abs(dx) > Math.abs(dy)) {
-          if (dx < 0) {
-            this.inputCallback("ArrowLeft");
-          } else {
-            this.inputCallback("ArrowRight");
-          }
-        } else {
-          if (dy > 0) {
-            this.inputCallback("ArrowDown");
-          } else {
-            this.inputCallback(" ");
-          }
-        }
-      } else if (duration > 500) {
+    sound.context.audioContext.resume().catch(() => {});
+    if (event.changedTouches.length === 0 || !this.inputCallback)
+      return;
+    const touchEndX = event.changedTouches[0]?.clientX || 0;
+    const touchEndY = event.changedTouches[0]?.clientY || 0;
+    const dx = touchEndX - this.touchStartX;
+    const dy = touchEndY - this.touchStartY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const duration = Date.now() - this.touchStartTime;
+    const speed = dist / duration;
+    if (this.touchDirection === "none") {
+      if (dist < 20 && duration < 300) {
+        this.inputCallback("arrowup");
+      } else if (duration > 500 && dist < 20) {
         this.inputCallback(" ");
       }
+    } else if (this.touchDirection === "vertical") {
+      if (speed > 0.5 || dist > 100) {
+        if (dy > 0) {
+          this.inputCallback(" ");
+        } else {
+          this.inputCallback("c");
+        }
+      }
     }
+    this.touchDirection = "none";
   };
 }
 
