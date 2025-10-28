@@ -91,7 +91,8 @@ export function Connection() {
 
     try {
       const baseUrl = api.baseUrl;
-      const fullPath = new URL("/sockets/connection", baseUrl).href;
+      // Paths not beginning with / with be added to baseUrl, those beginning with / will replace every after the main host
+      const fullPath = new URL("sockets/connection", baseUrl).href;
 
       console.log("[Connection] Connecting to:", fullPath);
 

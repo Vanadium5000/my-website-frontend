@@ -16,7 +16,9 @@ export const getApiImageUrl = (imagePath: string): string => {
   if (!imagePath.startsWith("/")) {
     return imagePath;
   } else {
-    return new URL(imagePath, api.baseUrl).href;
+    // Paths not beginning with / with be added to baseUrl, those beginning with / will replace every after the main host
+    // .slice(1) removes the starting "/"
+    return new URL(imagePath.slice(1), api.baseUrl).href;
   }
 };
 

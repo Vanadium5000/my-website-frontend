@@ -81,7 +81,8 @@ export function ChessGame() {
         setMyImage(response.user.image);
 
         const baseUrl = api.baseUrl;
-        const fullPath = new URL("/sockets/chess", baseUrl).href;
+        // Paths not beginning with / with be added to baseUrl, those beginning with / will replace every after the main host
+        const fullPath = new URL("sockets/chess", baseUrl).href;
 
         console.log("Using Chess socket base URL:", baseUrl);
         console.log("Using Chess socket full path:", fullPath);
