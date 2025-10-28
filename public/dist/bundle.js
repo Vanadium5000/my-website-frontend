@@ -30500,7 +30500,9 @@ class Game {
   highScoreCallback;
   constructor(frontend, highScoreCallback) {
     this.frontend = frontend;
-    this.highScore = parseInt(localStorage.getItem("tetris-high-score") || "0", 10);
+    try {
+      this.highScore = parseInt(localStorage.getItem("tetris-high-score") || "0", 10);
+    } catch {}
     this.highScoreCallback = highScoreCallback || ((num) => {
       console.log("WARNING: HIGHSCORECALLBACK FUNCTION RESORTED TO FALLBACK");
     });
@@ -30604,12 +30606,14 @@ class Game {
   startGameLoop() {
     if (this.timer)
       clearInterval(this.timer);
-    this.frontend.start();
     this.timer = setInterval(() => this.tick(), this.dropInterval);
+    this.frontend.start();
   }
   stopGameLoop() {
-    if (this.timer)
+    if (this.timer) {
       clearInterval(this.timer);
+      this.timer = null;
+    }
   }
   tick() {
     if (this.paused || this.gameOver)
@@ -30796,7 +30800,9 @@ class Game {
     this.highScoreCallback(this.score);
     if (this.score > this.highScore) {
       this.highScore = this.score;
-      localStorage.setItem("tetris-high-score", this.highScore.toString());
+      try {
+        localStorage.setItem("tetris-high-score", this.highScore.toString());
+      } catch {}
     }
   }
   updateLevel() {
@@ -34684,6 +34690,9 @@ class PixiJSFrontend {
   touchStartX = 0;
   touchStartY = 0;
   touchStartTime = 0;
+  lastMoveTime = 0;
+  lastDropTime = 0;
+  hardDropTriggered = false;
   effectsEnabled = false;
   musicEnabled = false;
   currentTrackIndex = 0;
@@ -34788,7 +34797,7 @@ Space: Drop
 C: Hold
 P: Pause
 R: Restart
-Swipe: Move/Drop
+Drag: Move/Drop
 Tap: Rotate`,
       style: controlsStyle
     });
@@ -35279,33 +35288,55 @@ Tap: Rotate`,
   handleTouchStart = (event) => {
     event.preventDefault();
     if (event.touches.length > 0) {
-      this.initialTouchX = event.touches[0].clientX;
-      this.initialTouchY = event.touches[0].clientY;
+      this.initialTouchX = event.touches[0]?.clientX || 0;
+      this.initialTouchY = event.touches[0]?.clientY || 0;
       this.touchStartX = this.initialTouchX;
       this.touchStartY = this.initialTouchY;
       this.touchStartTime = Date.now();
+      this.lastMoveTime = Date.now();
+      this.lastDropTime = Date.now();
+      this.hardDropTriggered = false;
       console.log(`PixiJSFrontend: Touch start - X: ${this.touchStartX}, Y: ${this.touchStartY}, Time: ${this.touchStartTime}`);
     }
   };
   handleTouchMove = (event) => {
     event.preventDefault();
     if (event.touches.length > 0 && this.inputCallback) {
-      const touchX = event.touches[0].clientX;
+      const touchX = event.touches[0]?.clientX || 0;
+      const touchY = event.touches[0]?.clientY || 0;
       const dx = touchX - this.touchStartX;
-      const threshold = 20;
-      if (Math.abs(dx) > threshold) {
+      const dy = touchY - this.touchStartY;
+      const currentTime = Date.now();
+      const horizontalThreshold = 20;
+      if (Math.abs(dx) > horizontalThreshold && currentTime - this.lastMoveTime > 100) {
         const action = dx > 0 ? "arrowright" : "arrowleft";
-        console.log(`PixiJSFrontend: Touch move - Current X: ${touchX}, DX: ${dx}, Action: ${action}`);
+        console.log(`PixiJSFrontend: Touch move horizontal - Current X: ${touchX}, DX: ${dx}, Action: ${action}`);
         this.inputCallback(action);
         this.touchStartX = touchX;
+        this.lastMoveTime = currentTime;
+      }
+      const verticalThreshold = 30;
+      if (Math.abs(dy) > verticalThreshold) {
+        if (dy > 0) {
+          const speed = Math.abs(dy) / (currentTime - this.touchStartTime);
+          if (speed > 0.5 && !this.hardDropTriggered) {
+            console.log("PixiJSFrontend: Fast drag down - hard drop (space)");
+            this.inputCallback(" ");
+            this.hardDropTriggered = true;
+          } else if (currentTime - this.lastDropTime > 50) {
+            console.log("PixiJSFrontend: Medium drag down - soft drop (arrowdown)");
+            this.inputCallback("arrowdown");
+            this.lastDropTime = currentTime;
+          }
+        }
       }
     }
   };
   handleTouchEnd = (event) => {
     event.preventDefault();
     if (event.changedTouches.length > 0 && this.inputCallback) {
-      const touchEndX = event.changedTouches[0].clientX;
-      const touchEndY = event.changedTouches[0].clientY;
+      const touchEndX = event.changedTouches[0]?.clientX || 0;
+      const touchEndY = event.changedTouches[0]?.clientY || 0;
       const dx = touchEndX - this.initialTouchX;
       const dy = touchEndY - this.initialTouchY;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -35316,10 +35347,7 @@ Tap: Rotate`,
         this.inputCallback("arrowup");
       } else if (dist > 30) {
         if (Math.abs(dy) > Math.abs(dx)) {
-          if (dy > 0) {
-            console.log("PixiJSFrontend: Detected vertical swipe down - hard drop (space)");
-            this.inputCallback(" ");
-          } else {
+          if (dy < 0) {
             console.log("PixiJSFrontend: Detected vertical swipe up - hold (c)");
             this.inputCallback("c");
           }
