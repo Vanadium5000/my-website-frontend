@@ -230,18 +230,35 @@ export function Quizspire() {
             accept=".json"
             class="hidden"
             id="import-decks"
-            onChange={(e) => {
+            onChange={async (e) => {
               const file = e.currentTarget.files?.[0];
               if (file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = async (event) => {
                   try {
                     const importedDecks = JSON.parse(
                       event.target?.result as string
                     );
                     if (Array.isArray(importedDecks)) {
-                      // Merge imported decks with existing ones
-                      setDecks([...decks, ...importedDecks]);
+                      // Import decks to backend
+                      for (const deck of importedDecks) {
+                        try {
+                          await api.quizspire.postQuizspireDecks({
+                            title: deck.title,
+                            description: deck.description,
+                            thumbnail: deck.thumbnail,
+                            cards: deck.cards,
+                          });
+                        } catch (importErr) {
+                          console.error(
+                            "Failed to import deck:",
+                            deck.title,
+                            importErr
+                          );
+                        }
+                      }
+                      // Refresh the deck list
+                      fetchDecks();
                       alert("Decks imported successfully!");
                     } else {
                       alert("Invalid JSON format. Expected an array of decks.");
@@ -329,7 +346,12 @@ export function Quizspire() {
                       <FiPlay class="w-4 h-4 mr-1" />
                       Learn
                     </button>
-                    <button class="btn btn-info btn-sm">
+                    <button
+                      class="btn btn-info btn-sm"
+                      onClick={() =>
+                        route(`/projects/quizspire/${deck._id}/test`)
+                      }
+                    >
                       <FiTarget class="w-4 h-4 mr-1" />
                       Test
                     </button>
@@ -458,12 +480,6 @@ export function Quizspire() {
       )}
     </div>
   );
-}
-
-interface DeckModalProps {
-  deck: Deck | null;
-  onSave: (deckData: Partial<Deck>) => void;
-  onClose: () => void;
 }
 
 interface DeckModalProps {

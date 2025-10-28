@@ -441,7 +441,10 @@ export function QuizspireView({ id }: { id: string }) {
                 <FiPlay class="w-4 h-4 mr-1" />
                 Learn
               </button>
-              <button class="btn btn-info btn-sm">
+              <button
+                class="btn btn-info btn-sm"
+                onClick={() => route(`/projects/quizspire/${deck._id}/test`)}
+              >
                 <FiTarget class="w-4 h-4 mr-1" />
                 Test
               </button>
