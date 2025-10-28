@@ -94,11 +94,14 @@ export function Connection() {
       // Paths not beginning with / with be added to baseUrl, those beginning with / will replace every after the main host
       const fullPath = new URL("sockets/connection", baseUrl).href;
 
+      // Append relative path to baseUrl for transport (e.g., /backend/sockets/)
+      const transportPath = new URL("sockets/", baseUrl).pathname;
+
       console.log("[Connection] Connecting to:", fullPath);
 
       // Create socket with same configuration as chess
       const socket: Socket = io(fullPath, {
-        path: "sockets/",
+        path: transportPath,
         transports: ["websocket", "polling"],
         withCredentials: true,
         // Additional security options
