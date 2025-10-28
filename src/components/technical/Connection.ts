@@ -98,7 +98,7 @@ export function Connection() {
 
       // Create socket with same configuration as chess
       const socket: Socket = io(fullPath, {
-        path: "/sockets/",
+        path: "sockets/",
         transports: ["websocket", "polling"],
         withCredentials: true,
         // Additional security options
