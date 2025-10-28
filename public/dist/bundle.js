@@ -34701,6 +34701,7 @@ class PixiJSFrontend {
     this.canvas = canvas;
   }
   async init() {
+    console.log("PixiJSFrontend: Initializing...");
     this.app = new Application;
     await this.app.init({
       canvas: this.canvas,
@@ -34709,6 +34710,7 @@ class PixiJSFrontend {
       backgroundColor: 1710618,
       antialias: true
     });
+    console.log("PixiJSFrontend: PixiJS app initialized.");
     const titleBar = new Graphics().rect(0, 0, this.app.screen.width, 50).fill(3355443);
     this.app.stage.addChild(titleBar);
     const titleShadow = new Graphics().rect(0, 50, this.app.screen.width, 5).fill(0);
@@ -34806,6 +34808,7 @@ Tap: Rotate`,
     await this.loadTextures();
     await this.loadSounds();
     this.shuffleTracks();
+    console.log("PixiJSFrontend: Initialization complete.");
   }
   createButtons() {
     this.pauseButton = new Container;
@@ -34956,30 +34959,37 @@ Tap: Rotate`,
     this.gameOverMenuContainer.addChild(gameOverRestartButton);
   }
   async loadTextures() {
+    console.log("PixiJSFrontend: Loading textures...");
     try {
       const types = ["I", "O", "T", "S", "Z", "J", "L"];
       for (let i2 = 0;i2 < types.length; i2++) {
         const type = types[i2];
         this.textures[type] = await Assets.load(`/dist/tetriminoes/${type}.png`);
+        console.log(`PixiJSFrontend: Loaded texture for ${type}`);
       }
       this.textures["A"] = await Assets.load("/dist/tetriminoes/A.png");
+      console.log("PixiJSFrontend: Loaded ghost texture (A)");
     } catch (error) {
       console.error(error);
       console.warn("Failed to load tetromino assets, using color fallback.");
       this.useFallback = true;
     }
+    console.log("PixiJSFrontend: Texture loading complete.");
   }
   async loadSounds() {
+    console.log("PixiJSFrontend: Loading sounds...");
     const loadSoundPromise = (key, url) => {
+      console.log(`PixiJSFrontend: Loading sound '${key}' from ${url}`);
       return new Promise((resolve, reject) => {
         sound.add(key, {
           url,
           preload: true,
           loaded: (err) => {
             if (err) {
-              console.error(`Failed to load sound ${key} from ${url}:`, err);
+              console.error(`PixiJSFrontend: Failed to load sound ${key} from ${url}:`, err);
               resolve();
             } else {
+              console.log(`PixiJSFrontend: Successfully loaded sound '${key}'`);
               resolve();
             }
           }
@@ -35001,14 +35011,18 @@ Tap: Rotate`,
       promises.push(loadSoundPromise(`music${index}`, track));
     });
     await Promise.all(promises);
+    console.log("PixiJSFrontend: All sounds loaded.");
   }
   toggleSounds() {
     this.effectsEnabled = !this.effectsEnabled;
+    console.log(`PixiJSFrontend: Sound effects toggled to ${this.effectsEnabled ? "ON" : "OFF"}`);
   }
   toggleMusic() {
     this.musicEnabled = !this.musicEnabled;
+    console.log(`PixiJSFrontend: Music toggled to ${this.musicEnabled ? "ON" : "OFF"}`);
     if (!this.musicEnabled) {
       sound.stop(`music${this.currentPlayingTrack}`);
+      console.log("PixiJSFrontend: Stopped current music track");
     } else {
       this.playMusic();
     }
@@ -35022,9 +35036,11 @@ Tap: Rotate`,
       this.shuffleTracks();
       this.currentTrackIndex = 0;
     }
+    console.log(`PixiJSFrontend: Playing music track ${this.currentPlayingTrack}`);
     sound.play(`music${this.currentPlayingTrack}`, {
       volume: 0.6,
       complete: () => {
+        console.log("PixiJSFrontend: Music track completed, queuing next");
         this.playMusic();
       }
     });
@@ -35038,10 +35054,14 @@ Tap: Rotate`,
         this.shuffledIndexes[i2]
       ];
     }
+    console.log("PixiJSFrontend: Shuffled music tracks:", this.shuffledIndexes);
   }
   playSound(soundName) {
     if (this.effectsEnabled) {
+      console.log(`PixiJSFrontend: Playing sound effect '${soundName}'`);
       sound.play(soundName);
+    } else {
+      console.log(`PixiJSFrontend: Sound effect '${soundName}' skipped (effects disabled)`);
     }
   }
   render(state) {
@@ -35207,11 +35227,13 @@ Tap: Rotate`,
   }
   onInput(callback) {
     this.inputCallback = callback;
+    console.log("PixiJSFrontend: Input callback registered.");
   }
   start() {
     if (this.started)
       return;
     this.started = true;
+    console.log("PixiJSFrontend: Starting input listeners.");
     window.addEventListener("keydown", this.handleKey);
     this.canvas.addEventListener("touchstart", this.handleTouchStart, {
       passive: false
@@ -35227,6 +35249,7 @@ Tap: Rotate`,
     if (!this.started)
       return;
     this.started = false;
+    console.log("PixiJSFrontend: Stopping input listeners.");
     window.removeEventListener("keydown", this.handleKey);
     this.canvas.removeEventListener("touchstart", this.handleTouchStart);
     this.canvas.removeEventListener("touchmove", this.handleTouchMove);
@@ -35245,8 +35268,10 @@ Tap: Rotate`,
       }
     });
     this.textures = {};
+    console.log("PixiJSFrontend: Cleanup complete.");
   }
   handleKey = (event) => {
+    console.log(`PixiJSFrontend: Keyboard input - key: ${event.key.toLowerCase()}`);
     if (this.inputCallback) {
       this.inputCallback(event.key.toLowerCase());
     }
@@ -35259,6 +35284,7 @@ Tap: Rotate`,
       this.touchStartX = this.initialTouchX;
       this.touchStartY = this.initialTouchY;
       this.touchStartTime = Date.now();
+      console.log(`PixiJSFrontend: Touch start - X: ${this.touchStartX}, Y: ${this.touchStartY}, Time: ${this.touchStartTime}`);
     }
   };
   handleTouchMove = (event) => {
@@ -35268,11 +35294,9 @@ Tap: Rotate`,
       const dx = touchX - this.touchStartX;
       const threshold = 20;
       if (Math.abs(dx) > threshold) {
-        if (dx > 0) {
-          this.inputCallback("arrowright");
-        } else {
-          this.inputCallback("arrowleft");
-        }
+        const action = dx > 0 ? "arrowright" : "arrowleft";
+        console.log(`PixiJSFrontend: Touch move - Current X: ${touchX}, DX: ${dx}, Action: ${action}`);
+        this.inputCallback(action);
         this.touchStartX = touchX;
       }
     }
@@ -35286,13 +35310,17 @@ Tap: Rotate`,
       const dy = touchEndY - this.initialTouchY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const duration = Date.now() - this.touchStartTime;
+      console.log(`PixiJSFrontend: Touch end - End X: ${touchEndX}, Y: ${touchEndY}, Total DX: ${dx}, DY: ${dy}, Dist: ${dist}, Duration: ${duration}ms`);
       if (duration < 200 && dist < 20) {
+        console.log("PixiJSFrontend: Detected tap - rotating (arrowup)");
         this.inputCallback("arrowup");
       } else if (dist > 30) {
         if (Math.abs(dy) > Math.abs(dx)) {
           if (dy > 0) {
+            console.log("PixiJSFrontend: Detected vertical swipe down - hard drop (space)");
             this.inputCallback(" ");
           } else {
+            console.log("PixiJSFrontend: Detected vertical swipe up - hold (c)");
             this.inputCallback("c");
           }
         }
