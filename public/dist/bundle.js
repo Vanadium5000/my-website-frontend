@@ -34693,6 +34693,7 @@ class PixiJSFrontend {
   lastMoveTime = 0;
   lastDropTime = 0;
   hardDropTriggered = false;
+  cumulativeDx = 0;
   effectsEnabled = false;
   musicEnabled = false;
   currentTrackIndex = 0;
@@ -35296,6 +35297,7 @@ Tap: Rotate`,
       this.lastMoveTime = Date.now();
       this.lastDropTime = Date.now();
       this.hardDropTriggered = false;
+      this.cumulativeDx = 0;
       console.log(`PixiJSFrontend: Touch start - X: ${this.touchStartX}, Y: ${this.touchStartY}, Time: ${this.touchStartTime}`);
     }
   };
@@ -35307,15 +35309,17 @@ Tap: Rotate`,
       const dx = touchX - this.touchStartX;
       const dy = touchY - this.touchStartY;
       const currentTime = Date.now();
-      const horizontalThreshold = 20;
-      if (Math.abs(dx) > horizontalThreshold && currentTime - this.lastMoveTime > 100) {
-        const action = dx > 0 ? "arrowright" : "arrowleft";
-        console.log(`PixiJSFrontend: Touch move horizontal - Current X: ${touchX}, DX: ${dx}, Action: ${action}`);
+      const moveThreshold = 20;
+      this.cumulativeDx += dx;
+      while (Math.abs(this.cumulativeDx) >= moveThreshold) {
+        const action = this.cumulativeDx > 0 ? "arrowright" : "arrowleft";
+        console.log(`PixiJSFrontend: Touch move horizontal - Cumulative DX: ${this.cumulativeDx}, Action: ${action}`);
         this.inputCallback(action);
-        this.touchStartX = touchX;
+        this.cumulativeDx -= this.cumulativeDx > 0 ? moveThreshold : -moveThreshold;
         this.lastMoveTime = currentTime;
       }
-      const verticalThreshold = 30;
+      this.touchStartX = touchX;
+      const verticalThreshold = 50;
       if (Math.abs(dy) > verticalThreshold) {
         if (dy > 0) {
           const speed = Math.abs(dy) / (currentTime - this.touchStartTime);
@@ -35323,7 +35327,7 @@ Tap: Rotate`,
             console.log("PixiJSFrontend: Fast drag down - hard drop (space)");
             this.inputCallback(" ");
             this.hardDropTriggered = true;
-          } else if (currentTime - this.lastDropTime > 50) {
+          } else if (currentTime - this.lastDropTime > 30) {
             console.log("PixiJSFrontend: Medium drag down - soft drop (arrowdown)");
             this.inputCallback("arrowdown");
             this.lastDropTime = currentTime;
