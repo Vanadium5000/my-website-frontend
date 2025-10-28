@@ -106,12 +106,12 @@ export function AdminUsers() {
     if (!selectedUser || !customField.trim()) return;
 
     try {
-      // Using updateUser with custom data - assuming the API accepts custom fields
-      // The API expects 'data' as string, so we'll pass JSON string
+      // Using updateUser with custom data
+      // HACK: The OpenAPI specification wants data as string when only JSON works
       const customData = { customField: customField };
       await api.auth.updateUser({
         userId: selectedUser.id!,
-        data: JSON.stringify(customData),
+        data: customData as any,
       });
       setShowCustomFieldModal(false);
       setCustomField("");
