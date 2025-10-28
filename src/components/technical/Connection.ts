@@ -98,7 +98,12 @@ export function Connection() {
       // Append relative path to baseUrl for transport (e.g., /backend/sockets/)
       const transportPath = new URL("sockets/", `${baseUrl}/`).pathname;
 
-      console.log("[Connection] Connecting to:", fullPath);
+      console.log(
+        "[Connection] Connecting to:",
+        fullPath,
+        "with namespace:",
+        transportPath
+      );
 
       // Create socket with same configuration as chess
       const socket: Socket = io(fullPath, {
