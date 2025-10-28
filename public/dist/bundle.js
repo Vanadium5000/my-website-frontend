@@ -34682,6 +34682,13 @@ class PixiJSFrontend {
   holdButton;
   soundButton;
   musicButton;
+  upButton;
+  downButton;
+  leftButton;
+  rightButton;
+  centerButton;
+  leftInterval = null;
+  rightInterval = null;
   pauseMenuContainer;
   gameOverMenuContainer;
   highScoreText;
@@ -34906,6 +34913,125 @@ Tap: Rotate`,
       musicText.text = this.musicEnabled ? "Music On" : "Music Off";
     });
     this.app.stage.addChild(this.musicButton);
+    const buttonSize = 50;
+    const buttonSpacing = 10;
+    const buttonStartX = this.boardWidth * this.blockSize + 300 + buttonSize + buttonSpacing;
+    const buttonStartY = 320 + buttonSize + buttonSpacing;
+    this.upButton = new Container;
+    const upBg = new Graphics().rect(0, 0, buttonSize, buttonSize).fill(2201331);
+    this.upButton.addChild(upBg);
+    this.upButton.position.set(buttonStartX, buttonStartY);
+    const upArrow = new Graphics;
+    upArrow.moveTo(buttonSize / 2, 10);
+    upArrow.lineTo(buttonSize - 10, buttonSize - 10);
+    upArrow.lineTo(10, buttonSize - 10);
+    upArrow.fill(16777215);
+    this.upButton.addChild(upArrow);
+    this.upButton.interactive = true;
+    this.upButton.cursor = "pointer";
+    this.upButton.on("pointerdown", () => {
+      if (this.inputCallback)
+        this.inputCallback("arrowup");
+    });
+    this.app.stage.addChild(this.upButton);
+    this.leftButton = new Container;
+    const leftBg = new Graphics().rect(0, 0, buttonSize, buttonSize).fill(2201331);
+    this.leftButton.addChild(leftBg);
+    this.leftButton.position.set(buttonStartX - buttonSize - buttonSpacing, buttonStartY + buttonSize + buttonSpacing);
+    const leftArrow = new Graphics;
+    leftArrow.moveTo(10, buttonSize / 2);
+    leftArrow.lineTo(buttonSize - 10, 10);
+    leftArrow.lineTo(buttonSize - 10, buttonSize - 10);
+    leftArrow.fill(16777215);
+    this.leftButton.addChild(leftArrow);
+    this.leftButton.interactive = true;
+    this.leftButton.cursor = "pointer";
+    this.leftButton.on("pointerdown", () => {
+      if (this.inputCallback) {
+        this.inputCallback("arrowleft");
+        this.leftInterval = setInterval(() => {
+          if (this.inputCallback)
+            this.inputCallback("arrowleft");
+        }, 150);
+      }
+    });
+    this.leftButton.on("pointerup", () => {
+      if (this.leftInterval) {
+        clearInterval(this.leftInterval);
+        this.leftInterval = null;
+      }
+    });
+    this.leftButton.on("pointerout", () => {
+      if (this.leftInterval) {
+        clearInterval(this.leftInterval);
+        this.leftInterval = null;
+      }
+    });
+    this.app.stage.addChild(this.leftButton);
+    this.centerButton = new Container;
+    const centerBg = new Graphics().rect(0, 0, buttonSize, buttonSize).fill(2201331);
+    this.centerButton.addChild(centerBg);
+    this.centerButton.position.set(buttonStartX, buttonStartY + buttonSize + buttonSpacing);
+    const centerDot = new Graphics().circle(buttonSize / 2, buttonSize / 2, 8).fill(16777215);
+    this.centerButton.addChild(centerDot);
+    this.centerButton.interactive = true;
+    this.centerButton.cursor = "pointer";
+    this.centerButton.on("pointerdown", () => {
+      if (this.inputCallback)
+        this.inputCallback("arrowup");
+    });
+    this.app.stage.addChild(this.centerButton);
+    this.rightButton = new Container;
+    const rightBg = new Graphics().rect(0, 0, buttonSize, buttonSize).fill(2201331);
+    this.rightButton.addChild(rightBg);
+    this.rightButton.position.set(buttonStartX + buttonSize + buttonSpacing, buttonStartY + buttonSize + buttonSpacing);
+    const rightArrow = new Graphics;
+    rightArrow.moveTo(buttonSize - 10, buttonSize / 2);
+    rightArrow.lineTo(10, 10);
+    rightArrow.lineTo(10, buttonSize - 10);
+    rightArrow.fill(16777215);
+    this.rightButton.addChild(rightArrow);
+    this.rightButton.interactive = true;
+    this.rightButton.cursor = "pointer";
+    this.rightButton.on("pointerdown", () => {
+      if (this.inputCallback) {
+        this.inputCallback("arrowright");
+        this.rightInterval = setInterval(() => {
+          if (this.inputCallback)
+            this.inputCallback("arrowright");
+        }, 150);
+      }
+    });
+    this.rightButton.on("pointerup", () => {
+      if (this.rightInterval) {
+        clearInterval(this.rightInterval);
+        this.rightInterval = null;
+      }
+    });
+    this.rightButton.on("pointerout", () => {
+      if (this.rightInterval) {
+        clearInterval(this.rightInterval);
+        this.rightInterval = null;
+      }
+    });
+    this.app.stage.addChild(this.rightButton);
+    this.downButton = new Container;
+    const downBg = new Graphics().rect(0, 0, buttonSize, buttonSize).fill(2201331);
+    this.downButton.addChild(downBg);
+    this.downButton.position.set(buttonStartX, buttonStartY + 2 * (buttonSize + buttonSpacing));
+    const downArrow = new Graphics;
+    downArrow.moveTo(buttonSize / 2, buttonSize - 10);
+    downArrow.lineTo(10, 10);
+    downArrow.lineTo(buttonSize - 10, 10);
+    downArrow.fill(16777215);
+    this.downButton.addChild(downArrow);
+    this.downButton.interactive = true;
+    this.downButton.cursor = "pointer";
+    this.downButton.on("pointerdown", () => {
+      if (this.inputCallback)
+        this.inputCallback(" ");
+    });
+    this.app.stage.addChild(this.downButton);
     const menuBg = new Graphics().rect(50, 70, this.boardWidth * this.blockSize, this.boardHeight * this.blockSize).fill(0);
     menuBg.alpha = 0.7;
     this.pauseMenuContainer.addChild(menuBg);
@@ -35309,7 +35435,7 @@ Tap: Rotate`,
       const dx = touchX - this.touchStartX;
       const dy = touchY - this.touchStartY;
       const currentTime = Date.now();
-      const moveThreshold = 20;
+      const moveThreshold = 24;
       this.cumulativeDx += dx;
       while (Math.abs(this.cumulativeDx) >= moveThreshold) {
         const action = this.cumulativeDx > 0 ? "arrowright" : "arrowleft";
