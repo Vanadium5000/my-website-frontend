@@ -10,13 +10,17 @@ export function Tetris({
   const { query } = useLocation();
 
   if (!query.reloaded) {
-    window.location.href = window.location.href + "?reloaded=true";
+    const url = new URL(window.location.href);
+    url.searchParams.set("reloaded", "true");
+    window.location.href = url.toString();
 
     return (
       <p
-        onClick={() =>
-          (window.location.href = window.location.href + "?reloaded=true")
-        }
+        onClick={() => {
+          const url = new URL(window.location.href);
+          url.searchParams.set("reloaded", "true");
+          window.location.href = url.toString();
+        }}
       >
         Click To Manually Load Tetris
       </p>

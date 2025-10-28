@@ -336,9 +336,9 @@ export function Quizspire() {
                     <button
                       class="btn btn-info btn-sm"
                       onClick={() => {
-                        const targetUrl = `/projects/quizspire/${
-                          deck._id
-                        }/learn?referrer=${encodeURIComponent(url)}`;
+                        const params = new URLSearchParams();
+                        params.set("referrer", encodeURIComponent(url));
+                        const targetUrl = `/projects/quizspire/${deck._id}/learn?${params}`;
 
                         route(targetUrl);
                       }}
@@ -349,9 +349,9 @@ export function Quizspire() {
                     <button
                       class="btn btn-info btn-sm"
                       onClick={() => {
-                        const targetUrl = `/projects/quizspire/${
-                          deck._id
-                        }/test?referrer=${encodeURIComponent(url)}`;
+                        const params = new URLSearchParams();
+                        params.set("referrer", encodeURIComponent(url));
+                        const targetUrl = `/projects/quizspire/${deck._id}/test?${params}`;
 
                         route(targetUrl);
                       }}
@@ -362,9 +362,9 @@ export function Quizspire() {
                     <button
                       class="btn btn-info btn-sm"
                       onClick={() => {
-                        const targetUrl = `/projects/quizspire/${
-                          deck._id
-                        }/tetris?referrer=${encodeURIComponent(url)}`;
+                        const params = new URLSearchParams();
+                        params.set("referrer", encodeURIComponent(url));
+                        const targetUrl = `/projects/quizspire/${deck._id}/tetris?${params}`;
 
                         route(targetUrl);
                       }}
