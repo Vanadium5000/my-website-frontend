@@ -44,3 +44,17 @@ export async function fetchCurrentUser(): Promise<User> {
   const response = (await api.auth.apiGetSessionList()).data;
   return response?.user || null;
 }
+
+/**
+ * Reverses the Q&A for each card in the deck by swapping word and definition.
+ */
+export function reverseCards(deck: FlashcardDeckSchema): FlashcardDeckSchema {
+  return {
+    ...deck,
+    cards: deck.cards.map((card) => ({
+      ...card,
+      word: card.definition,
+      definition: card.word,
+    })),
+  };
+}

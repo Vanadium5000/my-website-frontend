@@ -20,6 +20,7 @@ import { getApiImageUrl } from "../../components/ProfilePicture";
 
 import { FlashcardDeckSchema } from "../../api/api";
 import { useLocation } from "preact-iso";
+import { FaArrowsUpDown } from "react-icons/fa6";
 
 type Deck = FlashcardDeckSchema;
 

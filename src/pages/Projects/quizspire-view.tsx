@@ -17,7 +17,9 @@ import {
   FiShuffle,
   FiMaximize,
   FiMinimize,
+  FiCopy,
 } from "react-icons/fi";
+import { FaArrowsUpDown } from "react-icons/fa6";
 import { getApiImageUrl } from "../../components/ProfilePicture";
 import { ProfilePicture } from "../../components/ProfilePicture";
 import { DeckModal } from "./quizspire";
@@ -25,6 +27,7 @@ import {
   fetchDeck,
   fetchUserProfile,
   fetchCurrentUser,
+  reverseCards,
 } from "../../utils/quizspire";
 
 /**
@@ -41,6 +44,7 @@ export function QuizspireView({ id }: { id: string }) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCopyModal, setShowCopyModal] = useState(false);
   const [isCardFullscreen, setIsCardFullscreen] = useState(false);
   const [isBrowserFullscreen, setIsBrowserFullscreen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -190,6 +194,46 @@ export function QuizspireView({ id }: { id: string }) {
   };
 
   /**
+   * Reverses the Q&A for each card in the deck by swapping word and definition.
+   */
+  const reverseQuestionsAnswers = async () => {
+    if (!deck || !currentUser || currentUser.id !== user?.id) return;
+
+    try {
+      const reversedDeck = reverseCards(deck);
+      await handleUpdateDeck(deck._id, { cards: reversedDeck.cards });
+    } catch (err) {
+      console.error("Failed to reverse Q&A:", err);
+      setError("Failed to reverse Q&A");
+    }
+  };
+
+  /**
+   * Copies the deck to the user's collection.
+   */
+  const copyDeckToCollection = async () => {
+    if (!deck || !currentUser) return;
+
+    try {
+      const copiedDeck = {
+        ...deck,
+        title: `${deck.title} (Copy)`,
+        userId: currentUser.id,
+        _id: undefined, // Remove original ID
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const response = await api.quizspire.postQuizspireDecks(copiedDeck);
+      setShowCopyModal(false);
+      route(`/projects/quizspire/${response.data._id}`);
+    } catch (err) {
+      console.error("Failed to copy deck:", err);
+      setError("Failed to copy deck to collection");
+    }
+  };
+
+  /**
    * Copies the current URL to clipboard for sharing.
    */
   const handleShare = async () => {
@@ -316,7 +360,26 @@ export function QuizspireView({ id }: { id: string }) {
               <FiShare2 class="w-4 h-4 mr-1" />
               Share
             </button>
-            {currentUser?.id === user.id && (
+            {currentUser?.id === user?.id && (
+              <button
+                class="btn btn-accent btn-sm"
+                onClick={reverseQuestionsAnswers}
+                aria-label="Reverse Q&A"
+              >
+                <FaArrowsUpDown class="w-4 h-4 mr-1" />
+                Reverse Q&A
+              </button>
+            )}
+            {currentUser && currentUser.id !== user.id ? (
+              <button
+                class="btn btn-primary btn-sm"
+                onClick={() => setShowCopyModal(true)}
+                aria-label="Add to collection"
+              >
+                <FiCopy class="w-4 h-4 mr-1" />
+                Add to Collection
+              </button>
+            ) : currentUser?.id === user.id ? (
               <button
                 class="btn btn-primary btn-sm"
                 onClick={() => setShowEditModal(true)}
@@ -325,7 +388,7 @@ export function QuizspireView({ id }: { id: string }) {
                 <FiEdit3 class="w-4 h-4 mr-1" />
                 Edit
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -601,6 +664,36 @@ export function QuizspireView({ id }: { id: string }) {
           }}
           onClose={() => setShowEditModal(false)}
         />
+      )}
+
+      {/* Copy Modal */}
+      {showCopyModal && (
+        <dialog className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Add to Collection</h3>
+            <p className="py-4">
+              Are you sure you want to add this deck to your collection? This
+              will create a copy of the deck in your account.
+            </p>
+            <div className="alert alert-warning">
+              <span>
+                ⚠️ Note: Images in the deck will still be managed by {user.name}
+                : they cannot edit the images, but they can delete them.
+              </span>
+            </div>
+            <div className="modal-action">
+              <button className="btn" onClick={() => setShowCopyModal(false)}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={copyDeckToCollection}
+              >
+                Add to Collection
+              </button>
+            </div>
+          </div>
+        </dialog>
       )}
     </div>
   );
