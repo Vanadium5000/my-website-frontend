@@ -35232,17 +35232,17 @@ Swipe Up: Hold`,
     this.textures = {};
   }
   handleKey = (event) => {
-    sound.context.audioContext.resume().catch(() => {});
+    sound.context.resume().catch(() => {});
     if (this.inputCallback) {
       this.inputCallback(event.key.toLowerCase());
     }
   };
   handleTouchStart = (event) => {
     event.preventDefault();
-    sound.context.audioContext.resume().catch(() => {});
+    sound.context.resume().catch(() => {});
     if (event.touches.length > 0) {
-      this.touchStartX = event.touches[0]?.clientX || 0;
-      this.touchStartY = event.touches[0]?.clientY || 0;
+      this.touchStartX = event.touches[0].clientX;
+      this.touchStartY = event.touches[0].clientY;
       this.touchStartTime = Date.now();
       this.touchDirection = "none";
       this.dragDeltaX = 0;
@@ -35254,8 +35254,8 @@ Swipe Up: Hold`,
     if (event.touches.length === 0 || !this.inputCallback)
       return;
     const touch = event.touches[0];
-    const dx = (touch?.clientX || 0) - this.touchStartX;
-    const dy = (touch?.clientY || 0) - this.touchStartY;
+    const dx = touch.clientX - this.touchStartX;
+    const dy = touch.clientY - this.touchStartY;
     if (this.touchDirection === "none") {
       const threshold = 20;
       if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
@@ -35264,7 +35264,7 @@ Swipe Up: Hold`,
     }
     const moveThreshold = this.blockSize;
     if (this.touchDirection === "horizontal") {
-      const currentDx = (touch?.clientX || 0) - this.touchStartX + this.dragDeltaX;
+      const currentDx = touch.clientX - this.touchStartX + this.dragDeltaX;
       const dir = Math.sign(currentDx);
       const numMoves = Math.floor(Math.abs(currentDx) / moveThreshold);
       if (dir !== 0 && numMoves > 0) {
@@ -35277,7 +35277,7 @@ Swipe Up: Hold`,
         this.dragDeltaX = currentDx;
       }
     } else if (this.touchDirection === "vertical") {
-      const currentDy = (touch?.clientY || 0) - this.touchStartY + this.dragDeltaY;
+      const currentDy = touch.clientY - this.touchStartY + this.dragDeltaY;
       const numMoves = Math.floor(currentDy / moveThreshold);
       if (numMoves > 0) {
         for (let i2 = 0;i2 < numMoves; i2++) {
@@ -35291,11 +35291,11 @@ Swipe Up: Hold`,
   };
   handleTouchEnd = (event) => {
     event.preventDefault();
-    sound.context.audioContext.resume().catch(() => {});
+    sound.context.resume().catch(() => {});
     if (event.changedTouches.length === 0 || !this.inputCallback)
       return;
-    const touchEndX = event.changedTouches[0]?.clientX || 0;
-    const touchEndY = event.changedTouches[0]?.clientY || 0;
+    const touchEndX = event.changedTouches[0].clientX;
+    const touchEndY = event.changedTouches[0].clientY;
     const dx = touchEndX - this.touchStartX;
     const dy = touchEndY - this.touchStartY;
     const dist = Math.sqrt(dx * dx + dy * dy);
