@@ -1,7 +1,7 @@
 # default.nix
 { stdenv }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "frontend-package";
   version = "1.0";
 
