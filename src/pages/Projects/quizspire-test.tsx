@@ -187,7 +187,7 @@ function TestConfigModal({
                 min="1"
                 max={maxQuestions}
                 value={questionCount}
-                class="range range-primary range-lg"
+                class="range range-primary range-lg w-full"
                 onInput={(e) =>
                   setQuestionCount(parseInt(e.currentTarget.value))
                 }

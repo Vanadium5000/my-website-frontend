@@ -450,7 +450,7 @@ export function QuizspireView({ id }: { id: string }) {
               </button>
               <button class="btn btn-info btn-sm">
                 <FiGrid class="w-4 h-4 mr-1" />
-                Blocks
+                Tetris
               </button>
               <button class="btn btn-info btn-sm">
                 <FiZap class="w-4 h-4 mr-1" />

@@ -20,6 +20,14 @@
   >
     <input id="high-score" type="number" style="display: none" />
     <canvas id="game-canvas"></canvas>
+    <script>
+      window.tetrisConfig = {
+        intermediateCallback: async () => {
+          await new Promise((resolve) => setTimeout(resolve, 8000));
+          // Returns undefined (void)
+        },
+      };
+    </script>
     <script src="bundle.js"></script>
     <!-- Bundled script -->
   </body>
