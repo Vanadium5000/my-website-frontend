@@ -30789,7 +30789,7 @@ class Game {
     }
   }
   calculateScore(lines) {
-    const base = [0, 100, 300, 500, 800];
+    const base = [0, 40, 100, 300, 1200];
     return (base[lines] ?? 0) * this.level;
   }
   updateHighScore() {
@@ -34679,12 +34679,11 @@ class PixiJSFrontend {
   pauseMenuContainer;
   gameOverMenuContainer;
   highScoreText;
+  initialTouchX = 0;
+  initialTouchY = 0;
   touchStartX = 0;
   touchStartY = 0;
   touchStartTime = 0;
-  dragDeltaX = 0;
-  dragDeltaY = 0;
-  touchDirection = "none";
   effectsEnabled = false;
   musicEnabled = false;
   currentTrackIndex = 0;
@@ -34783,14 +34782,12 @@ class PixiJSFrontend {
     this.controlsText = new Text({
       text: `Controls:
 Arrows: Move/Rotate
-Space: Hard Drop
+Space: Drop
 C: Hold
 P: Pause
 R: Restart
-Tap: Rotate
-Drag L/R: Move
-Swipe Down: Hard Drop
-Swipe Up: Hold`,
+Swipe: Move/Drop
+Tap: Rotate`,
       style: controlsStyle
     });
     this.controlsText.position.set(this.boardWidth * this.blockSize + 100, 450);
@@ -34807,7 +34804,7 @@ Swipe Up: Hold`,
     this.app.stage.addChild(this.messageText);
     this.createButtons();
     await this.loadTextures();
-    this.loadSounds();
+    await this.loadSounds();
     this.shuffleTracks();
   }
   createButtons() {
@@ -34972,20 +34969,38 @@ Swipe Up: Hold`,
       this.useFallback = true;
     }
   }
-  loadSounds() {
-    sound.add("move", "/dist/sounds/move.mp3");
-    sound.add("rotate", "/dist/sounds/rotate.mp3");
-    sound.add("hold", "/dist/sounds/hold.mp3");
-    sound.add("place", "/dist/sounds/place.mp3");
-    sound.add("harddrop", "/dist/sounds/harddrop.mp3");
-    sound.add("clear1", "/dist/sounds/clear1.mp3");
-    sound.add("clear2", "/dist/sounds/clear2.mp3");
-    sound.add("clear3", "/dist/sounds/clear3.mp3");
-    sound.add("clear4", "/dist/sounds/clear4.mp3");
-    sound.add("gameover", "/dist/sounds/gameover.mp3");
+  async loadSounds() {
+    const loadSoundPromise = (key, url) => {
+      return new Promise((resolve, reject) => {
+        sound.add(key, {
+          url,
+          preload: true,
+          loaded: (err) => {
+            if (err) {
+              console.error(`Failed to load sound ${key} from ${url}:`, err);
+              resolve();
+            } else {
+              resolve();
+            }
+          }
+        });
+      });
+    };
+    const promises = [];
+    promises.push(loadSoundPromise("move", "/dist/sounds/move.mp3"));
+    promises.push(loadSoundPromise("rotate", "/dist/sounds/rotate.mp3"));
+    promises.push(loadSoundPromise("hold", "/dist/sounds/hold.mp3"));
+    promises.push(loadSoundPromise("place", "/dist/sounds/place.mp3"));
+    promises.push(loadSoundPromise("harddrop", "/dist/sounds/harddrop.mp3"));
+    promises.push(loadSoundPromise("clear1", "/dist/sounds/clear1.mp3"));
+    promises.push(loadSoundPromise("clear2", "/dist/sounds/clear2.mp3"));
+    promises.push(loadSoundPromise("clear3", "/dist/sounds/clear3.mp3"));
+    promises.push(loadSoundPromise("clear4", "/dist/sounds/clear4.mp3"));
+    promises.push(loadSoundPromise("gameover", "/dist/sounds/gameover.mp3"));
     this.musicTracks.forEach((track, index) => {
-      sound.add(`music${index}`, { url: track });
+      promises.push(loadSoundPromise(`music${index}`, track));
     });
+    await Promise.all(promises);
   }
   toggleSounds() {
     this.effectsEnabled = !this.effectsEnabled;
@@ -35232,91 +35247,57 @@ Swipe Up: Hold`,
     this.textures = {};
   }
   handleKey = (event) => {
-    sound.context.resume().catch(() => {});
     if (this.inputCallback) {
       this.inputCallback(event.key.toLowerCase());
     }
   };
   handleTouchStart = (event) => {
     event.preventDefault();
-    sound.context.resume().catch(() => {});
     if (event.touches.length > 0) {
-      this.touchStartX = event.touches[0].clientX;
-      this.touchStartY = event.touches[0].clientY;
+      this.initialTouchX = event.touches[0].clientX;
+      this.initialTouchY = event.touches[0].clientY;
+      this.touchStartX = this.initialTouchX;
+      this.touchStartY = this.initialTouchY;
       this.touchStartTime = Date.now();
-      this.touchDirection = "none";
-      this.dragDeltaX = 0;
-      this.dragDeltaY = 0;
     }
   };
   handleTouchMove = (event) => {
     event.preventDefault();
-    if (event.touches.length === 0 || !this.inputCallback)
-      return;
-    const touch = event.touches[0];
-    const dx = touch.clientX - this.touchStartX;
-    const dy = touch.clientY - this.touchStartY;
-    if (this.touchDirection === "none") {
+    if (event.touches.length > 0 && this.inputCallback) {
+      const touchX = event.touches[0].clientX;
+      const dx = touchX - this.touchStartX;
       const threshold = 20;
-      if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
-        this.touchDirection = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
-      }
-    }
-    const moveThreshold = this.blockSize;
-    if (this.touchDirection === "horizontal") {
-      const currentDx = touch.clientX - this.touchStartX + this.dragDeltaX;
-      const dir = Math.sign(currentDx);
-      const numMoves = Math.floor(Math.abs(currentDx) / moveThreshold);
-      if (dir !== 0 && numMoves > 0) {
-        const key = dir > 0 ? "arrowright" : "arrowleft";
-        for (let i2 = 0;i2 < numMoves; i2++) {
-          this.inputCallback(key);
+      if (Math.abs(dx) > threshold) {
+        if (dx > 0) {
+          this.inputCallback("arrowright");
+        } else {
+          this.inputCallback("arrowleft");
         }
-        this.dragDeltaX = currentDx - numMoves * moveThreshold * dir;
-      } else {
-        this.dragDeltaX = currentDx;
-      }
-    } else if (this.touchDirection === "vertical") {
-      const currentDy = touch.clientY - this.touchStartY + this.dragDeltaY;
-      const numMoves = Math.floor(currentDy / moveThreshold);
-      if (numMoves > 0) {
-        for (let i2 = 0;i2 < numMoves; i2++) {
-          this.inputCallback("arrowdown");
-        }
-        this.dragDeltaY = currentDy - numMoves * moveThreshold;
-      } else {
-        this.dragDeltaY = currentDy;
+        this.touchStartX = touchX;
       }
     }
   };
   handleTouchEnd = (event) => {
     event.preventDefault();
-    sound.context.resume().catch(() => {});
-    if (event.changedTouches.length === 0 || !this.inputCallback)
-      return;
-    const touchEndX = event.changedTouches[0].clientX;
-    const touchEndY = event.changedTouches[0].clientY;
-    const dx = touchEndX - this.touchStartX;
-    const dy = touchEndY - this.touchStartY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const duration = Date.now() - this.touchStartTime;
-    const speed = dist / duration;
-    if (this.touchDirection === "none") {
-      if (dist < 20 && duration < 300) {
+    if (event.changedTouches.length > 0 && this.inputCallback) {
+      const touchEndX = event.changedTouches[0].clientX;
+      const touchEndY = event.changedTouches[0].clientY;
+      const dx = touchEndX - this.initialTouchX;
+      const dy = touchEndY - this.initialTouchY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const duration = Date.now() - this.touchStartTime;
+      if (duration < 200 && dist < 20) {
         this.inputCallback("arrowup");
-      } else if (duration > 500 && dist < 20) {
-        this.inputCallback(" ");
-      }
-    } else if (this.touchDirection === "vertical") {
-      if (speed > 0.5 || dist > 100) {
-        if (dy > 0) {
-          this.inputCallback(" ");
-        } else {
-          this.inputCallback("c");
+      } else if (dist > 30) {
+        if (Math.abs(dy) > Math.abs(dx)) {
+          if (dy > 0) {
+            this.inputCallback(" ");
+          } else {
+            this.inputCallback("c");
+          }
         }
       }
     }
-    this.touchDirection = "none";
   };
 }
 
