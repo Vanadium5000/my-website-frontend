@@ -18,7 +18,7 @@ export const getApiImageUrl = (imagePath: string): string => {
   } else {
     // Paths not beginning with / with be added to baseUrl, those beginning with / will replace every after the main host
     // .slice(1) removes the starting "/"
-    return new URL(imagePath.slice(1), `${api.baseUrl}`).href;
+    return new URL(imagePath.slice(1), `${api.baseUrl}/`).href;
   }
 };
 
