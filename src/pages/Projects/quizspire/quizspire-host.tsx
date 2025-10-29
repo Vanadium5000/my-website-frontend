@@ -1,4 +1,5 @@
 // Frontend: Quizspire Host component with DaisyUI, Tailwind, react-icons, socket integration
+// This component handles the host side of a real-time quiz game using WebSockets
 
 import { io } from "socket.io-client";
 import { useState, useEffect, useMemo } from "preact/hooks";
@@ -110,10 +111,16 @@ interface MediaContent {
 
 export function QuizspireHost() {
   const { route, query } = useLocation();
+
+  // Socket and connection state
   const [socket, setSocket] = useState(null);
+
+  // Game phase state
   const [phase, setPhase] = useState<
     "connecting" | "lobby" | "settings" | "playing" | "results" | "ended"
   >("connecting");
+
+  // Game data state
   const [lobby, setLobby] = useState<LobbyState | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<QuestionData | null>(
     null
@@ -121,9 +128,13 @@ export function QuizspireHost() {
   const [questionResults, setQuestionResults] =
     useState<QuestionResults | null>(null);
   const [gameEndData, setGameEndData] = useState<GameEndData | null>(null);
+
+  // User authentication state
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [myName, setMyName] = useState<string | null>(null);
   const [myImage, setMyImage] = useState<string | null>(null);
+
+  // UI state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -145,9 +156,19 @@ export function QuizspireHost() {
     hostParticipates: true,
   });
 
+  // Helper functions for logging socket events
+  const logSocketEmit = (event: string, data?: any) => {
+    console.log(`[SOCKET EMIT] ${event}`, data);
+  };
+
+  const logSocketReceive = (event: string, data?: any) => {
+    console.log(`[SOCKET RECEIVE] ${event}`, data);
+  };
+
   useEffect(() => {
     async function init() {
       try {
+        // Check for existing user session
         const response = await (await api.auth.apiGetSessionList()).json();
         const hasSession = response && response.user;
         if (hasSession) {
@@ -158,6 +179,7 @@ export function QuizspireHost() {
           console.log("No active session, allowing guest access");
         }
 
+        // Construct socket connection URLs
         const baseUrl = api.baseUrl;
         const fullPath = new URL("/sockets/quizspire", baseUrl).href;
         const transportPath = new URL("sockets/", `${baseUrl}/`).pathname;
@@ -166,6 +188,7 @@ export function QuizspireHost() {
         console.log("Using Quizspire socket full path:", fullPath);
         console.log("Using Quizspire socket transport path:", transportPath);
 
+        // Initialize socket connection
         const newSocket = io(fullPath, {
           path: transportPath,
           transports: ["websocket", "polling"],
@@ -174,26 +197,27 @@ export function QuizspireHost() {
 
         setSocket(newSocket);
 
+        // Socket event handlers
         newSocket.on("connect", () => {
-          console.log("[SOCKET] Connected to Quizspire server");
+          logSocketReceive("connect");
           setPhase("lobby");
           setErrorMessage(null);
         });
 
         newSocket.on("lobby_created", (data) => {
-          console.log("[SOCKET] Lobby created:", data);
+          logSocketReceive("lobby_created", data);
           setLobby(data);
           setPhase("settings");
         });
 
         newSocket.on("lobby_joined", (data) => {
-          console.log("[SOCKET] Lobby joined:", data);
+          logSocketReceive("lobby_joined", data);
           setLobby(data);
           setPhase("settings");
         });
 
         newSocket.on("lobby_update", async (data: LobbyState) => {
-          console.log("[SOCKET] Lobby update:", data);
+          logSocketReceive("lobby_update", data);
           setLobby(data);
           // Fetch profiles for new players
           for (const player of data.players) {
@@ -214,7 +238,7 @@ export function QuizspireHost() {
         });
 
         newSocket.on("question", (data: QuestionData) => {
-          console.log("[SOCKET] Question received:", data);
+          logSocketReceive("question", data);
           setCurrentQuestion(data);
           setSelectedAnswer(null);
           setTimeLeft(data.timeLimit);
@@ -224,7 +248,7 @@ export function QuizspireHost() {
         });
 
         newSocket.on("answer_feedback", (data: AnswerFeedback) => {
-          console.log("[SOCKET] Answer feedback:", data);
+          logSocketReceive("answer_feedback", data);
           setAnswerFeedback(data);
         });
 
@@ -235,42 +259,42 @@ export function QuizspireHost() {
             winCondition: string;
             threshold?: number;
           }) => {
-            console.log("[SOCKET] Leaderboard update:", data);
+            logSocketReceive("leaderboard_update", data);
             setLeaderboard(data.leaderboard);
           }
         );
 
         newSocket.on("question_results", (data: QuestionResults) => {
-          console.log("[SOCKET] Question results:", data);
+          logSocketReceive("question_results", data);
           setQuestionResults(data);
           setPhase("results");
         });
 
         newSocket.on("game_ended", (data: GameEndData) => {
-          console.log("[SOCKET] Game ended:", data);
+          logSocketReceive("game_ended", data);
           setGameEndData(data);
           setPhase("ended");
         });
 
         newSocket.on("kicked", (data: { reason: string }) => {
-          console.log("[SOCKET] Kicked from lobby:", data);
+          logSocketReceive("kicked", data);
           setErrorMessage(`You were kicked: ${data.reason}`);
           setPhase("lobby");
           setLobby(null);
         });
 
         newSocket.on("error", (data) => {
-          console.error("[SOCKET] Server error:", data);
+          logSocketReceive("error", data);
           setErrorMessage(data.message || "An error occurred");
         });
 
         newSocket.on("connect_error", (error) => {
-          console.error("[SOCKET] Connect error:", error);
+          logSocketReceive("connect_error", error);
           setErrorMessage(`Connection error: ${error.message}`);
         });
 
         newSocket.on("disconnect", (reason) => {
-          console.warn("[SOCKET] Disconnected:", reason);
+          logSocketReceive("disconnect", reason);
           setErrorMessage(`Disconnected: ${reason}`);
         });
       } catch (error) {
@@ -281,6 +305,7 @@ export function QuizspireHost() {
 
     init();
 
+    // Cleanup socket connection on unmount
     return () => {
       if (socket) {
         socket.disconnect();
@@ -288,7 +313,7 @@ export function QuizspireHost() {
     };
   }, []);
 
-  // Timer effect for questions
+  // Timer effect for question countdown
   useEffect(() => {
     if (timeLeft > 0 && phase === "playing") {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -296,9 +321,10 @@ export function QuizspireHost() {
     }
   }, [timeLeft, phase]);
 
+  // Socket action functions with logging
   const createLobby = (deckId: string) => {
     if (socket && myUserId) {
-      console.log("[SOCKET] Emitting create_lobby:", { deckId, settings });
+      logSocketEmit("create_lobby", { deckId, settings });
       socket.emit("create_lobby", { deckId, settings });
     } else {
       setErrorMessage("You must be logged in to create a lobby");
@@ -309,14 +335,14 @@ export function QuizspireHost() {
     if (socket) {
       const joinData: any = { code };
       if (username) joinData.username = username;
-      console.log("[SOCKET] Emitting join_lobby:", joinData);
+      logSocketEmit("join_lobby", joinData);
       socket.emit("join_lobby", joinData);
     }
   };
 
   const startGame = () => {
     if (socket) {
-      console.log("[SOCKET] Emitting start_game");
+      logSocketEmit("start_game");
       socket.emit("start_game");
     }
   };
@@ -324,27 +350,28 @@ export function QuizspireHost() {
   const submitAnswer = (selectedIndex: number) => {
     if (socket && selectedAnswer === null) {
       setSelectedAnswer(selectedIndex);
-      console.log("[SOCKET] Emitting submit_answer:", { selectedIndex });
+      logSocketEmit("submit_answer", { selectedIndex });
       socket.emit("submit_answer", { selectedIndex });
     }
   };
 
   const kickPlayer = (userId: string) => {
     if (socket) {
-      console.log("[SOCKET] Emitting kick_player:", { userId });
+      logSocketEmit("kick_player", { userId });
       socket.emit("kick_player", { userId });
     }
   };
 
   const leaveLobby = () => {
     if (socket) {
-      console.log("[SOCKET] Emitting leave_lobby");
+      logSocketEmit("leave_lobby");
       socket.emit("leave_lobby");
       setPhase("lobby");
       setLobby(null);
     }
   };
 
+  // Utility functions
   const copyLobbyCode = async () => {
     if (lobby?.code) {
       try {
@@ -358,6 +385,7 @@ export function QuizspireHost() {
     }
   };
 
+  // Render functions for content elements
   const renderContentElement = (element: ContentElement) => {
     if (element.type === "text") {
       return <span>{element.text}</span>;
@@ -372,6 +400,7 @@ export function QuizspireHost() {
     }
   };
 
+  // Render functions for UI components
   const renderPlayerItem = (
     player: Player,
     showKickButton: boolean = false
@@ -409,9 +438,24 @@ export function QuizspireHost() {
     );
   };
 
+  // Helper function to get player profile data
   const getPlayerProfile = (userId: string) => {
     return playerProfiles[userId] || { name: "Loading...", image: null };
   };
+
+  // Helper function to render form controls for settings
+  const renderFormControl = (
+    label: string,
+    children: React.ReactNode,
+    key?: string
+  ) => (
+    <div className="form-control" key={key}>
+      <label className="label">
+        <span className="label-text">{label}</span>
+      </label>
+      {children}
+    </div>
+  );
 
   if (phase === "connecting") {
     return (
@@ -522,14 +566,14 @@ export function QuizspireHost() {
               </div>
             )}
 
+            {/* Settings Phase - Configure game parameters */}
+
             {phase === "settings" && lobby && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Game Settings</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Win Condition</span>
-                    </label>
+                  {renderFormControl(
+                    "Win Condition",
                     <select
                       className="select select-bordered"
                       value={settings.winCondition}
@@ -547,78 +591,67 @@ export function QuizspireHost() {
                       <option value="score">Score Threshold</option>
                       <option value="time">Time Limit</option>
                     </select>
-                  </div>
-
-                  {settings.winCondition === "correct_answers" ? (
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">
-                          Correct Answers Threshold
-                        </span>
-                      </label>
-                      <input
-                        type="number"
-                        className="input input-bordered"
-                        value={settings.correctAnswersThreshold}
-                        onChange={(e) =>
-                          setSettings((prev) => ({
-                            ...prev,
-                            correctAnswersThreshold:
-                              parseInt((e.target as HTMLInputElement).value) ||
-                              10,
-                          }))
-                        }
-                        min="1"
-                      />
-                    </div>
-                  ) : settings.winCondition === "score" ? (
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Score Threshold</span>
-                      </label>
-                      <input
-                        type="number"
-                        className="input input-bordered"
-                        value={settings.scoreThreshold}
-                        onChange={(e) =>
-                          setSettings((prev) => ({
-                            ...prev,
-                            scoreThreshold:
-                              parseInt((e.target as HTMLInputElement).value) ||
-                              1000,
-                          }))
-                        }
-                        min="1"
-                      />
-                    </div>
-                  ) : (
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Time Limit (seconds)</span>
-                      </label>
-                      <input
-                        type="number"
-                        className="input input-bordered"
-                        value={settings.timeLimit}
-                        onChange={(e) =>
-                          setSettings((prev) => ({
-                            ...prev,
-                            timeLimit:
-                              parseInt((e.target as HTMLInputElement).value) ||
-                              300,
-                          }))
-                        }
-                        min="60"
-                      />
-                    </div>
                   )}
 
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">
-                        Question Time Limit (seconds)
-                      </span>
-                    </label>
+                  {settings.winCondition === "correct_answers"
+                    ? renderFormControl(
+                        "Correct Answers Threshold",
+                        <input
+                          type="number"
+                          className="input input-bordered"
+                          value={settings.correctAnswersThreshold}
+                          onChange={(e) =>
+                            setSettings((prev) => ({
+                              ...prev,
+                              correctAnswersThreshold:
+                                parseInt(
+                                  (e.target as HTMLInputElement).value
+                                ) || 10,
+                            }))
+                          }
+                          min="1"
+                        />
+                      )
+                    : settings.winCondition === "score"
+                    ? renderFormControl(
+                        "Score Threshold",
+                        <input
+                          type="number"
+                          className="input input-bordered"
+                          value={settings.scoreThreshold}
+                          onChange={(e) =>
+                            setSettings((prev) => ({
+                              ...prev,
+                              scoreThreshold:
+                                parseInt(
+                                  (e.target as HTMLInputElement).value
+                                ) || 1000,
+                            }))
+                          }
+                          min="1"
+                        />
+                      )
+                    : renderFormControl(
+                        "Time Limit (seconds)",
+                        <input
+                          type="number"
+                          className="input input-bordered"
+                          value={settings.timeLimit}
+                          onChange={(e) =>
+                            setSettings((prev) => ({
+                              ...prev,
+                              timeLimit:
+                                parseInt(
+                                  (e.target as HTMLInputElement).value
+                                ) || 300,
+                            }))
+                          }
+                          min="60"
+                        />
+                      )}
+
+                  {renderFormControl(
+                    "Question Time Limit (seconds)",
                     <input
                       type="number"
                       className="input input-bordered"
@@ -634,63 +667,57 @@ export function QuizspireHost() {
                       min="5"
                       max="120"
                     />
-                  </div>
+                  )}
 
-                  <div className="form-control">
-                    <label className="label cursor-pointer">
-                      <span className="label-text">
-                        Reset on Incorrect Answer
-                      </span>
-                      <input
-                        type="checkbox"
-                        className="toggle"
-                        checked={settings.resetOnIncorrect}
-                        onChange={(e) =>
-                          setSettings((prev) => ({
-                            ...prev,
-                            resetOnIncorrect: (e.target as HTMLInputElement)
-                              .checked,
-                          }))
-                        }
-                      />
-                    </label>
-                  </div>
+                  {renderFormControl(
+                    "Reset on Incorrect Answer",
+                    <input
+                      type="checkbox"
+                      className="toggle"
+                      checked={settings.resetOnIncorrect}
+                      onChange={(e) =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          resetOnIncorrect: (e.target as HTMLInputElement)
+                            .checked,
+                        }))
+                      }
+                    />,
+                    "reset-toggle"
+                  )}
 
-                  <div className="form-control">
-                    <label className="label cursor-pointer">
-                      <span className="label-text">Allow Late Join</span>
-                      <input
-                        type="checkbox"
-                        className="toggle"
-                        checked={settings.allowLateJoin}
-                        onChange={(e) =>
-                          setSettings((prev) => ({
-                            ...prev,
-                            allowLateJoin: (e.target as HTMLInputElement)
-                              .checked,
-                          }))
-                        }
-                      />
-                    </label>
-                  </div>
+                  {renderFormControl(
+                    "Allow Late Join",
+                    <input
+                      type="checkbox"
+                      className="toggle"
+                      checked={settings.allowLateJoin}
+                      onChange={(e) =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          allowLateJoin: (e.target as HTMLInputElement).checked,
+                        }))
+                      }
+                    />,
+                    "late-join-toggle"
+                  )}
 
-                  <div className="form-control">
-                    <label className="label cursor-pointer">
-                      <span className="label-text">Host Participates</span>
-                      <input
-                        type="checkbox"
-                        className="toggle"
-                        checked={settings.hostParticipates}
-                        onChange={(e) =>
-                          setSettings((prev) => ({
-                            ...prev,
-                            hostParticipates: (e.target as HTMLInputElement)
-                              .checked,
-                          }))
-                        }
-                      />
-                    </label>
-                  </div>
+                  {renderFormControl(
+                    "Host Participates",
+                    <input
+                      type="checkbox"
+                      className="toggle"
+                      checked={settings.hostParticipates}
+                      onChange={(e) =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          hostParticipates: (e.target as HTMLInputElement)
+                            .checked,
+                        }))
+                      }
+                    />,
+                    "host-participates-toggle"
+                  )}
                 </div>
 
                 <div className="flex justify-center">
@@ -708,6 +735,7 @@ export function QuizspireHost() {
               </div>
             )}
 
+            {/* Playing Phase - Display question and answer options */}
             {phase === "playing" && currentQuestion && (
               <div>
                 <div className="text-center mb-6">
@@ -773,6 +801,8 @@ export function QuizspireHost() {
                 </div>
               </div>
             )}
+
+            {/* Results Phase - Show question results and player answers */}
 
             {phase === "results" && questionResults && (
               <div>
@@ -840,6 +870,7 @@ export function QuizspireHost() {
               </div>
             )}
 
+            {/* Ended Phase - Display final results and winner */}
             {phase === "ended" && gameEndData && (
               <div className="text-center">
                 <div className="mb-6">
@@ -915,6 +946,8 @@ export function QuizspireHost() {
                 </button>
               </div>
             )}
+
+            {/* Sidebar - Player list and leaderboard */}
           </div>
         </div>
 
@@ -937,7 +970,7 @@ export function QuizspireHost() {
               </div>
             )}
 
-            {/* Leaderboard */}
+            {/* Leaderboard - Shows current standings during gameplay */}
             {leaderboard.length > 0 && (
               <div className="mt-6">
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
