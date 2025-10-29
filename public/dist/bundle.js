@@ -34726,6 +34726,8 @@ class PixiJSFrontend {
   lastMoveTime = 0;
   lastDropTime = 0;
   hardDropTriggered = false;
+  pieceSpawnTime = 0;
+  lastRenderedPiece = null;
   cumulativeDx = 0;
   effectsEnabled = false;
   musicEnabled = false;
@@ -34738,14 +34740,16 @@ class PixiJSFrontend {
     "/dist/sounds/tetris-b.mp3",
     "/dist/sounds/tetris-c.mp3"
   ];
-  MOVE_THRESHOLD = 25;
+  MOVE_THRESHOLD = 24;
   VERTICAL_THRESHOLD = 85;
   TAP_DURATION_MAX = 200;
   TAP_DISTANCE_MAX = 20;
   SWIPE_DISTANCE_MIN = 30;
   BUTTON_REPEAT_INTERVAL = 150;
   SOFT_DROP_INTERVAL = 30;
-  HARD_DROP_SPEED_THRESHOLD = 1.2;
+  SOFT_DROP_SPEED_THRESHOLD = 0.3;
+  HARD_DROP_SPEED_THRESHOLD = 0.85;
+  PIECE_SPAWN_DELAY = 150;
   constructor(canvas, boardWidth, boardHeight) {
     this.boardWidth = boardWidth;
     this.boardHeight = boardHeight;
@@ -35253,6 +35257,10 @@ Tap: Rotate`,
     }
   }
   render(state) {
+    if (this.lastRenderedPiece === null || state.currentPiece.color !== this.lastRenderedPiece.color) {
+      this.pieceSpawnTime = Date.now();
+      this.lastRenderedPiece = state.currentPiece;
+    }
     this.boardContainer.removeChildren();
     const gridGraphics = new Graphics;
     for (let y2 = 0;y2 <= this.boardHeight; y2++) {
@@ -35481,6 +35489,7 @@ Tap: Rotate`,
       this.lastDropTime = Date.now();
       this.hardDropTriggered = false;
       this.cumulativeDx = 0;
+      this.pieceSpawnTime = Date.now();
       console.log(`PixiJSFrontend: Touch start - X: ${this.touchStartX}, Y: ${this.touchStartY}, Time: ${this.touchStartTime}`);
     }
   };
@@ -35508,7 +35517,7 @@ Tap: Rotate`,
             console.log("PixiJSFrontend: Fast drag down - hard drop (space)");
             this.inputCallback(" ");
             this.hardDropTriggered = true;
-          } else if (currentTime - this.lastDropTime > this.SOFT_DROP_INTERVAL) {
+          } else if (speed > this.SOFT_DROP_SPEED_THRESHOLD && currentTime - this.lastDropTime > this.SOFT_DROP_INTERVAL && currentTime - this.pieceSpawnTime > this.PIECE_SPAWN_DELAY) {
             console.log("PixiJSFrontend: Medium drag down - soft drop (arrowdown)");
             this.inputCallback("arrowdown");
             this.lastDropTime = currentTime;
