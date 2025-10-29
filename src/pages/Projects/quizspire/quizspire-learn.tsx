@@ -226,7 +226,9 @@ export function QuizspireLearn({ id }: { id: string }) {
           </div>
           <button
             class="btn btn-primary mt-4"
-            onClick={() => route(query.referrer || "/projects/quizspire")}
+            onClick={() =>
+              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+            }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
             Back
@@ -245,7 +247,9 @@ export function QuizspireLearn({ id }: { id: string }) {
           </div>
           <button
             class="btn btn-primary mt-4"
-            onClick={() => route(query.referrer || "/projects/quizspire")}
+            onClick={() =>
+              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+            }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
             Back
@@ -264,7 +268,9 @@ export function QuizspireLearn({ id }: { id: string }) {
           </div>
           <button
             class="btn btn-primary mt-4"
-            onClick={() => route(query.referrer || "/projects/quizspire")}
+            onClick={() =>
+              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+            }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
             Back
@@ -330,7 +336,10 @@ export function QuizspireLearn({ id }: { id: string }) {
                 <button
                   class="btn btn-outline btn-lg"
                   onClick={() => {
-                    route(query.referrer || "/projects/quizspire");
+                    route(
+                      decodeURIComponent(query.referrer) ||
+                        "/projects/quizspire"
+                    );
                   }}
                 >
                   <FiArrowLeft class="w-5 h-5 mr-2" />
@@ -353,7 +362,9 @@ export function QuizspireLearn({ id }: { id: string }) {
         <div class="flex items-center justify-between mb-6">
           <button
             class="btn btn-ghost"
-            onClick={() => route(query.referrer || "/projects/quizspire")}
+            onClick={() =>
+              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+            }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
             Back

@@ -16,6 +16,7 @@ import { QuizspireView } from "./pages/Projects/quizspire/quizspire-view.js";
 import { QuizspireLearn } from "./pages/Projects/quizspire/quizspire-learn.js";
 import { QuizspireTest } from "./pages/Projects/quizspire/quizspire-test.js";
 import { QuizspireTetris } from "./pages/Projects/quizspire/quizspire-tetris.js";
+import { QuizspireMatch } from "./pages/Projects/quizspire/quizspire-match.js";
 import { Tetris } from "./pages/Projects/tetris.js";
 import { Signup } from "./pages/Signup/index.js";
 import { EmailVerification } from "./pages/EmailVerification/index.js";
@@ -74,6 +75,10 @@ export function App() {
               <Route
                 path="/projects/quizspire/:id/tetris"
                 component={QuizspireTetris}
+              />
+              <Route
+                path="/projects/quizspire/:deckId/match"
+                component={QuizspireMatch}
               />
               <Route path="/signup" component={Signup} />
               <Route path="/email-verification" component={EmailVerification} />

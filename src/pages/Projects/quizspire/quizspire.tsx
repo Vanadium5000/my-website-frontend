@@ -376,7 +376,16 @@ export function Quizspire() {
                       <FiZap class="w-4 h-4 mr-1" />
                       Blast
                     </button>
-                    <button class="btn btn-info btn-sm">
+                    <button
+                      class="btn btn-info btn-sm"
+                      onClick={() => {
+                        const params = new URLSearchParams();
+                        params.set("referrer", encodeURIComponent(url));
+                        const targetUrl = `/projects/quizspire/${deck._id}/match?${params}`;
+
+                        route(targetUrl);
+                      }}
+                    >
                       <FiShuffle class="w-4 h-4 mr-1" />
                       Match
                     </button>
@@ -418,20 +427,21 @@ export function Quizspire() {
                     <div class="flex gap-2 w-full">
                       <button
                         class="btn btn-outline btn-wide flex-1"
-                        onClick={async () => {
+                        onClick={async (event) => {
                           try {
                             await navigator.clipboard.writeText(
                               `${window.location.origin}/projects/quizspire/${deck._id}`
                             );
-                            // Simple visual feedback - could be enhanced with toast
-                            const btn =
-                              event?.currentTarget as HTMLButtonElement;
+                            // Show visual feedback
+                            const btn = event.target as HTMLButtonElement;
+                            console.log(btn);
                             if (btn) {
-                              const originalText = btn.innerHTML;
-                              btn.innerHTML =
-                                '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Copied!';
+                              btn.classList.add("btn-success");
+                              btn.textContent = "Copied!";
                               setTimeout(() => {
-                                btn.innerHTML = originalText;
+                                btn.classList.remove("btn-success");
+                                btn.innerHTML =
+                                  '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path></svg>Share';
                               }, 2000);
                             }
                           } catch (err) {

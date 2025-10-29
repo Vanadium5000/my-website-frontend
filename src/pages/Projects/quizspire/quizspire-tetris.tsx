@@ -169,7 +169,9 @@ export function QuizspireTetris({ id }: { id: string }) {
           </div>
           <button
             class="btn btn-primary mt-4"
-            onClick={() => route(query.referrer || "/projects/quizspire")}
+            onClick={() =>
+              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+            }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
             Back
@@ -187,7 +189,11 @@ export function QuizspireTetris({ id }: { id: string }) {
           <div class="navbar-start">
             <button
               class="btn btn-ghost btn-sm"
-              onClick={() => route(query.referrer || "/projects/quizspire")}
+              onClick={() =>
+                route(
+                  decodeURIComponent(query.referrer) || "/projects/quizspire"
+                )
+              }
               aria-label="Back"
             >
               <FiArrowLeft class="w-4 h-4" />
