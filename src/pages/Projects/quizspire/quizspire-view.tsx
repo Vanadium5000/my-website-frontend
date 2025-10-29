@@ -657,7 +657,19 @@ export function QuizspireView({ id }: { id: string }) {
             isCardFullscreen ? "max-w-[90%]" : "max-w-4xl"
           } mt-8`}
         >
-          {/* Centered middle buttons - perfectlycentered regardless of sides */}
+          {/* Left-aligned Host button */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 transform">
+            <button
+              className="btn btn-accent btn-lg"
+              // onClick={hostCard} // Replace with actual handler
+              aria-label="Host card"
+            >
+              <FiShare2 className="w-6 h-6 mr-2" />
+              Host
+            </button>
+          </div>
+
+          {/* Centered middle buttons - perfectly centered regardless of sides */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform flex space-x-4">
             <button
               className="btn btn-outline btn-lg"
@@ -687,7 +699,6 @@ export function QuizspireView({ id }: { id: string }) {
 
           {/* Right-aligned fullscreen button */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 transform">
-            {/* Card Fullscreen Toggle */}
             <button
               className="btn btn-outline btn-lg"
               onClick={toggleCardFullscreen}
