@@ -22,11 +22,14 @@ import {
 } from "react-icons/fa";
 
 interface QuizspireSettings {
-  winCondition: "time" | "correct_answers";
+  winCondition: "time" | "correct_answers" | "score";
   timeLimit?: number;
   correctAnswersThreshold?: number;
+  scoreThreshold?: number;
   resetOnIncorrect: boolean;
   questionTimeLimit: number;
+  allowLateJoin: boolean;
+  hostParticipates: boolean;
 }
 
 interface Player {
@@ -79,6 +82,20 @@ interface GameEndData {
   };
 }
 
+interface LeaderboardEntry {
+  userId: string;
+  username: string;
+  score: number;
+  correctAnswers: number;
+}
+
+interface AnswerFeedback {
+  isCorrect: boolean;
+  pointsGained: number;
+  correctIndex: number;
+  selectedIndex: number;
+}
+
 type ContentElement = TextContent | MediaContent;
 
 interface TextContent {
@@ -91,8 +108,8 @@ interface MediaContent {
   type: "media";
 }
 
-export function QuizspireHost({ id }: { id: string }) {
-  const { route } = useLocation();
+export function QuizspireHost() {
+  const { route, query } = useLocation();
   const [socket, setSocket] = useState(null);
   const [phase, setPhase] = useState<
     "connecting" | "lobby" | "settings" | "playing" | "results" | "ended"
@@ -112,6 +129,11 @@ export function QuizspireHost({ id }: { id: string }) {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [playerProfiles, setPlayerProfiles] = useState<Record<string, any>>({});
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [answerFeedback, setAnswerFeedback] = useState<AnswerFeedback | null>(
+    null
+  );
+  const [guestUsername, setGuestUsername] = useState<string>("");
 
   // Settings state
   const [settings, setSettings] = useState<QuizspireSettings>({
@@ -119,20 +141,22 @@ export function QuizspireHost({ id }: { id: string }) {
     correctAnswersThreshold: 10,
     resetOnIncorrect: false,
     questionTimeLimit: 30,
+    allowLateJoin: true,
+    hostParticipates: true,
   });
 
   useEffect(() => {
     async function init() {
       try {
         const response = await (await api.auth.apiGetSessionList()).json();
-        if (!response || !response.user) {
-          console.warn("No active session, redirecting to login");
-          window.location.href = "/login";
-          return;
+        const hasSession = response && response.user;
+        if (hasSession) {
+          setMyUserId(response.user.id);
+          setMyName(response.user.name);
+          setMyImage(response.user.image);
+        } else {
+          console.log("No active session, allowing guest access");
         }
-        setMyUserId(response.user.id);
-        setMyName(response.user.name);
-        setMyImage(response.user.image);
 
         const baseUrl = api.baseUrl;
         const fullPath = new URL("/sockets/quizspire", baseUrl).href;
@@ -151,21 +175,25 @@ export function QuizspireHost({ id }: { id: string }) {
         setSocket(newSocket);
 
         newSocket.on("connect", () => {
+          console.log("[SOCKET] Connected to Quizspire server");
           setPhase("lobby");
           setErrorMessage(null);
         });
 
         newSocket.on("lobby_created", (data) => {
+          console.log("[SOCKET] Lobby created:", data);
           setLobby(data);
           setPhase("settings");
         });
 
         newSocket.on("lobby_joined", (data) => {
+          console.log("[SOCKET] Lobby joined:", data);
           setLobby(data);
           setPhase("settings");
         });
 
         newSocket.on("lobby_update", async (data: LobbyState) => {
+          console.log("[SOCKET] Lobby update:", data);
           setLobby(data);
           // Fetch profiles for new players
           for (const player of data.players) {
@@ -186,36 +214,64 @@ export function QuizspireHost({ id }: { id: string }) {
         });
 
         newSocket.on("question", (data: QuestionData) => {
+          console.log("[SOCKET] Question received:", data);
           setCurrentQuestion(data);
           setSelectedAnswer(null);
           setTimeLeft(data.timeLimit);
           setPhase("playing");
           setQuestionResults(null);
+          setAnswerFeedback(null);
         });
 
+        newSocket.on("answer_feedback", (data: AnswerFeedback) => {
+          console.log("[SOCKET] Answer feedback:", data);
+          setAnswerFeedback(data);
+        });
+
+        newSocket.on(
+          "leaderboard_update",
+          (data: {
+            leaderboard: LeaderboardEntry[];
+            winCondition: string;
+            threshold?: number;
+          }) => {
+            console.log("[SOCKET] Leaderboard update:", data);
+            setLeaderboard(data.leaderboard);
+          }
+        );
+
         newSocket.on("question_results", (data: QuestionResults) => {
+          console.log("[SOCKET] Question results:", data);
           setQuestionResults(data);
           setPhase("results");
         });
 
         newSocket.on("game_ended", (data: GameEndData) => {
+          console.log("[SOCKET] Game ended:", data);
           setGameEndData(data);
           setPhase("ended");
         });
 
+        newSocket.on("kicked", (data: { reason: string }) => {
+          console.log("[SOCKET] Kicked from lobby:", data);
+          setErrorMessage(`You were kicked: ${data.reason}`);
+          setPhase("lobby");
+          setLobby(null);
+        });
+
         newSocket.on("error", (data) => {
+          console.error("[SOCKET] Server error:", data);
           setErrorMessage(data.message || "An error occurred");
-          console.error("Server error:", data);
         });
 
         newSocket.on("connect_error", (error) => {
+          console.error("[SOCKET] Connect error:", error);
           setErrorMessage(`Connection error: ${error.message}`);
-          console.error("Connect error:", error);
         });
 
         newSocket.on("disconnect", (reason) => {
+          console.warn("[SOCKET] Disconnected:", reason);
           setErrorMessage(`Disconnected: ${reason}`);
-          console.warn("Socket disconnected:", reason);
         });
       } catch (error) {
         console.error("Initialization error:", error);
@@ -241,19 +297,26 @@ export function QuizspireHost({ id }: { id: string }) {
   }, [timeLeft, phase]);
 
   const createLobby = (deckId: string) => {
-    if (socket) {
+    if (socket && myUserId) {
+      console.log("[SOCKET] Emitting create_lobby:", { deckId, settings });
       socket.emit("create_lobby", { deckId, settings });
+    } else {
+      setErrorMessage("You must be logged in to create a lobby");
     }
   };
 
-  const joinLobby = (code: string) => {
+  const joinLobby = (code: string, username?: string) => {
     if (socket) {
-      socket.emit("join_lobby", { code });
+      const joinData: any = { code };
+      if (username) joinData.username = username;
+      console.log("[SOCKET] Emitting join_lobby:", joinData);
+      socket.emit("join_lobby", joinData);
     }
   };
 
   const startGame = () => {
     if (socket) {
+      console.log("[SOCKET] Emitting start_game");
       socket.emit("start_game");
     }
   };
@@ -261,12 +324,21 @@ export function QuizspireHost({ id }: { id: string }) {
   const submitAnswer = (selectedIndex: number) => {
     if (socket && selectedAnswer === null) {
       setSelectedAnswer(selectedIndex);
+      console.log("[SOCKET] Emitting submit_answer:", { selectedIndex });
       socket.emit("submit_answer", { selectedIndex });
+    }
+  };
+
+  const kickPlayer = (userId: string) => {
+    if (socket) {
+      console.log("[SOCKET] Emitting kick_player:", { userId });
+      socket.emit("kick_player", { userId });
     }
   };
 
   const leaveLobby = () => {
     if (socket) {
+      console.log("[SOCKET] Emitting leave_lobby");
       socket.emit("leave_lobby");
       setPhase("lobby");
       setLobby(null);
@@ -300,6 +372,43 @@ export function QuizspireHost({ id }: { id: string }) {
     }
   };
 
+  const renderPlayerItem = (
+    player: Player,
+    showKickButton: boolean = false
+  ) => {
+    const profile = getPlayerProfile(player.userId);
+    return (
+      <div
+        key={player.userId}
+        className="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
+      >
+        <ProfilePicture
+          name={profile.name}
+          image={profile.image}
+          widthClass="w-10"
+        />
+        <div className="flex-1">
+          <div className="font-medium flex items-center gap-2">
+            {profile.name}
+            {player.isHost && <FaCrown className="w-4 h-4 text-warning" />}
+          </div>
+          <div className="text-sm text-base-content/70">
+            {player.isHost ? "Host" : "Player"}
+          </div>
+        </div>
+        {showKickButton && !player.isHost && (
+          <button
+            className="btn btn-ghost btn-sm text-error"
+            onClick={() => kickPlayer(player.userId)}
+            title="Kick player"
+          >
+            <FaTimes className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    );
+  };
+
   const getPlayerProfile = (userId: string) => {
     return playerProfiles[userId] || { name: "Loading...", image: null };
   };
@@ -330,7 +439,12 @@ export function QuizspireHost({ id }: { id: string }) {
               <div className="flex items-center gap-3">
                 <button
                   className="btn btn-ghost btn-sm"
-                  onClick={() => route("/projects/quizspire")}
+                  onClick={() =>
+                    route(
+                      (query.referrer && decodeURIComponent(query.referrer)) ||
+                        "/projects/quizspire"
+                    )
+                  }
                 >
                   <FaArrowLeft className="w-4 h-4 mr-2" />
                   Back
@@ -373,19 +487,38 @@ export function QuizspireHost({ id }: { id: string }) {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button
                     className="btn btn-primary"
-                    onClick={() => createLobby(id)}
+                    onClick={() => createLobby(query.deckId)}
+                    disabled={!myUserId}
                   >
                     <FaPlay className="w-4 h-4 mr-2" />
                     Create Lobby
                   </button>
                   <button
                     className="btn btn-outline"
-                    onClick={() => joinLobby(prompt("Enter lobby code:") || "")}
+                    onClick={() => {
+                      const code = prompt("Enter lobby code:");
+                      if (code) {
+                        if (!myUserId) {
+                          const username = prompt("Enter your username:");
+                          if (username) {
+                            joinLobby(code, username);
+                          }
+                        } else {
+                          joinLobby(code);
+                        }
+                      }
+                    }}
                   >
                     <FaUsers className="w-4 h-4 mr-2" />
                     Join Lobby
                   </button>
                 </div>
+                {!myUserId && (
+                  <p className="text-sm text-base-content/70 mt-4">
+                    You can join as a guest, but creating a lobby requires
+                    login.
+                  </p>
+                )}
               </div>
             )}
 
@@ -405,11 +538,13 @@ export function QuizspireHost({ id }: { id: string }) {
                           ...prev,
                           winCondition: (e.target as HTMLInputElement).value as
                             | "time"
-                            | "correct_answers",
+                            | "correct_answers"
+                            | "score",
                         }))
                       }
                     >
                       <option value="correct_answers">Correct Answers</option>
+                      <option value="score">Score Threshold</option>
                       <option value="time">Time Limit</option>
                     </select>
                   </div>
@@ -431,6 +566,26 @@ export function QuizspireHost({ id }: { id: string }) {
                             correctAnswersThreshold:
                               parseInt((e.target as HTMLInputElement).value) ||
                               10,
+                          }))
+                        }
+                        min="1"
+                      />
+                    </div>
+                  ) : settings.winCondition === "score" ? (
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Score Threshold</span>
+                      </label>
+                      <input
+                        type="number"
+                        className="input input-bordered"
+                        value={settings.scoreThreshold}
+                        onChange={(e) =>
+                          setSettings((prev) => ({
+                            ...prev,
+                            scoreThreshold:
+                              parseInt((e.target as HTMLInputElement).value) ||
+                              1000,
                           }))
                         }
                         min="1"
@@ -500,13 +655,51 @@ export function QuizspireHost({ id }: { id: string }) {
                       />
                     </label>
                   </div>
+
+                  <div className="form-control">
+                    <label className="label cursor-pointer">
+                      <span className="label-text">Allow Late Join</span>
+                      <input
+                        type="checkbox"
+                        className="toggle"
+                        checked={settings.allowLateJoin}
+                        onChange={(e) =>
+                          setSettings((prev) => ({
+                            ...prev,
+                            allowLateJoin: (e.target as HTMLInputElement)
+                              .checked,
+                          }))
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label cursor-pointer">
+                      <span className="label-text">Host Participates</span>
+                      <input
+                        type="checkbox"
+                        className="toggle"
+                        checked={settings.hostParticipates}
+                        onChange={(e) =>
+                          setSettings((prev) => ({
+                            ...prev,
+                            hostParticipates: (e.target as HTMLInputElement)
+                              .checked,
+                          }))
+                        }
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex justify-center">
                   <button
                     className="btn btn-success btn-lg"
                     onClick={startGame}
-                    disabled={lobby.players.length < 1}
+                    disabled={
+                      lobby.players.length < (settings.hostParticipates ? 1 : 2)
+                    }
                   >
                     <FaPlay className="w-5 h-5 mr-2" />
                     Start Game
@@ -524,6 +717,20 @@ export function QuizspireHost({ id }: { id: string }) {
                   <div className="text-lg text-warning font-semibold">
                     Time Left: {timeLeft}s
                   </div>
+                  {answerFeedback && (
+                    <div
+                      className={`alert ${
+                        answerFeedback.isCorrect
+                          ? "alert-success"
+                          : "alert-error"
+                      } mt-4`}
+                    >
+                      <span>
+                        {answerFeedback.isCorrect ? "Correct!" : "Incorrect!"}
+                        Points gained: {answerFeedback.pointsGained}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mb-8 p-6 bg-base-200 rounded-lg">
@@ -542,9 +749,13 @@ export function QuizspireHost({ id }: { id: string }) {
                       key={index}
                       className={`btn btn-lg h-auto py-4 ${
                         selectedAnswer === index
-                          ? "btn-primary"
+                          ? answerFeedback?.correctIndex === index
+                            ? "btn-success"
+                            : "btn-error"
                           : selectedAnswer !== null
-                          ? "btn-disabled"
+                          ? answerFeedback?.correctIndex === index
+                            ? "btn-success"
+                            : "btn-disabled"
                           : "btn-outline"
                       }`}
                       onClick={() => submitAnswer(index)}
@@ -692,7 +903,12 @@ export function QuizspireHost({ id }: { id: string }) {
 
                 <button
                   className="btn btn-primary"
-                  onClick={() => route("/projects/quizspire")}
+                  onClick={() =>
+                    route(
+                      (query.referrer && decodeURIComponent(query.referrer)) ||
+                        "/projects/quizspire"
+                    )
+                  }
                 >
                   <FaArrowLeft className="w-4 h-4 mr-2" />
                   Back to Quizspire
@@ -712,32 +928,49 @@ export function QuizspireHost({ id }: { id: string }) {
 
             {lobby && (
               <div className="space-y-3">
-                {lobby.players.map((player) => {
-                  const profile = getPlayerProfile(player.userId);
-                  return (
-                    <div
-                      key={player.userId}
-                      className="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
-                    >
-                      <ProfilePicture
-                        name={profile.name}
-                        image={profile.image}
-                        widthClass="w-10"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium flex items-center gap-2">
-                          {profile.name}
-                          {player.isHost && (
-                            <FaCrown className="w-4 h-4 text-warning" />
-                          )}
+                {lobby.players.map((player) =>
+                  renderPlayerItem(
+                    player,
+                    player.isHost && myUserId === player.userId
+                  )
+                )}
+              </div>
+            )}
+
+            {/* Leaderboard */}
+            {leaderboard.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <FaTrophy className="w-4 h-4 text-warning" />
+                  Leaderboard
+                </h3>
+                <div className="space-y-2">
+                  {leaderboard.map((entry, index) => {
+                    const profile = getPlayerProfile(entry.userId);
+                    return (
+                      <div
+                        key={entry.userId}
+                        className="flex items-center justify-between p-2 bg-base-200 rounded"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold w-6">{index + 1}.</span>
+                          <ProfilePicture
+                            name={profile.name}
+                            image={profile.image}
+                            widthClass="w-6"
+                          />
+                          <span className="text-sm">{profile.name}</span>
                         </div>
-                        <div className="text-sm text-base-content/70">
-                          {player.isHost ? "Host" : "Player"}
+                        <div className="text-right text-sm">
+                          <div className="font-bold">{entry.score}</div>
+                          <div className="text-base-content/70">
+                            {entry.correctAnswers} correct
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             )}
 

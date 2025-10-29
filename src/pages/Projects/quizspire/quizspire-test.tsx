@@ -1008,7 +1008,8 @@ export function QuizspireTest({ deckId }: { deckId: string }) {
 
   const handleBack = () => {
     route(
-      decodeURIComponent(query.referrer) || `/projects/quizspire/${deckId}`
+      (query.referrer && decodeURIComponent(query.referrer)) ||
+        `/projects/quizspire/${deckId}`
     );
   };
 
@@ -1032,7 +1033,10 @@ export function QuizspireTest({ deckId }: { deckId: string }) {
           <button
             class="btn btn-primary"
             onClick={() =>
-              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+              route(
+                (query.referrer && decodeURIComponent(query.referrer)) ||
+                  "/projects/quizspire"
+              )
             }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />

@@ -499,10 +499,6 @@ export function QuizspireView({ id }: { id: string }) {
                 <FiGrid class="w-4 h-4 mr-1" />
                 Tetris
               </button>
-              <button class="btn btn-info btn-sm">
-                <FiZap class="w-4 h-4 mr-1" />
-                Blast
-              </button>
               <button
                 class="btn btn-info btn-sm"
                 onClick={() => {
@@ -521,7 +517,8 @@ export function QuizspireView({ id }: { id: string }) {
                 onClick={() => {
                   const params = new URLSearchParams();
                   params.set("referrer", encodeURIComponent(url));
-                  const targetUrl = `/projects/quizspire/host?deckId=${deck._id}&${params}`;
+                  params.set("deckId", deck._id);
+                  const targetUrl = `/projects/quizspire/host?${params}`;
 
                   route(targetUrl);
                 }}
@@ -674,7 +671,14 @@ export function QuizspireView({ id }: { id: string }) {
           <div className="absolute left-0 top-1/2 -translate-y-1/2 transform">
             <button
               className="btn btn-accent btn-lg"
-              // onClick={hostCard} // Replace with actual handler
+              onClick={() => {
+                const params = new URLSearchParams();
+                params.set("referrer", encodeURIComponent(url));
+                params.set("deckId", deck._id);
+                const targetUrl = `/projects/quizspire/host?${params}`;
+
+                route(targetUrl);
+              }}
               aria-label="Host card"
             >
               <FiShare2 className="w-6 h-6 mr-2" />

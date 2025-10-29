@@ -63,6 +63,10 @@ export function App() {
               <Route path="/projects/chess" component={ChessGame} />
               <Route path="/projects/arithmetic" component={Arithmetic} />
               <Route path="/projects/quizspire" component={Quizspire} />
+              <Route
+                path="/projects/quizspire/host"
+                component={QuizspireHost}
+              />
               <Route path="/projects/quizspire/:id" component={QuizspireView} />
               <Route
                 path="/projects/quizspire/:id/learn"
@@ -80,10 +84,6 @@ export function App() {
               <Route
                 path="/projects/quizspire/:deckId/match"
                 component={QuizspireMatch}
-              />
-              <Route
-                path="/projects/quizspire/:id/host"
-                component={QuizspireHost}
               />
               <Route path="/signup" component={Signup} />
               <Route path="/email-verification" component={EmailVerification} />

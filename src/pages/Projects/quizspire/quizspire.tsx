@@ -372,10 +372,6 @@ export function Quizspire() {
                       <FiGrid class="w-4 h-4 mr-1" />
                       Tetris
                     </button>
-                    <button class="btn btn-info btn-sm">
-                      <FiZap class="w-4 h-4 mr-1" />
-                      Blast
-                    </button>
                     <button
                       class="btn btn-info btn-sm"
                       onClick={() => {
@@ -388,6 +384,20 @@ export function Quizspire() {
                     >
                       <FiShuffle class="w-4 h-4 mr-1" />
                       Match
+                    </button>
+                    <button
+                      class="btn btn-success btn-sm"
+                      onClick={() => {
+                        const params = new URLSearchParams();
+                        params.set("referrer", encodeURIComponent(url));
+                        params.set("deckId", deck._id);
+                        const targetUrl = `/projects/quizspire/host?${params}`;
+
+                        route(targetUrl);
+                      }}
+                    >
+                      <FiPlay class="w-4 h-4 mr-1" />
+                      Host
                     </button>
                   </div>
                 </div>

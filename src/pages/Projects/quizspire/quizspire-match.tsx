@@ -324,7 +324,7 @@ export function QuizspireMatch({ deckId }: { deckId: string }) {
                   class="btn btn-outline btn-lg"
                   onClick={() =>
                     route(
-                      decodeURIComponent(query.referrer) ||
+                      (query.referrer && decodeURIComponent(query.referrer)) ||
                         `/projects/quizspire/${deckId}`
                     )
                   }
@@ -441,7 +441,7 @@ export function QuizspireMatch({ deckId }: { deckId: string }) {
           class="btn btn-ghost"
           onClick={() =>
             route(
-              decodeURIComponent(query.referrer) ||
+              (query.referrer && decodeURIComponent(query.referrer)) ||
                 `/projects/quizspire/${deckId}`
             )
           }

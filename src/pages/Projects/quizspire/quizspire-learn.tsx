@@ -227,7 +227,10 @@ export function QuizspireLearn({ id }: { id: string }) {
           <button
             class="btn btn-primary mt-4"
             onClick={() =>
-              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+              route(
+                (query.referrer && decodeURIComponent(query.referrer)) ||
+                  "/projects/quizspire"
+              )
             }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
@@ -248,7 +251,10 @@ export function QuizspireLearn({ id }: { id: string }) {
           <button
             class="btn btn-primary mt-4"
             onClick={() =>
-              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+              route(
+                (query.referrer && decodeURIComponent(query.referrer)) ||
+                  "/projects/quizspire"
+              )
             }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
@@ -269,7 +275,10 @@ export function QuizspireLearn({ id }: { id: string }) {
           <button
             class="btn btn-primary mt-4"
             onClick={() =>
-              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+              route(
+                (query.referrer && decodeURIComponent(query.referrer)) ||
+                  "/projects/quizspire"
+              )
             }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
@@ -337,7 +346,7 @@ export function QuizspireLearn({ id }: { id: string }) {
                   class="btn btn-outline btn-lg"
                   onClick={() => {
                     route(
-                      decodeURIComponent(query.referrer) ||
+                      (query.referrer && decodeURIComponent(query.referrer)) ||
                         "/projects/quizspire"
                     );
                   }}
@@ -363,7 +372,10 @@ export function QuizspireLearn({ id }: { id: string }) {
           <button
             class="btn btn-ghost"
             onClick={() =>
-              route(decodeURIComponent(query.referrer) || "/projects/quizspire")
+              route(
+                (query.referrer && decodeURIComponent(query.referrer)) ||
+                  "/projects/quizspire"
+              )
             }
           >
             <FiArrowLeft class="w-4 h-4 mr-2" />
