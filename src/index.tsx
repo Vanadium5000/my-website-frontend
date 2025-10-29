@@ -17,7 +17,6 @@ import { QuizspireLearn } from "./pages/Projects/quizspire/quizspire-learn.js";
 import { QuizspireTest } from "./pages/Projects/quizspire/quizspire-test.js";
 import { QuizspireTetris } from "./pages/Projects/quizspire/quizspire-tetris.js";
 import { QuizspireMatch } from "./pages/Projects/quizspire/quizspire-match.js";
-import { QuizspireHost } from "./pages/Projects/quizspire/quizspire-host.js";
 import { Tetris } from "./pages/Projects/tetris.js";
 import { Signup } from "./pages/Signup/index.js";
 import { EmailVerification } from "./pages/EmailVerification/index.js";
@@ -63,10 +62,6 @@ export function App() {
               <Route path="/projects/chess" component={ChessGame} />
               <Route path="/projects/arithmetic" component={Arithmetic} />
               <Route path="/projects/quizspire" component={Quizspire} />
-              <Route
-                path="/projects/quizspire/host"
-                component={QuizspireHost}
-              />
               <Route path="/projects/quizspire/:id" component={QuizspireView} />
               <Route
                 path="/projects/quizspire/:id/learn"
