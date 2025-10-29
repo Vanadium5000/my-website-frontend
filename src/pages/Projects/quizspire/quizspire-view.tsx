@@ -516,6 +516,19 @@ export function QuizspireView({ id }: { id: string }) {
                 <FiShuffle class="w-4 h-4 mr-1" />
                 Match
               </button>
+              <button
+                class="btn btn-success btn-sm"
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  params.set("referrer", encodeURIComponent(url));
+                  const targetUrl = `/projects/quizspire/host?deckId=${deck._id}&${params}`;
+
+                  route(targetUrl);
+                }}
+              >
+                <FiPlay class="w-4 h-4 mr-1" />
+                Host
+              </button>
             </div>
           </div>
         )}
