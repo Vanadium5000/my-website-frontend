@@ -18,6 +18,11 @@ import {
   FiMaximize,
   FiMinimize,
   FiCopy,
+  FiInfo,
+  FiCalendar,
+  FiUser,
+  FiClock,
+  FiHash,
 } from "react-icons/fi";
 import { FaArrowsUpDown } from "react-icons/fa6";
 import { getApiImageUrl } from "../../components/ProfilePicture";
@@ -47,6 +52,8 @@ export function QuizspireView({ id }: { id: string }) {
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [isCardFullscreen, setIsCardFullscreen] = useState(false);
   const [isBrowserFullscreen, setIsBrowserFullscreen] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -310,29 +317,54 @@ export function QuizspireView({ id }: { id: string }) {
   const frontContent = currentCard.word;
   const backContent = currentCard.definition;
 
+  // Helper function to truncate text with ellipsis
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
+
+  // Helper function to format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   return (
     <div class="h-full bg-base-100">
-      {/* Header with metadata */}
+      {/* Compact Header */}
       <div class="bg-base-200 border-b border-base-300 px-4 py-3 w-full">
         <div class="navbar w-full min-h-0">
           <div class="navbar-start">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
               <button
-                class="btn btn-ghost btn-sm"
+                class="btn btn-ghost btn-sm hover:scale-105 transition-transform duration-200"
                 onClick={() => route("/projects/quizspire")}
                 aria-label="Back to Quizspire"
               >
                 <FiArrowLeft class="w-4 h-4" />
               </button>
-              <div>
-                <h1 class="text-xl font-bold">{deck.title}</h1>
-                <p class="text-sm text-base-content/70">{deck.description}</p>
-              </div>
-              <div>
-                <span class="text-xs text-base-content/50">
-                  Created: {new Date(deck.createdAt).toLocaleDateString()} •{" "}
-                  {deck.cards.length} cards
-                </span>
+              <div
+                class="cursor-pointer"
+                onClick={() => setShowInfoModal(true)}
+              >
+                <h1 class="text-lg font-bold text-base-content">
+                  {deck.title}
+                </h1>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-xs text-base-content/60">
+                    {deck.cards.length} cards
+                  </span>
+                  <button
+                    class="btn btn-ghost btn-xs hover:scale-105 transition-transform duration-200"
+                    onClick={() => setShowInfoModal(true)}
+                    aria-label="Deck information"
+                  >
+                    <FiInfo class="w-3 h-3" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -340,20 +372,20 @@ export function QuizspireView({ id }: { id: string }) {
             {user && (
               <a
                 href={`/profile/${user.id}`}
-                class="flex items-center gap-2 link link-hover text-lg"
+                class="flex items-center gap-2 link link-hover hover:scale-105 transition-transform duration-200"
               >
                 <ProfilePicture
                   name={user.name}
                   image={user.image || ""}
-                  widthClass="w-8"
+                  widthClass="w-6"
                 />
-                <span>{user.name}</span>
+                <span class="text-sm font-medium">{user.name}</span>
               </a>
             )}
           </div>
           <div class="flex gap-2 navbar-end">
             <button
-              class="btn btn-outline btn-sm"
+              class="btn btn-outline btn-sm hover:scale-105 transition-transform duration-200"
               onClick={handleShare}
               aria-label="Share deck"
             >
@@ -362,7 +394,7 @@ export function QuizspireView({ id }: { id: string }) {
             </button>
             {currentUser?.id === user?.id && (
               <button
-                class="btn btn-accent btn-sm"
+                class="btn btn-accent btn-sm hover:scale-105 transition-transform duration-200"
                 onClick={reverseQuestionsAnswers}
                 aria-label="Reverse Q&A"
               >
@@ -372,7 +404,7 @@ export function QuizspireView({ id }: { id: string }) {
             )}
             {currentUser && currentUser.id !== user.id ? (
               <button
-                class="btn btn-primary btn-sm"
+                class="btn btn-primary btn-sm hover:scale-105 transition-transform duration-200"
                 onClick={() => setShowCopyModal(true)}
                 aria-label="Add to collection"
               >
@@ -381,7 +413,7 @@ export function QuizspireView({ id }: { id: string }) {
               </button>
             ) : currentUser?.id === user.id ? (
               <button
-                class="btn btn-primary btn-sm"
+                class="btn btn-primary btn-sm hover:scale-105 transition-transform duration-200"
                 onClick={() => setShowEditModal(true)}
                 aria-label="Edit deck"
               >
@@ -670,6 +702,80 @@ export function QuizspireView({ id }: { id: string }) {
           Use arrow keys to navigate, spacebar to flip, escape to go back
         </div>
       </div>
+
+      {/* Info Modal */}
+      {showInfoModal && (
+        <dialog className="modal modal-open">
+          <div className="modal-box max-w-md">
+            <h3 className="font-bold text-lg mb-4">{deck.title}</h3>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-sm text-base-content/70 mb-2">
+                  Description
+                </h4>
+                <div className="text-sm">
+                  {deck.description.length > 200 ? (
+                    <div>
+                      <p className="mb-2">
+                        {isDescriptionExpanded
+                          ? deck.description
+                          : truncateText(deck.description, 200)}
+                      </p>
+                      <button
+                        className="text-xs text-primary hover:text-primary-focus transition-colors duration-200"
+                        onClick={() =>
+                          setIsDescriptionExpanded(!isDescriptionExpanded)
+                        }
+                      >
+                        {isDescriptionExpanded ? "Show less" : "Show more"}
+                      </button>
+                    </div>
+                  ) : (
+                    <p>{deck.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-sm text-base-content/70">
+                    Cards
+                  </h4>
+                  <p className="text-lg font-bold">{deck.cards.length}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm text-base-content/70">
+                    Created
+                  </h4>
+                  <p className="text-sm">{formatDate(deck.createdAt)}</p>
+                </div>
+              </div>
+              {user && (
+                <div>
+                  <h4 className="font-semibold text-sm text-base-content/70 mb-2">
+                    Author
+                  </h4>
+                  <a
+                    href={`/profile/${user.id}`}
+                    className="flex items-center gap-2 link link-hover"
+                  >
+                    <ProfilePicture
+                      name={user.name}
+                      image={user.image || ""}
+                      widthClass="w-6"
+                    />
+                    <span className="text-sm">{user.name}</span>
+                  </a>
+                </div>
+              )}
+            </div>
+            <div className="modal-action">
+              <button className="btn" onClick={() => setShowInfoModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </dialog>
+      )}
 
       {/* Edit Modal */}
       {showEditModal && (
