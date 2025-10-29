@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
-import { FlashcardDeckSchema, User } from "../../api/api";
-import { api } from "../../api/client";
+import { FlashcardDeckSchema, User } from "../../../api/api";
+import { api } from "../../../api/client";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -25,15 +25,15 @@ import {
   FiHash,
 } from "react-icons/fi";
 import { FaArrowsUpDown } from "react-icons/fa6";
-import { getApiImageUrl } from "../../components/ProfilePicture";
-import { ProfilePicture } from "../../components/ProfilePicture";
+import { getApiImageUrl } from "../../../components/ProfilePicture";
+import { ProfilePicture } from "../../../components/ProfilePicture";
 import { DeckModal } from "./quizspire";
 import {
   fetchDeck,
   fetchUserProfile,
   fetchCurrentUser,
   reverseCards,
-} from "../../utils/quizspire";
+} from "../../../utils/quizspire";
 
 /**
  * Full-screen flashcard viewer component for Quizspire.

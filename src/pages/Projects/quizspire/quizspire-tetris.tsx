@@ -1,8 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
-import { FlashcardDeckSchema } from "../../api/api";
-import { api } from "../../api/client";
-import { Tetris } from "./tetris";
+import { FlashcardDeckSchema } from "../../../api/api";
+import { api } from "../../../api/client";
+import { Tetris } from "../tetris";
 import { FiArrowLeft, FiCheck, FiX } from "react-icons/fi";
 
 /**

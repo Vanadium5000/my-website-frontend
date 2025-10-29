@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { api } from "../../api/client";
+import { api } from "../../../api/client";
 import {
   FiBookOpen,
   FiPlay,
@@ -15,10 +15,10 @@ import {
   FiUpload,
   FiShare2,
 } from "react-icons/fi";
-import { highlightSearchTerms } from "../../utils/highlight";
-import { getApiImageUrl } from "../../components/ProfilePicture";
+import { highlightSearchTerms } from "../../../utils/highlight";
+import { getApiImageUrl } from "../../../components/ProfilePicture";
 
-import { FlashcardDeckSchema } from "../../api/api";
+import { FlashcardDeckSchema } from "../../../api/api";
 import { useLocation } from "preact-iso";
 import { FaArrowsUpDown } from "react-icons/fa6";
 

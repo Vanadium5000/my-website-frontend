@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
-import { FlashcardDeckSchema } from "../../api/api";
-import { api } from "../../api/client";
+import { FlashcardDeckSchema } from "../../../api/api";
+import { api } from "../../../api/client";
 import {
   FiArrowLeft,
   FiCheck,
@@ -9,7 +9,7 @@ import {
   FiRotateCcw,
   FiChevronRight,
 } from "react-icons/fi";
-import { fetchDeck } from "../../utils/quizspire";
+import { fetchDeck } from "../../../utils/quizspire";
 
 /**
  * Interface for a quiz question with multiple choice options

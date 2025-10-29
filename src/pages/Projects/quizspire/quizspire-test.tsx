@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
-import { FlashcardDeckSchema } from "../../api/api";
-import { api } from "../../api/client";
+import { FlashcardDeckSchema } from "../../../api/api";
+import { api } from "../../../api/client";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -13,8 +13,8 @@ import {
   FiPlay,
   FiBookOpen,
 } from "react-icons/fi";
-import { getApiImageUrl } from "../../components/ProfilePicture";
-import { fetchDeck } from "../../utils/quizspire";
+import { getApiImageUrl } from "../../../components/ProfilePicture";
+import { fetchDeck } from "../../../utils/quizspire";
 
 // Helper function to parse test seed from URL
 const parseTestSeed = (seed: string): TestConfig | null => {
