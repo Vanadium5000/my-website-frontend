@@ -1,8 +1,25 @@
+import DOMPurify from "dompurify";
+
+// HTML sanitization config for highlighting - allows only safe tags and attributes needed for highlighting
+const sanitizerConfig = {
+  ALLOWED_TAGS: ["span", "mark"], // Only allow span and mark tags for highlighting
+  ALLOWED_ATTR: ["class"], // Only allow class attribute for styling
+};
+
+/**
+ * Sanitizes HTML content to prevent XSS attacks.
+ * @param html The HTML string to sanitize.
+ * @returns Sanitized HTML string safe for insertion.
+ */
+function sanitizeHTML(html: string): string {
+  return DOMPurify.sanitize(html, sanitizerConfig);
+}
+
 /**
  * Highlights substrings in text based on match indices.
  * @param text The original text string.
  * @param indices Array of [start, end] index pairs from Fuse.js matches.
- * @returns The text with matches wrapped in <mark> tags for highlighting.
+ * @returns The text with matches wrapped in <span> tags for highlighting (sanitized).
  */
 export function highlightText(text: string, indices: number[][]): string {
   if (!indices || indices.length === 0) return text;
@@ -22,7 +39,7 @@ export function highlightText(text: string, indices: number[][]): string {
 
   parts.unshift(text.substring(0, lastEnd));
 
-  return parts.join("");
+  return sanitizeHTML(parts.join(""));
 }
 
 /**
@@ -51,7 +68,7 @@ export function getHighlightedPreview(
   // Truncate the original text to maxLength, then highlight the truncated part
   const truncated = text.substring(0, maxLength);
   const truncatedIndices = indices.filter(([start]) => start < maxLength);
-  return highlightText(truncated + "...", truncatedIndices);
+  return sanitizeHTML(highlightText(truncated + "...", truncatedIndices));
 }
 
 /**
@@ -80,5 +97,5 @@ export function highlightSearchTerms(text: string, search: string): string {
     result = result.replace(regex, `<span class="bg-info">$1</span>`);
   }
 
-  return result;
+  return sanitizeHTML(result);
 }

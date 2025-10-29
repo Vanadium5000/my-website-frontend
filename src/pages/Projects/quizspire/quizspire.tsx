@@ -407,22 +407,29 @@ export function Quizspire() {
                   />
                 </figure>
                 <div class="card-body">
-                  <h2
-                    class="card-title gap-0 cursor-pointer"
-                    dangerouslySetInnerHTML={{ __html: highlightedTitle }}
+                  <div
+                    class="cursor-pointer"
                     onClick={() =>
                       (window.location.href = `/projects/quizspire/${deck._id}`)
                     }
-                  />
-                  <p
-                    class="text-sm text-base-content/70"
-                    dangerouslySetInnerHTML={{ __html: highlightedDescription }}
-                  />
-                  <p class="text-xs text-base-content/50">
-                    {deck.cards.length} cards • Created:{" "}
-                    {new Date(deck.createdAt).toLocaleDateString()} • Last
-                    modified: {new Date(deck.lastModified).toLocaleDateString()}
-                  </p>
+                  >
+                    <h2
+                      class="card-title gap-0"
+                      dangerouslySetInnerHTML={{ __html: highlightedTitle }}
+                    />
+                    <p
+                      class="text-sm text-base-content/70"
+                      dangerouslySetInnerHTML={{
+                        __html: highlightedDescription,
+                      }}
+                    />
+                    <p class="text-xs text-base-content/50">
+                      {deck.cards.length} cards • Created:{" "}
+                      {new Date(deck.createdAt).toLocaleDateString()} • Last
+                      modified:{" "}
+                      {new Date(deck.lastModified).toLocaleDateString()}
+                    </p>
+                  </div>
                   <div class="card-actions justify-end mt-4">
                     <div class="flex gap-2 w-full">
                       <button
