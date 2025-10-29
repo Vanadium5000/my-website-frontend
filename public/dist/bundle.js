@@ -34738,6 +34738,10 @@ class PixiJSFrontend {
     "/dist/sounds/tetris-b.mp3",
     "/dist/sounds/tetris-c.mp3"
   ];
+  MOVE_THRESHOLD = 25;
+  SOFT_DROP_THRESHOLD = 70;
+  HARD_DROP_SPEED_THRESHOLD = 0.7;
+  gestureType = "none";
   constructor(canvas, boardWidth, boardHeight) {
     this.boardWidth = boardWidth;
     this.boardHeight = boardHeight;
@@ -35473,6 +35477,7 @@ Tap: Rotate`,
       this.lastDropTime = Date.now();
       this.hardDropTriggered = false;
       this.cumulativeDx = 0;
+      this.gestureType = "none";
       console.log(`PixiJSFrontend: Touch start - X: ${this.touchStartX}, Y: ${this.touchStartY}, Time: ${this.touchStartTime}`);
     }
   };
@@ -35484,33 +35489,50 @@ Tap: Rotate`,
       const dx = touchX - this.touchStartX;
       const dy = touchY - this.touchStartY;
       const currentTime = Date.now();
-      const moveThreshold = 24;
-      this.cumulativeDx += dx;
-      while (Math.abs(this.cumulativeDx) >= moveThreshold) {
-        const action = this.cumulativeDx > 0 ? "arrowright" : "arrowleft";
-        console.log(`PixiJSFrontend: Touch move horizontal - Cumulative DX: ${this.cumulativeDx}, Action: ${action}`);
-        this.inputCallback(action);
-        this.cumulativeDx -= this.cumulativeDx > 0 ? moveThreshold : -moveThreshold;
-        this.lastMoveTime = currentTime;
-      }
-      this.touchStartX = touchX;
-      const verticalThreshold = 50;
-      if (Math.abs(dy) > verticalThreshold) {
-        if (dy > 0) {
-          const speed = Math.abs(dy) / (currentTime - this.touchStartTime);
-          if (speed > 0.5 && !this.hardDropTriggered) {
-            console.log("PixiJSFrontend: Fast drag down - hard drop (space)");
-            this.inputCallback(" ");
-            this.hardDropTriggered = true;
-          } else if (currentTime - this.lastDropTime > 30) {
-            console.log("PixiJSFrontend: Medium drag down - soft drop (arrowdown)");
-            this.inputCallback("arrowdown");
-            this.lastDropTime = currentTime;
-          }
+      if (this.gestureType === "none") {
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+        if (absDx > this.MOVE_THRESHOLD || absDy > this.SOFT_DROP_THRESHOLD) {
+          this.gestureType = absDx > absDy ? "horizontal" : "vertical";
         }
       }
+      if (this.gestureType === "horizontal" || this.gestureType === "none") {
+        this.handleHorizontalMovement(dx, currentTime);
+      }
+      if (this.gestureType === "vertical" || this.gestureType === "none") {
+        this.handleVerticalDrop(dy, currentTime);
+      }
+      this.touchStartX = touchX;
     }
   };
+  handleHorizontalMovement(dx, currentTime) {
+    if (!this.inputCallback)
+      return;
+    this.cumulativeDx += dx;
+    while (Math.abs(this.cumulativeDx) >= this.MOVE_THRESHOLD) {
+      const action = this.cumulativeDx > 0 ? "arrowright" : "arrowleft";
+      console.log(`PixiJSFrontend: Touch move horizontal - Cumulative DX: ${this.cumulativeDx}, Action: ${action}`);
+      this.inputCallback(action);
+      this.cumulativeDx -= this.cumulativeDx > 0 ? this.MOVE_THRESHOLD : -this.MOVE_THRESHOLD;
+      this.lastMoveTime = currentTime;
+    }
+  }
+  handleVerticalDrop(dy, currentTime) {
+    if (!this.inputCallback)
+      return;
+    if (Math.abs(dy) > this.SOFT_DROP_THRESHOLD && dy > 0) {
+      const speed = Math.abs(dy) / (currentTime - this.touchStartTime);
+      if (speed > this.HARD_DROP_SPEED_THRESHOLD && !this.hardDropTriggered) {
+        console.log("PixiJSFrontend: Fast drag down - hard drop (space)");
+        this.inputCallback(" ");
+        this.hardDropTriggered = true;
+      } else if (currentTime - this.lastDropTime > 30) {
+        console.log("PixiJSFrontend: Medium drag down - soft drop (arrowdown)");
+        this.inputCallback("arrowdown");
+        this.lastDropTime = currentTime;
+      }
+    }
+  }
   handleTouchEnd = (event) => {
     event.preventDefault();
     if (event.changedTouches.length > 0 && this.inputCallback) {
