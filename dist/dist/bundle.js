@@ -34739,13 +34739,13 @@ class PixiJSFrontend {
     "/dist/sounds/tetris-c.mp3"
   ];
   MOVE_THRESHOLD = 25;
-  VERTICAL_THRESHOLD = 100;
+  VERTICAL_THRESHOLD = 85;
   TAP_DURATION_MAX = 200;
   TAP_DISTANCE_MAX = 20;
   SWIPE_DISTANCE_MIN = 30;
   BUTTON_REPEAT_INTERVAL = 150;
   SOFT_DROP_INTERVAL = 30;
-  HARD_DROP_SPEED_THRESHOLD = 1.7;
+  HARD_DROP_SPEED_THRESHOLD = 1.2;
   constructor(canvas, boardWidth, boardHeight) {
     this.boardWidth = boardWidth;
     this.boardHeight = boardHeight;
