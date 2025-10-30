@@ -14,6 +14,7 @@ import {
   FiDownload,
   FiUpload,
   FiShare2,
+  FiArrowUp,
 } from "react-icons/fi";
 import { highlightSearchTerms } from "../../../utils/highlight";
 import { getApiImageUrl } from "../../../components/ProfilePicture";
@@ -38,9 +39,7 @@ export function Quizspire() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
-  const [thumbnailCache, setThumbnailCache] = useState<Map<string, string>>(
-    new Map()
-  );
+  const [showMigrationModal, setShowMigrationModal] = useState(false);
 
   /**
    * Fetches all decks from the API and updates state.
@@ -49,36 +48,6 @@ export function Quizspire() {
     try {
       const response = await api.quizspire.getQuizspireDecks();
       setDecks(response.data);
-      // Generate and cache picsum thumbnails for decks without thumbnails
-      const decksWithoutThumbnails = response.data.filter(
-        (deck: Deck) => !deck.thumbnail
-      );
-      for (const deck of decksWithoutThumbnails) {
-        if (!thumbnailCache.has(deck._id!)) {
-          const picsumUrl = `https://picsum.photos/400/300?random=${Math.random()}`;
-          // Fetch the image and upload to backend
-          try {
-            const response = await fetch(picsumUrl);
-            const blob = await response.blob();
-            const file = new File([blob], `picsum-${deck._id}.jpg`, {
-              type: "image/jpeg",
-            });
-            const uploadResponse = await api.images.postImagesUpload({
-              image: file,
-            });
-            const uploadedUrl = uploadResponse.data.url;
-            setThumbnailCache((prev) =>
-              new Map(prev).set(deck._id!, getApiImageUrl(uploadedUrl))
-            );
-            // Update the deck with the new thumbnail
-            await api.quizspire.putQuizspireDecksById(deck._id!, {
-              thumbnail: uploadedUrl,
-            });
-          } catch (uploadErr) {
-            console.error("Failed to upload picsum image:", uploadErr);
-          }
-        }
-      }
     } catch (err) {
       if (err.status === 401) {
         route("/login");
@@ -287,6 +256,13 @@ export function Quizspire() {
             <FiPlus class="w-4 h-4 mr-2" />
             Create Deck
           </button>
+          <button
+            class="btn btn-secondary"
+            onClick={() => setShowMigrationModal(true)}
+          >
+            <FiArrowUp class="w-4 h-4 mr-2" />
+            Import from Quizlet
+          </button>
         </div>
       </div>
 
@@ -406,8 +382,7 @@ export function Quizspire() {
                     src={
                       deck.thumbnail
                         ? getApiImageUrl(deck.thumbnail)
-                        : thumbnailCache.get(deck._id!) ||
-                          "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkE0IiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+TG9hZGluZy4uLjwvdGV4dD4KPHN2Zz4="
+                        : "/quizspire.png"
                     }
                     alt={deck.title}
                     class="w-full h-48 object-cover cursor-pointer"
@@ -518,6 +493,298 @@ export function Quizspire() {
           }}
         />
       )}
+
+      {/* Quizlet Migration Modal */}
+      {showMigrationModal && (
+        <MigrationModal
+          onClose={() => setShowMigrationModal(false)}
+          onImportSuccess={fetchDecks}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Modal component for migrating Quizlet flashcards to Quizspire.
+ * Attempts direct JSON fetch first, falls back to iframe if needed.
+ * Handles user ID input, data loading, JSON parsing, and deck creation.
+ */
+export function MigrationModal({
+  onClose,
+  onImportSuccess,
+}: {
+  onClose: () => void;
+  onImportSuccess: () => void;
+}) {
+  const [userId, setUserId] = useState("");
+  const [iframeUrl, setIframeUrl] = useState("");
+  const [jsonText, setJsonText] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showIframe, setShowIframe] = useState(false);
+
+  /**
+   * Constructs the Quizlet API URL for fetching user-created sets.
+   * @param userId - The numeric Quizlet user ID
+   * @returns The complete API URL string
+   */
+  const buildQuizletApiUrl = (userId: string): string => {
+    return `https://quizlet.com/webapi/3.2/feed/${userId}/created-sets?perPage=500&query=&sort=latest&seenCreatedSetIds=&filters[sets][isPublished]=true&include[set][]=creator`;
+  };
+
+  /**
+   * Attempts to fetch Quizlet data directly as JSON.
+   * Falls back to iframe if direct fetch fails (due to CORS or captchas).
+   */
+  const loadData = async () => {
+    if (!userId.trim()) {
+      setError("Please enter a valid numeric Quizlet user ID.");
+      return;
+    }
+
+    // Validate that userId is numeric
+    if (!/^\d+$/.test(userId.trim())) {
+      setError(
+        "User ID must be numeric only (found in your Quizlet profile URL)."
+      );
+      return;
+    }
+
+    setError(null);
+    const url = buildQuizletApiUrl(userId.trim());
+
+    try {
+      // Try direct fetch first
+      const response = await fetch(url);
+      if (response.ok) {
+        const jsonData = await response.json();
+        setJsonText(JSON.stringify(jsonData, null, 2));
+        setShowIframe(false);
+        return;
+      }
+    } catch (fetchErr) {
+      console.log("Direct fetch failed, falling back to iframe:", fetchErr);
+    }
+
+    // Fallback to iframe
+    setIframeUrl(url);
+    setShowIframe(true);
+  };
+
+  /**
+   * Reloads the iframe with the current URL.
+   */
+  const reloadIframe = () => {
+    if (iframeUrl) {
+      setIframeUrl("");
+      setTimeout(() => setIframeUrl(iframeUrl), 100);
+    }
+  };
+
+  /**
+   * Validates and parses the provided JSON text.
+   * @param jsonString - The JSON string to validate
+   * @returns Parsed JSON data if valid
+   * @throws Error if JSON is invalid or doesn't match expected structure
+   */
+  const validateAndParseJson = (jsonString: string) => {
+    const data = JSON.parse(jsonString);
+    if (!data.responses || !data.responses[0]?.models?.set) {
+      throw new Error(
+        "Invalid JSON format. Expected Quizlet API response with sets data."
+      );
+    }
+    return data;
+  };
+
+  /**
+   * Transforms a Quizlet set object to Quizspire deck format.
+   * @param quizletSet - The Quizlet set data
+   * @returns Quizspire-compatible deck data
+   */
+  const transformQuizletSetToDeck = (quizletSet: any) => {
+    return {
+      title: quizletSet.title || "Untitled Deck",
+      description: quizletSet.description || "",
+      thumbnail: quizletSet._thumbnailUrl || "",
+      cards: [], // Note: Individual card data would require separate API calls
+    };
+  };
+
+  /**
+   * Imports the JSON data and creates decks in Quizspire.
+   */
+  const importData = async () => {
+    if (!jsonText.trim()) {
+      setError("Please paste the JSON response.");
+      return;
+    }
+
+    setImporting(true);
+    setError(null);
+
+    try {
+      const data = validateAndParseJson(jsonText);
+      const sets = data.responses[0].models.set;
+      let importedCount = 0;
+
+      for (const set of sets) {
+        try {
+          const deckData = transformQuizletSetToDeck(set);
+          await api.quizspire.postQuizspireDecks(deckData);
+          importedCount++;
+        } catch (deckErr) {
+          console.error("Failed to import deck:", set.title, deckErr);
+        }
+      }
+
+      alert(
+        `Successfully imported ${importedCount} out of ${sets.length} decks!`
+      );
+      onImportSuccess();
+      onClose();
+    } catch (err) {
+      console.error("Import failed:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to import data. Please check the JSON format."
+      );
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  return (
+    <div class="modal modal-open">
+      <div class="modal-box max-w-6xl max-h-[90vh] overflow-y-auto">
+        <h3 class="font-bold text-lg mb-4">Import from Quizlet</h3>
+
+        <div class="space-y-6">
+          {/* Instructions */}
+          <div class="alert alert-info">
+            <div>
+              <h4 class="font-bold">How to migrate your Quizlet flashcards:</h4>
+              <ol class="list-decimal list-inside mt-2 space-y-1">
+                <li>
+                  Find your numeric Quizlet user ID from your profile URL (e.g.,
+                  quizlet.com/<strong>12345678</strong> - the number only)
+                </li>
+                <li>Enter your numeric user ID below and click "Load Data"</li>
+                <li>
+                  If direct loading fails, an iframe will appear - copy the JSON
+                  text from it
+                </li>
+                <li>
+                  Paste the JSON in the text area below and click "Import"
+                </li>
+              </ol>
+              <p class="mt-2 text-sm">
+                <strong>Note:</strong> This process imports deck metadata only.
+                Individual flashcard terms will need to be added manually after
+                import.
+              </p>
+            </div>
+          </div>
+
+          {/* User ID Input */}
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Quizlet User ID (numeric only) *</span>
+            </label>
+            <div class="join">
+              <input
+                type="text"
+                class="input input-bordered join-item flex-1"
+                placeholder="e.g., 12345678"
+                value={userId}
+                onInput={(e) => setUserId(e.currentTarget.value)}
+              />
+              <button
+                class="btn btn-primary join-item"
+                onClick={loadData}
+                disabled={!userId.trim()}
+              >
+                Load Data
+              </button>
+            </div>
+          </div>
+
+          {/* Iframe - only shown if direct fetch fails */}
+          {showIframe && iframeUrl && (
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">
+                  API Response (Copy the JSON text from the iframe below)
+                </span>
+              </label>
+              <div class="relative">
+                <iframe
+                  src={iframeUrl}
+                  class="w-full h-64 border border-base-300 rounded-lg"
+                  title="Quizlet API Data"
+                />
+                <button
+                  class="btn btn-sm btn-outline absolute top-2 right-2"
+                  onClick={reloadIframe}
+                >
+                  Reload
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* JSON Textarea */}
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Paste JSON Response Here *</span>
+            </label>
+            <textarea
+              class="textarea textarea-bordered h-32"
+              placeholder='Paste the JSON starting with {"responses":[...'
+              value={jsonText}
+              onInput={(e) => setJsonText(e.currentTarget.value)}
+            />
+            {jsonText && (
+              <div class="label">
+                <span class="label-text-alt text-success">
+                  ✓ JSON loaded successfully
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div class="alert alert-error">
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div class="modal-action">
+            <button type="button" class="btn" onClick={onClose}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onClick={importData}
+              disabled={!jsonText.trim() || importing}
+            >
+              {importing ? (
+                <>
+                  <span class="loading loading-spinner loading-sm"></span>
+                  Importing...
+                </>
+              ) : (
+                "Import Decks"
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
