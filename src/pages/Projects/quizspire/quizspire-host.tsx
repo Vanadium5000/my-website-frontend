@@ -37,6 +37,7 @@ interface Player {
   userId: string;
   username: string;
   isHost: boolean;
+  isGuest: boolean;
 }
 
 interface LobbyState {
@@ -64,6 +65,7 @@ interface QuestionResults {
     isCorrect: boolean;
     timeTaken: number | null;
     score: number;
+    isGuest: boolean;
   }>;
 }
 
@@ -74,12 +76,14 @@ interface GameEndData {
     username: string;
     score: number;
     correctAnswers: number;
+    isGuest: boolean;
   }>;
   winner: {
     userId: string;
     username: string;
     score: number;
     correctAnswers: number;
+    isGuest: boolean;
   };
 }
 
@@ -88,6 +92,7 @@ interface LeaderboardEntry {
   username: string;
   score: number;
   correctAnswers: number;
+  isGuest: boolean;
 }
 
 interface AnswerFeedback {
@@ -202,6 +207,12 @@ export function QuizspireHost() {
           logSocketReceive("connect");
           setPhase("lobby");
           setErrorMessage(null);
+          // Reset game state on reconnect
+          setLobby(null);
+          setCurrentQuestion(null);
+          setQuestionResults(null);
+          setGameEndData(null);
+          setLeaderboard([]);
         });
 
         newSocket.on("lobby_created", (data) => {
@@ -219,9 +230,9 @@ export function QuizspireHost() {
         newSocket.on("lobby_update", async (data: LobbyState) => {
           logSocketReceive("lobby_update", data);
           setLobby(data);
-          // Fetch profiles for new players
+          // Fetch profiles for new players (only for non-guest players)
           for (const player of data.players) {
-            if (!playerProfiles[player.userId]) {
+            if (!player.isGuest && !playerProfiles[player.userId]) {
               try {
                 const profileResponse = await api.profile.getProfileByUserId(
                   player.userId
@@ -274,6 +285,8 @@ export function QuizspireHost() {
           logSocketReceive("game_ended", data);
           setGameEndData(data);
           setPhase("ended");
+          setCurrentQuestion(null);
+          setQuestionResults(null);
         });
 
         newSocket.on("kicked", (data: { reason: string }) => {
@@ -281,6 +294,10 @@ export function QuizspireHost() {
           setErrorMessage(`You were kicked: ${data.reason}`);
           setPhase("lobby");
           setLobby(null);
+          setCurrentQuestion(null);
+          setQuestionResults(null);
+          setGameEndData(null);
+          setLeaderboard([]);
         });
 
         newSocket.on("error", (data) => {
@@ -296,6 +313,12 @@ export function QuizspireHost() {
         newSocket.on("disconnect", (reason) => {
           logSocketReceive("disconnect", reason);
           setErrorMessage(`Disconnected: ${reason}`);
+          setPhase("connecting");
+          setLobby(null);
+          setCurrentQuestion(null);
+          setQuestionResults(null);
+          setGameEndData(null);
+          setLeaderboard([]);
         });
       } catch (error) {
         console.error("Initialization error:", error);
@@ -342,8 +365,8 @@ export function QuizspireHost() {
 
   const startGame = () => {
     if (socket) {
-      logSocketEmit("start_game");
-      socket.emit("start_game");
+      logSocketEmit("start_game", { settings });
+      socket.emit("start_game", { settings });
     }
   };
 
@@ -368,6 +391,17 @@ export function QuizspireHost() {
       socket.emit("leave_lobby");
       setPhase("lobby");
       setLobby(null);
+      setCurrentQuestion(null);
+      setQuestionResults(null);
+      setGameEndData(null);
+      setLeaderboard([]);
+    }
+  };
+
+  const restartGame = () => {
+    if (socket) {
+      logSocketEmit("restart_game");
+      socket.emit("restart_game");
     }
   };
 
@@ -409,7 +443,9 @@ export function QuizspireHost() {
     return (
       <div
         key={player.userId}
-        className="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
+        className={`flex items-center gap-3 p-3 rounded-lg ${
+          player.isGuest ? "bg-base-300 border border-info/20" : "bg-base-200"
+        }`}
       >
         <ProfilePicture
           name={profile.name}
@@ -420,12 +456,13 @@ export function QuizspireHost() {
           <div className="font-medium flex items-center gap-2">
             {profile.name}
             {player.isHost && <FaCrown className="w-4 h-4 text-warning" />}
+            {player.isGuest && <FaUser className="w-4 h-4 text-info" />}
           </div>
           <div className="text-sm text-base-content/70">
-            {player.isHost ? "Host" : "Player"}
+            {player.isHost ? "Host" : player.isGuest ? "Guest" : "Player"}
           </div>
         </div>
-        {showKickButton && !player.isHost && (
+        {showKickButton && (
           <button
             className="btn btn-ghost btn-sm text-error"
             onClick={() => kickPlayer(player.userId)}
@@ -440,6 +477,11 @@ export function QuizspireHost() {
 
   // Helper function to get player profile data
   const getPlayerProfile = (userId: string) => {
+    // For guest users, return their username from lobby data
+    const player = lobby?.players?.find((p) => p.userId === userId);
+    if (player?.isGuest) {
+      return { name: player.username, image: null };
+    }
     return playerProfiles[userId] || { name: "Loading...", image: null };
   };
 
@@ -586,6 +628,10 @@ export function QuizspireHost() {
                             | "score",
                         }))
                       }
+                      disabled={
+                        !lobby?.players?.find((p) => p.userId === myUserId)
+                          ?.isHost
+                      }
                     >
                       <option value="correct_answers">Correct Answers</option>
                       <option value="score">Score Threshold</option>
@@ -610,6 +656,10 @@ export function QuizspireHost() {
                             }))
                           }
                           min="1"
+                          disabled={
+                            !lobby?.players?.find((p) => p.userId === myUserId)
+                              ?.isHost
+                          }
                         />
                       )
                     : settings.winCondition === "score"
@@ -629,6 +679,10 @@ export function QuizspireHost() {
                             }))
                           }
                           min="1"
+                          disabled={
+                            !lobby?.players?.find((p) => p.userId === myUserId)
+                              ?.isHost
+                          }
                         />
                       )
                     : renderFormControl(
@@ -647,6 +701,10 @@ export function QuizspireHost() {
                             }))
                           }
                           min="60"
+                          disabled={
+                            !lobby?.players?.find((p) => p.userId === myUserId)
+                              ?.isHost
+                          }
                         />
                       )}
 
@@ -666,6 +724,10 @@ export function QuizspireHost() {
                       }
                       min="5"
                       max="120"
+                      disabled={
+                        !lobby?.players?.find((p) => p.userId === myUserId)
+                          ?.isHost
+                      }
                     />
                   )}
 
@@ -682,6 +744,10 @@ export function QuizspireHost() {
                             .checked,
                         }))
                       }
+                      disabled={
+                        !lobby.players.find((p) => p.userId === myUserId)
+                          ?.isHost
+                      }
                     />,
                     "reset-toggle"
                   )}
@@ -697,6 +763,10 @@ export function QuizspireHost() {
                           ...prev,
                           allowLateJoin: (e.target as HTMLInputElement).checked,
                         }))
+                      }
+                      disabled={
+                        !lobby.players.find((p) => p.userId === myUserId)
+                          ?.isHost
                       }
                     />,
                     "late-join-toggle"
@@ -715,23 +785,35 @@ export function QuizspireHost() {
                             .checked,
                         }))
                       }
+                      disabled={
+                        !lobby.players.find((p) => p.userId === myUserId)
+                          ?.isHost
+                      }
                     />,
                     "host-participates-toggle"
                   )}
                 </div>
 
-                <div className="flex justify-center">
-                  <button
-                    className="btn btn-success btn-lg"
-                    onClick={startGame}
-                    disabled={
-                      lobby.players.length < (settings.hostParticipates ? 1 : 2)
-                    }
-                  >
-                    <FaPlay className="w-5 h-5 mr-2" />
-                    Start Game
-                  </button>
-                </div>
+                {lobby?.players?.find((p) => p.userId === myUserId)?.isHost ? (
+                  <div className="flex justify-center">
+                    <button
+                      className="btn btn-success btn-lg"
+                      onClick={startGame}
+                      disabled={
+                        lobby.players.length <
+                        (settings.hostParticipates ? 1 : 2)
+                      }
+                    >
+                      <FaPlay className="w-5 h-5 mr-2" />
+                      Start Game
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center text-base-content/70">
+                    <FaCog className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>Waiting for host to start the game...</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -818,7 +900,7 @@ export function QuizspireHost() {
                     <div className="text-success font-bold">
                       {currentQuestion?.options[
                         questionResults.correctIndex
-                      ].map((element, i) => (
+                      ]?.map((element, i) => (
                         <div key={i}>{renderContentElement(element)}</div>
                       ))}
                     </div>
@@ -831,7 +913,11 @@ export function QuizspireHost() {
                     return (
                       <div
                         key={result.userId}
-                        className="flex items-center justify-between p-3 bg-base-200 rounded-lg"
+                        className={`flex items-center justify-between p-3 rounded-lg ${
+                          result.isGuest
+                            ? "bg-base-300 border border-info/20"
+                            : "bg-base-200"
+                        }`}
                       >
                         <div className="flex items-center gap-3">
                           <ProfilePicture
@@ -839,7 +925,12 @@ export function QuizspireHost() {
                             image={profile.image}
                             widthClass="w-8"
                           />
-                          <span className="font-medium">{profile.name}</span>
+                          <span className="font-medium flex items-center gap-2">
+                            {profile.name}
+                            {result.isGuest && (
+                              <FaUser className="w-3 h-3 text-info" />
+                            )}
+                          </span>
                         </div>
                         <div className="flex items-center gap-4">
                           <span
@@ -888,8 +979,11 @@ export function QuizspireHost() {
                       widthClass="w-12"
                     />
                     <div>
-                      <div className="text-lg font-bold">
+                      <div className="text-lg font-bold flex items-center gap-2">
                         {gameEndData.winner.username}
+                        {gameEndData.winner.isGuest && (
+                          <FaUser className="w-4 h-4 text-info" />
+                        )}
                       </div>
                       <div className="text-sm text-base-content/70">
                         {gameEndData.winner.score} points •{" "}
@@ -907,7 +1001,11 @@ export function QuizspireHost() {
                       return (
                         <div
                           key={score.userId}
-                          className="flex items-center justify-between p-3 bg-base-200 rounded-lg"
+                          className={`flex items-center justify-between p-3 rounded-lg ${
+                            score.isGuest
+                              ? "bg-base-300 border border-info/20"
+                              : "bg-base-200"
+                          }`}
                         >
                           <div className="flex items-center gap-3">
                             <span className="font-bold text-lg w-8">
@@ -918,7 +1016,12 @@ export function QuizspireHost() {
                               image={profile.image}
                               widthClass="w-8"
                             />
-                            <span className="font-medium">{profile.name}</span>
+                            <span className="font-medium flex items-center gap-2">
+                              {profile.name}
+                              {score.isGuest && (
+                                <FaUser className="w-3 h-3 text-info" />
+                              )}
+                            </span>
                           </div>
                           <div className="text-right">
                             <div className="font-bold">{score.score} pts</div>
@@ -932,18 +1035,28 @@ export function QuizspireHost() {
                   </div>
                 </div>
 
-                <button
-                  className="btn btn-primary"
-                  onClick={() =>
-                    route(
-                      (query.referrer && decodeURIComponent(query.referrer)) ||
-                        "/projects/quizspire"
-                    )
-                  }
-                >
-                  <FaArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Quizspire
-                </button>
+                <div className="flex gap-4 justify-center">
+                  {lobby?.players?.find((p) => p.userId === myUserId)
+                    ?.isHost && (
+                    <button className="btn btn-success" onClick={restartGame}>
+                      <FaPlay className="w-4 h-4 mr-2" />
+                      Restart Game
+                    </button>
+                  )}
+                  <button
+                    className="btn btn-primary"
+                    onClick={() =>
+                      route(
+                        (query.referrer &&
+                          decodeURIComponent(query.referrer)) ||
+                          "/projects/quizspire"
+                      )
+                    }
+                  >
+                    <FaArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Quizspire
+                  </button>
+                </div>
               </div>
             )}
 
@@ -964,7 +1077,8 @@ export function QuizspireHost() {
                 {lobby.players.map((player) =>
                   renderPlayerItem(
                     player,
-                    player.isHost && myUserId === player.userId
+                    lobby?.players?.find((p) => p.userId === myUserId)
+                      ?.isHost && player.userId !== myUserId
                   )
                 )}
               </div>
@@ -983,7 +1097,11 @@ export function QuizspireHost() {
                     return (
                       <div
                         key={entry.userId}
-                        className="flex items-center justify-between p-2 bg-base-200 rounded"
+                        className={`flex items-center justify-between p-2 rounded ${
+                          entry.isGuest
+                            ? "bg-base-300 border border-info/20"
+                            : "bg-base-200"
+                        }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-bold w-6">{index + 1}.</span>
@@ -992,7 +1110,12 @@ export function QuizspireHost() {
                             image={profile.image}
                             widthClass="w-6"
                           />
-                          <span className="text-sm">{profile.name}</span>
+                          <span className="text-sm flex items-center gap-1">
+                            {profile.name}
+                            {entry.isGuest && (
+                              <FaUser className="w-3 h-3 text-info" />
+                            )}
+                          </span>
                         </div>
                         <div className="text-right text-sm">
                           <div className="font-bold">{entry.score}</div>
