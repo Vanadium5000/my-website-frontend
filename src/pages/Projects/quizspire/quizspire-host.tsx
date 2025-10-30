@@ -485,19 +485,7 @@ export function QuizspireHost() {
     return playerProfiles[userId] || { name: "Loading...", image: null };
   };
 
-  // Helper function to render form controls for settings
-  const renderFormControl = (
-    label: string,
-    children: React.ReactNode,
-    key?: string
-  ) => (
-    <div className="form-control" key={key}>
-      <label className="label">
-        <span className="label-text">{label}</span>
-      </label>
-      {children}
-    </div>
-  );
+  // Helper function to render form controls for settings (removed, using table now)
 
   if (phase === "connecting") {
     return (
@@ -613,185 +601,232 @@ export function QuizspireHost() {
             {phase === "settings" && lobby && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Game Settings</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {renderFormControl(
-                    "Win Condition",
-                    <select
-                      className="select select-bordered"
-                      value={settings.winCondition}
-                      onChange={(e) =>
-                        setSettings((prev) => ({
-                          ...prev,
-                          winCondition: (e.target as HTMLInputElement).value as
-                            | "time"
-                            | "correct_answers"
-                            | "score",
-                        }))
-                      }
-                      disabled={
-                        !lobby?.players?.find((p) => p.userId === myUserId)
-                          ?.isHost
-                      }
-                    >
-                      <option value="correct_answers">Correct Answers</option>
-                      <option value="score">Score Threshold</option>
-                      <option value="time">Time Limit</option>
-                    </select>
-                  )}
-
-                  {settings.winCondition === "correct_answers"
-                    ? renderFormControl(
-                        "Correct Answers Threshold",
-                        <input
-                          type="number"
-                          className="input input-bordered"
-                          value={settings.correctAnswersThreshold}
-                          onChange={(e) =>
-                            setSettings((prev) => ({
-                              ...prev,
-                              correctAnswersThreshold:
-                                parseInt(
-                                  (e.target as HTMLInputElement).value
-                                ) || 10,
-                            }))
-                          }
-                          min="1"
-                          disabled={
-                            !lobby?.players?.find((p) => p.userId === myUserId)
-                              ?.isHost
-                          }
-                        />
-                      )
-                    : settings.winCondition === "score"
-                    ? renderFormControl(
-                        "Score Threshold",
-                        <input
-                          type="number"
-                          className="input input-bordered"
-                          value={settings.scoreThreshold}
-                          onChange={(e) =>
-                            setSettings((prev) => ({
-                              ...prev,
-                              scoreThreshold:
-                                parseInt(
-                                  (e.target as HTMLInputElement).value
-                                ) || 1000,
-                            }))
-                          }
-                          min="1"
-                          disabled={
-                            !lobby?.players?.find((p) => p.userId === myUserId)
-                              ?.isHost
-                          }
-                        />
-                      )
-                    : renderFormControl(
-                        "Time Limit (seconds)",
-                        <input
-                          type="number"
-                          className="input input-bordered"
-                          value={settings.timeLimit}
-                          onChange={(e) =>
-                            setSettings((prev) => ({
-                              ...prev,
-                              timeLimit:
-                                parseInt(
-                                  (e.target as HTMLInputElement).value
-                                ) || 300,
-                            }))
-                          }
-                          min="60"
-                          disabled={
-                            !lobby?.players?.find((p) => p.userId === myUserId)
-                              ?.isHost
-                          }
-                        />
+                <div className="overflow-x-auto mb-6">
+                  <table className="table table-zebra">
+                    <thead>
+                      <tr>
+                        <th>Setting</th>
+                        <th>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="font-medium">Win Condition</td>
+                        <td>
+                          <select
+                            className="select select-bordered select-sm"
+                            value={settings.winCondition}
+                            onChange={(e) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                winCondition: (e.target as HTMLInputElement)
+                                  .value as
+                                  | "time"
+                                  | "correct_answers"
+                                  | "score",
+                              }))
+                            }
+                            disabled={
+                              !lobby?.players?.find(
+                                (p) => p.userId === myUserId
+                              )?.isHost
+                            }
+                          >
+                            <option value="correct_answers">
+                              Correct Answers
+                            </option>
+                            <option value="score">Score Threshold</option>
+                            <option value="time">Time Limit</option>
+                          </select>
+                        </td>
+                      </tr>
+                      {settings.winCondition === "correct_answers" ? (
+                        <tr>
+                          <td className="font-medium">
+                            Correct Answers Threshold
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              className="input input-bordered input-sm"
+                              value={settings.correctAnswersThreshold}
+                              onChange={(e) =>
+                                setSettings((prev) => ({
+                                  ...prev,
+                                  correctAnswersThreshold:
+                                    parseInt(
+                                      (e.target as HTMLInputElement).value
+                                    ) || 10,
+                                }))
+                              }
+                              min="1"
+                              disabled={
+                                !lobby?.players?.find(
+                                  (p) => p.userId === myUserId
+                                )?.isHost
+                              }
+                            />
+                          </td>
+                        </tr>
+                      ) : settings.winCondition === "score" ? (
+                        <tr>
+                          <td className="font-medium">Score Threshold</td>
+                          <td>
+                            <input
+                              type="number"
+                              className="input input-bordered input-sm"
+                              value={settings.scoreThreshold}
+                              onChange={(e) =>
+                                setSettings((prev) => ({
+                                  ...prev,
+                                  scoreThreshold:
+                                    parseInt(
+                                      (e.target as HTMLInputElement).value
+                                    ) || 1000,
+                                }))
+                              }
+                              min="1"
+                              disabled={
+                                !lobby?.players?.find(
+                                  (p) => p.userId === myUserId
+                                )?.isHost
+                              }
+                            />
+                          </td>
+                        </tr>
+                      ) : (
+                        <tr>
+                          <td className="font-medium">Time Limit (seconds)</td>
+                          <td>
+                            <input
+                              type="number"
+                              className="input input-bordered input-sm"
+                              value={settings.timeLimit}
+                              onChange={(e) =>
+                                setSettings((prev) => ({
+                                  ...prev,
+                                  timeLimit:
+                                    parseInt(
+                                      (e.target as HTMLInputElement).value
+                                    ) || 300,
+                                }))
+                              }
+                              min="60"
+                              disabled={
+                                !lobby?.players?.find(
+                                  (p) => p.userId === myUserId
+                                )?.isHost
+                              }
+                            />
+                          </td>
+                        </tr>
                       )}
+                      <tr>
+                        <td className="font-medium">
+                          Question Time Limit (seconds)
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="input input-bordered input-sm"
+                            value={settings.questionTimeLimit}
+                            onChange={(e) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                questionTimeLimit:
+                                  parseInt(
+                                    (e.target as HTMLInputElement).value
+                                  ) || 30,
+                              }))
+                            }
+                            min="5"
+                            max="120"
+                            disabled={
+                              !lobby?.players?.find(
+                                (p) => p.userId === myUserId
+                              )?.isHost
+                            }
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="font-medium">
+                          Reset on Incorrect Answer
+                        </td>
+                        <td>
+                          <input
+                            type="checkbox"
+                            className="toggle toggle-sm"
+                            checked={settings.resetOnIncorrect}
+                            onChange={(e) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                resetOnIncorrect: (e.target as HTMLInputElement)
+                                  .checked,
+                              }))
+                            }
+                            disabled={
+                              !lobby.players.find((p) => p.userId === myUserId)
+                                ?.isHost
+                            }
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="font-medium">Allow Late Join</td>
+                        <td>
+                          <input
+                            type="checkbox"
+                            className="toggle toggle-sm"
+                            checked={settings.allowLateJoin}
+                            onChange={(e) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                allowLateJoin: (e.target as HTMLInputElement)
+                                  .checked,
+                              }))
+                            }
+                            disabled={
+                              !lobby.players.find((p) => p.userId === myUserId)
+                                ?.isHost
+                            }
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="font-medium">Host Participates</td>
+                        <td>
+                          <input
+                            type="checkbox"
+                            className="toggle toggle-sm"
+                            checked={settings.hostParticipates}
+                            onChange={(e) =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                hostParticipates: (e.target as HTMLInputElement)
+                                  .checked,
+                              }))
+                            }
+                            disabled={
+                              !lobby.players.find((p) => p.userId === myUserId)
+                                ?.isHost
+                            }
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
 
-                  {renderFormControl(
-                    "Question Time Limit (seconds)",
-                    <input
-                      type="number"
-                      className="input input-bordered"
-                      value={settings.questionTimeLimit}
-                      onChange={(e) =>
-                        setSettings((prev) => ({
-                          ...prev,
-                          questionTimeLimit:
-                            parseInt((e.target as HTMLInputElement).value) ||
-                            30,
-                        }))
-                      }
-                      min="5"
-                      max="120"
-                      disabled={
-                        !lobby?.players?.find((p) => p.userId === myUserId)
-                          ?.isHost
-                      }
-                    />
-                  )}
-
-                  {renderFormControl(
-                    "Reset on Incorrect Answer",
-                    <input
-                      type="checkbox"
-                      className="toggle"
-                      checked={settings.resetOnIncorrect}
-                      onChange={(e) =>
-                        setSettings((prev) => ({
-                          ...prev,
-                          resetOnIncorrect: (e.target as HTMLInputElement)
-                            .checked,
-                        }))
-                      }
-                      disabled={
-                        !lobby.players.find((p) => p.userId === myUserId)
-                          ?.isHost
-                      }
-                    />,
-                    "reset-toggle"
-                  )}
-
-                  {renderFormControl(
-                    "Allow Late Join",
-                    <input
-                      type="checkbox"
-                      className="toggle"
-                      checked={settings.allowLateJoin}
-                      onChange={(e) =>
-                        setSettings((prev) => ({
-                          ...prev,
-                          allowLateJoin: (e.target as HTMLInputElement).checked,
-                        }))
-                      }
-                      disabled={
-                        !lobby.players.find((p) => p.userId === myUserId)
-                          ?.isHost
-                      }
-                    />,
-                    "late-join-toggle"
-                  )}
-
-                  {renderFormControl(
-                    "Host Participates",
-                    <input
-                      type="checkbox"
-                      className="toggle"
-                      checked={settings.hostParticipates}
-                      onChange={(e) =>
-                        setSettings((prev) => ({
-                          ...prev,
-                          hostParticipates: (e.target as HTMLInputElement)
-                            .checked,
-                        }))
-                      }
-                      disabled={
-                        !lobby.players.find((p) => p.userId === myUserId)
-                          ?.isHost
-                      }
-                    />,
-                    "host-participates-toggle"
-                  )}
+                <div className="alert alert-info mb-4">
+                  <FaExclamationTriangle className="h-5 w-5" />
+                  <div>
+                    <div className="font-bold">Host Participates</div>
+                    <div>
+                      When disabled, the game ends immediately regardless of
+                      whether the host has answered the current question.
+                    </div>
+                  </div>
                 </div>
 
                 {lobby?.players?.find((p) => p.userId === myUserId)?.isHost ? (
