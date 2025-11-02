@@ -8,27 +8,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>My Website</title>
-    <script
-      type="module"
-      crossorigin
-      src="/assets/index-oUVihqYx.ts"
-      onerror="loadFallback()"
-    ></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BcylC7UU.css" />
-  </head>
-  <body>
-    <div id="app"></div>
 
-    <!-- Inline script for fallback logic (runs after DOM loads) -->
+    <!-- Inline script for fallback logic (runs before DOM loads) -->
     <script>
       function loadFallback() {
-        alert("SCRIPT LOADING FAILED, FALLING BACK TO BASE64 SCRIPT");
+        console.log("SCRIPT LOADING FAILED, FALLING BACK TO BASE64 SCRIPT");
+
+        // Function to decode Base64 to UTF-8 string
+        function base64ToUTF8(base64) {
+          // Decode Base64 to binary string
+          const binaryString = atob(base64.trim());
+          // Convert binary string to UTF-8
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          return new TextDecoder("utf-8").decode(bytes);
+        }
 
         // Avoid duplicate loads if already loading fallback
         if (window.loadingFallback) return;
         window.loadingFallback = true;
 
         // Fetch the base64-encoded script file
+        // generated with base64 dist/assets/index-oUVihqYx.js > dist/assets/fallback.js.base64
         fetch("/assets/fallback.js.base64") // Replace with the actual path to your base64 file (e.g., a .txt or .b64 file containing the base64 string)
           .then((response) => {
             if (!response.ok) {
@@ -37,8 +40,7 @@
             return response.text();
           })
           .then((base64) => {
-            // Decode the base64 string to get the original JS code
-            const decodedScript = atob(base64.trim()); // trim() in case of whitespace
+            const decodedScript = base64ToUTF8(base64);
 
             // Create a new script element with the decoded content
             const fallbackScript = document.createElement("script");
@@ -50,19 +52,21 @@
             document.head.appendChild(fallbackScript);
 
             // Optional: Clean up the flag after successful load
-            // Note: This doesn't wait for the script to execute, but it's a reasonable approximation
             fallbackScript.addEventListener("load", () => {
               window.loadingFallback = false;
             });
-          })
-          .catch((error) => {
-            console.error("Fallback failed:", error);
-            // Ultimate fallback: show error message
-            document.getElementById("app").innerHTML =
-              "<p>Sorry, unable to load the app. Please refresh.</p>";
-            window.loadingFallback = false;
           });
       }
     </script>
+    <script
+      type="module"
+      crossorigin
+      src="/assets/index-oUVihqYx.ts"
+      onerror="loadFallback()"
+    ></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BcylC7UU.css" />
+  </head>
+  <body>
+    <div id="app"></div>
   </body>
 </html>
