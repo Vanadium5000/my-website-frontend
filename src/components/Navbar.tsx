@@ -3,9 +3,10 @@ import { ThemeDropdown } from "./ThemeDropdown";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../api/client.js";
 import { User } from "../api/api";
-import { FaSignInAlt, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { FaSignInAlt, FaSignOutAlt, FaUser, FaDownload } from "react-icons/fa";
 import { FiSettings } from "react-icons/fi";
 import { ProfilePicture } from "./ProfilePicture";
+import { useInstallPrompt } from "../hooks/useInstallPrompt";
 
 export function Navbar() {
   const { route, url } = useLocation();
@@ -14,6 +15,7 @@ export function Navbar() {
   const [error, setError] = useState("");
 
   const infoDropdownRef = useRef<HTMLDetailsElement>(null);
+  const { canInstall, install } = useInstallPrompt();
 
   // Load user data from backend
   useEffect(() => {
@@ -109,6 +111,12 @@ export function Navbar() {
       </div>
       <div className="navbar-end">
         <ThemeDropdown />
+        {canInstall && (
+          <button className="btn btn-sm mx-2" onClick={install}>
+            <FaDownload />
+            Install App
+          </button>
+        )}
         {user ? (
           <div className="mx-2 dropdown dropdown-end">
             <ProfilePicture name={user.name} image={user.image} />

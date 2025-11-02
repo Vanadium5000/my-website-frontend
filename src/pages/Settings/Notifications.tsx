@@ -813,6 +813,50 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
           </h1>
         </div>
 
+        {/* iOS Web App Requirement Banner */}
+        {(() => {
+          // const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const isIOS = "I DONT KNOW";
+          return isIOS ? (
+            <div className="alert alert-info mb-6">
+              <FaInfoCircle />
+              <div>
+                <h3 className="font-bold">iOS Push Notifications</h3>
+                <div className="text-sm mt-1">
+                  <p className="mb-2">
+                    On iOS devices, push notifications only work when this
+                    website is added to your home screen as a web app.
+                  </p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-primary font-semibold">1.</span>
+                      <span>Tap the share button</span>
+                      {/* <span className="text-lg">📤</span> */}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-primary font-semibold">→</span>
+                      <span>Select "Add to Home Screen"</span>
+                      {/* <span className="text-lg">🏠</span> */}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-primary font-semibold">→</span>
+                      <span>Open the web app from your home screen</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-primary font-semibold">→</span>
+                      <span>Enable notifications when prompted</span>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs opacity-75">
+                    Push notifications won't work in Safari or other browsers on
+                    iOS.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null;
+        })()}
+
         {/* Push Notification Status */}
         {pushSupported && (
           <div className="alert alert-info mb-6">
