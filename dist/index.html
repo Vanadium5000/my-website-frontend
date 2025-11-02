@@ -8,10 +8,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>My Website</title>
-    <script type="module" crossorigin src="/assets/index-oUVihqYx.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BcylC7UU.css">
+    <script
+      type="module"
+      crossorigin
+      src="/assets/index-oUVihqYx.ts"
+      onerror="loadFallback()"
+    ></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BcylC7UU.css" />
   </head>
   <body>
     <div id="app"></div>
+
+    <!-- Inline script for fallback logic (runs after DOM loads) -->
+    <script>
+      function loadFallback() {
+        alert("SCRIPT LOADING FAILED, FALLING BACK TO BASE64 SCRIPT");
+
+        // Avoid duplicate loads if already loading fallback
+        if (window.loadingFallback) return;
+        window.loadingFallback = true;
+
+        // Fetch the base64-encoded script file
+        fetch("/assets/fallback.js.base64") // Replace with the actual path to your base64 file (e.g., a .txt or .b64 file containing the base64 string)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Failed to load base64 fallback");
+            }
+            return response.text();
+          })
+          .then((base64) => {
+            // Decode the base64 string to get the original JS code
+            const decodedScript = atob(base64.trim()); // trim() in case of whitespace
+
+            // Create a new script element with the decoded content
+            const fallbackScript = document.createElement("script");
+            fallbackScript.type = "module";
+            fallbackScript.crossOrigin = "anonymous";
+            fallbackScript.textContent = decodedScript;
+
+            // Append to head (or body if preferred)
+            document.head.appendChild(fallbackScript);
+
+            // Optional: Clean up the flag after successful load
+            // Note: This doesn't wait for the script to execute, but it's a reasonable approximation
+            fallbackScript.addEventListener("load", () => {
+              window.loadingFallback = false;
+            });
+          })
+          .catch((error) => {
+            console.error("Fallback failed:", error);
+            // Ultimate fallback: show error message
+            document.getElementById("app").innerHTML =
+              "<p>Sorry, unable to load the app. Please refresh.</p>";
+            window.loadingFallback = false;
+          });
+      }
+    </script>
   </body>
 </html>
