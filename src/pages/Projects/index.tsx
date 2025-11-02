@@ -49,6 +49,9 @@ export function Projects() {
           technicalSpecs="Move validation • Real-time multiplayer"
           backgroundImage="/chess-board.png"
           href="/projects/chess"
+          extraButtons={[
+            { label: "Notification Settings", href: "/settings/notifications" },
+          ]}
         />
       </div>
       <div class="m-8">
@@ -67,6 +70,12 @@ export function Projects() {
           technicalSpecs="Flashcard decks • Multiple study modes • Progress tracking"
           backgroundImage="/quizspire.png"
           href="/projects/quizspire"
+          extraButtons={[
+            {
+              label: "Join or Host Quizspire",
+              href: "/projects/quizspire/host",
+            },
+          ]}
         />
       </div>
       <div class="m-8">

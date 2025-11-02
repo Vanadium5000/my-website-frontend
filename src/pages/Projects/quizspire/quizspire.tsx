@@ -11,10 +11,24 @@ import {
   FiEdit3,
   FiTrash2,
   FiSearch,
-  FiDownload,
   FiUpload,
   FiShare2,
   FiArrowUp,
+  FiDownload,
+  FiLock,
+  FiUnlock,
+  FiAlertTriangle,
+  FiCheckCircle,
+  FiXCircle,
+  FiSettings,
+  FiFileText,
+  FiImage,
+  FiHash,
+  FiCode,
+  FiX,
+  FiArrowRight,
+  FiExternalLink,
+  FiRefreshCw,
 } from "react-icons/fi";
 import { highlightSearchTerms } from "../../../utils/highlight";
 import { getApiImageUrl } from "../../../components/ProfilePicture";
@@ -173,6 +187,13 @@ export function Quizspire() {
         </div>
         <div class="flex gap-2">
           <button
+            class="btn btn-secondary"
+            onClick={() => setShowMigrationModal(true)}
+          >
+            <FiArrowUp class="w-4 h-4 mr-2" />
+            Import from Quizlet
+          </button>
+          <button
             class="btn btn-outline"
             onClick={() => {
               try {
@@ -255,13 +276,6 @@ export function Quizspire() {
           >
             <FiPlus class="w-4 h-4 mr-2" />
             Create Deck
-          </button>
-          <button
-            class="btn btn-secondary"
-            onClick={() => setShowMigrationModal(true)}
-          >
-            <FiArrowUp class="w-4 h-4 mr-2" />
-            Import from Quizlet
           </button>
         </div>
       </div>
@@ -508,7 +522,7 @@ export function Quizspire() {
 /**
  * Modal component for migrating Quizlet flashcards to Quizspire.
  * Attempts direct JSON fetch first, falls back to iframe if needed.
- * Handles user ID input, data loading, JSON parsing, and deck creation.
+ * Handles deck ID input, data loading, JSON parsing, and deck creation.
  */
 export function MigrationModal({
   onClose,
@@ -517,20 +531,24 @@ export function MigrationModal({
   onClose: () => void;
   onImportSuccess: () => void;
 }) {
-  const [userId, setUserId] = useState("");
+  const [deckId, setDeckId] = useState("");
+  const [deckName, setDeckName] = useState("");
+  const [deckDescription, setDeckDescription] = useState("");
+  const [deckThumbnail, setDeckThumbnail] = useState("");
   const [iframeUrl, setIframeUrl] = useState("");
   const [jsonText, setJsonText] = useState("");
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showIframe, setShowIframe] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   /**
-   * Constructs the Quizlet API URL for fetching user-created sets.
-   * @param userId - The numeric Quizlet user ID
+   * Constructs the Quizlet API URL for fetching a specific flashcard deck.
+   * @param deckId - The numeric Quizlet deck ID
    * @returns The complete API URL string
    */
-  const buildQuizletApiUrl = (userId: string): string => {
-    return `https://quizlet.com/webapi/3.2/feed/${userId}/created-sets?perPage=500&query=&sort=latest&seenCreatedSetIds=&filters[sets][isPublished]=true&include[set][]=creator`;
+  const buildQuizletApiUrl = (deckId: string): string => {
+    return `https://quizlet.com/webapi/3.4/studiable-item-documents?filters[studiableContainerId]=${deckId}&filters[studiableContainerType]=1&perPage=1000&page=1`;
   };
 
   /**
@@ -538,21 +556,19 @@ export function MigrationModal({
    * Falls back to iframe if direct fetch fails (due to CORS or captchas).
    */
   const loadData = async () => {
-    if (!userId.trim()) {
-      setError("Please enter a valid numeric Quizlet user ID.");
+    if (!deckId.trim()) {
+      setError("Please enter a valid numeric Quizlet deck ID.");
       return;
     }
 
-    // Validate that userId is numeric
-    if (!/^\d+$/.test(userId.trim())) {
-      setError(
-        "User ID must be numeric only (found in your Quizlet profile URL)."
-      );
+    // Validate that deckId is numeric
+    if (!/^\d+$/.test(deckId.trim())) {
+      setError("Deck ID must be numeric only (found in the Quizlet deck URL).");
       return;
     }
 
     setError(null);
-    const url = buildQuizletApiUrl(userId.trim());
+    const url = buildQuizletApiUrl(deckId.trim());
 
     try {
       // Try direct fetch first
@@ -561,6 +577,15 @@ export function MigrationModal({
         const jsonData = await response.json();
         setJsonText(JSON.stringify(jsonData, null, 2));
         setShowIframe(false);
+
+        // Check if deck is private
+        const studiableItems =
+          jsonData.responses?.[0]?.models?.studiableItem || [];
+        const hasCardSides = studiableItems.some(
+          (item: any) => item.cardSides && item.cardSides.length > 0
+        );
+        setIsPrivate(!hasCardSides);
+
         return;
       }
     } catch (fetchErr) {
@@ -590,25 +615,49 @@ export function MigrationModal({
    */
   const validateAndParseJson = (jsonString: string) => {
     const data = JSON.parse(jsonString);
-    if (!data.responses || !data.responses[0]?.models?.set) {
+    if (!data.responses || !data.responses[0]?.models?.studiableItem) {
       throw new Error(
-        "Invalid JSON format. Expected Quizlet API response with sets data."
+        "Invalid JSON format. Expected Quizlet API response with studiable items."
       );
     }
     return data;
   };
 
   /**
-   * Transforms a Quizlet set object to Quizspire deck format.
-   * @param quizletSet - The Quizlet set data
+   * Transforms Quizlet studiable items to Quizspire deck format.
+   * @param studiableItems - Array of Quizlet studiable items
    * @returns Quizspire-compatible deck data
    */
-  const transformQuizletSetToDeck = (quizletSet: any) => {
+  const transformQuizletItemsToDeck = (studiableItems: any[]) => {
+    const cards = studiableItems
+      .filter((item) => item.cardSides && item.cardSides.length >= 2)
+      .map((item) => {
+        const wordSide = item.cardSides.find((side: any) => side.sideId === 1);
+        const definitionSide = item.cardSides.find(
+          (side: any) => side.sideId === 2
+        );
+
+        return {
+          word: [
+            {
+              text: wordSide?.media?.[0]?.plainText || "",
+              type: "text" as const,
+            },
+          ],
+          definition: [
+            {
+              text: definitionSide?.media?.[0]?.plainText || "",
+              type: "text" as const,
+            },
+          ],
+        };
+      });
+
     return {
-      title: quizletSet.title || "Untitled Deck",
-      description: quizletSet.description || "",
-      thumbnail: quizletSet._thumbnailUrl || "",
-      cards: [], // Note: Individual card data would require separate API calls
+      title: deckName || "Imported Quizlet Deck",
+      description: deckDescription || `Imported from Quizlet deck ${deckId}`,
+      thumbnail: deckThumbnail || "",
+      cards: cards,
     };
   };
 
@@ -626,24 +675,36 @@ export function MigrationModal({
 
     try {
       const data = validateAndParseJson(jsonText);
-      const sets = data.responses[0].models.set;
-      let importedCount = 0;
+      const studiableItems = data.responses[0].models.studiableItem || [];
 
-      for (const set of sets) {
-        try {
-          const deckData = transformQuizletSetToDeck(set);
-          await api.quizspire.postQuizspireDecks(deckData);
-          importedCount++;
-        } catch (deckErr) {
-          console.error("Failed to import deck:", set.title, deckErr);
-        }
+      if (studiableItems.length === 0) {
+        throw new Error(
+          "No flashcards found in this deck. It may be private or empty."
+        );
       }
 
-      alert(
-        `Successfully imported ${importedCount} out of ${sets.length} decks!`
+      // Check for private deck
+      const hasValidCards = studiableItems.some(
+        (item) => item.cardSides && item.cardSides.length > 0
       );
-      onImportSuccess();
-      onClose();
+      if (!hasValidCards) {
+        throw new Error(
+          "This appears to be a private deck. Private decks cannot be imported due to Quizlet restrictions. Make sure the deck is public and try again."
+        );
+      }
+
+      const deckData = transformQuizletItemsToDeck(studiableItems);
+      await api.quizspire.postQuizspireDecks(deckData);
+
+      // Success animation and feedback
+      const successMessage = `Successfully imported deck with ${deckData.cards.length} flashcards!`;
+      alert(successMessage);
+
+      // Add a brief delay for visual feedback before closing
+      setTimeout(() => {
+        onImportSuccess();
+        onClose();
+      }, 500);
     } catch (err) {
       console.error("Import failed:", err);
       setError(
@@ -658,77 +719,222 @@ export function MigrationModal({
 
   return (
     <div class="modal modal-open">
-      <div class="modal-box max-w-6xl max-h-[90vh] overflow-y-auto">
-        <h3 class="font-bold text-lg mb-4">Import from Quizlet</h3>
+      <div class="modal-box max-w-7xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-base-100 to-base-200">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="p-3 bg-primary/10 rounded-full">
+            <FiDownload class="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h3 class="font-bold text-xl text-base-content">
+              Import Quizlet Deck
+            </h3>
+            <p class="text-sm text-base-content/70">
+              Import flashcards from a public Quizlet deck
+            </p>
+          </div>
+        </div>
 
         <div class="space-y-6">
           {/* Instructions */}
-          <div class="alert alert-info">
+          <div class="alert alert-info shadow-lg">
+            <FiAlertTriangle class="w-5 h-5" />
             <div>
-              <h4 class="font-bold">How to migrate your Quizlet flashcards:</h4>
-              <ol class="list-decimal list-inside mt-2 space-y-1">
+              <h4 class="font-bold">How to import a Quizlet flashcard deck:</h4>
+              <ol class="list-decimal list-inside mt-2 space-y-1 text-sm">
+                <li>Fill in the deck information in the form below</li>
                 <li>
-                  Find your numeric Quizlet user ID from your profile URL (e.g.,
-                  quizlet.com/<strong>12345678</strong> - the number only)
+                  Find the numeric Quizlet deck ID from the deck URL (e.g.,
+                  quizlet.com/<strong>48393</strong>/french-verbs - the number
+                  only)
                 </li>
-                <li>Enter your numeric user ID below and click "Load Data"</li>
+                <li>Enter the deck ID and click "Load Data"</li>
                 <li>
                   If direct loading fails, an iframe will appear - copy the JSON
                   text from it
                 </li>
-                <li>
-                  Paste the JSON in the text area below and click "Import"
-                </li>
+                <li>Paste the JSON in the text area and click "Import Deck"</li>
               </ol>
-              <p class="mt-2 text-sm">
-                <strong>Note:</strong> This process imports deck metadata only.
-                Individual flashcard terms will need to be added manually after
-                import.
+              <p class="mt-2 text-xs opacity-75">
+                <strong>Note:</strong> Private decks cannot be imported due to
+                Quizlet restrictions.
               </p>
             </div>
           </div>
 
-          {/* User ID Input */}
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Quizlet User ID (numeric only) *</span>
-            </label>
-            <div class="join">
-              <input
-                type="text"
-                class="input input-bordered join-item flex-1"
-                placeholder="e.g., 12345678"
-                value={userId}
-                onInput={(e) => setUserId(e.currentTarget.value)}
-              />
-              <button
-                class="btn btn-primary join-item"
-                onClick={loadData}
-                disabled={!userId.trim()}
-              >
-                Load Data
-              </button>
+          {/* Configuration Form - Table-like layout */}
+          <div class="bg-base-100 rounded-xl shadow-lg p-6">
+            <h4 class="font-semibold text-lg mb-4 flex items-center gap-2">
+              <FiSettings class="w-5 h-5" />
+              Deck Configuration
+            </h4>
+
+            <div class="overflow-x-auto">
+              <table class="table table-zebra w-full">
+                <thead>
+                  <tr class="bg-base-200">
+                    <th class="font-semibold">Field</th>
+                    <th class="font-semibold">Value</th>
+                    <th class="font-semibold w-32">Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="hover">
+                    <td class="font-medium">
+                      <div class="flex items-center gap-2">
+                        <FiBookOpen class="w-4 h-4 text-primary" />
+                        Deck Name
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class={`input input-bordered input-sm w-full ${
+                          !deckName.trim() ? "input-error" : "input-success"
+                        }`}
+                        placeholder="Enter deck name"
+                        value={deckName}
+                        onInput={(e) => setDeckName(e.currentTarget.value)}
+                      />
+                    </td>
+                    <td>
+                      <div class="badge badge-error gap-1">
+                        <span class="text-xs">*</span>
+                        Required
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover">
+                    <td class="font-medium">
+                      <div class="flex items-center gap-2">
+                        <FiFileText class="w-4 h-4 text-secondary" />
+                        Description
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        class="input input-bordered input-sm w-full"
+                        placeholder="Optional description"
+                        value={deckDescription}
+                        onInput={(e) =>
+                          setDeckDescription(e.currentTarget.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <div class="badge badge-ghost">Optional</div>
+                    </td>
+                  </tr>
+                  <tr class="hover">
+                    <td class="font-medium">
+                      <div class="flex items-center gap-2">
+                        <FiImage class="w-4 h-4 text-accent" />
+                        Thumbnail URL
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        type="url"
+                        class="input input-bordered input-sm w-full"
+                        placeholder="https://example.com/image.jpg"
+                        value={deckThumbnail}
+                        onInput={(e) => setDeckThumbnail(e.currentTarget.value)}
+                      />
+                    </td>
+                    <td>
+                      <div class="badge badge-ghost">Optional</div>
+                    </td>
+                  </tr>
+                  <tr class="hover">
+                    <td class="font-medium">
+                      <div class="flex items-center gap-2">
+                        <FiHash class="w-4 h-4 text-info" />
+                        Quizlet Deck ID
+                      </div>
+                    </td>
+                    <td>
+                      <div class="join w-full">
+                        <input
+                          type="text"
+                          class={`input input-bordered input-sm join-item flex-1 ${
+                            !deckId.trim()
+                              ? "input-error"
+                              : /^\d+$/.test(deckId.trim())
+                              ? "input-success"
+                              : "input-warning"
+                          }`}
+                          placeholder="e.g., 48393"
+                          value={deckId}
+                          onInput={(e) => setDeckId(e.currentTarget.value)}
+                        />
+                        <button
+                          class="btn btn-primary btn-sm join-item"
+                          onClick={loadData}
+                          disabled={
+                            !deckId.trim() || !/^\d+$/.test(deckId.trim())
+                          }
+                        >
+                          <FiDownload class="w-4 h-4 mr-1" />
+                          Load Data
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="badge badge-error gap-1">
+                        <span class="text-xs">*</span>
+                        Required
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
+          {/* Private Deck Warning */}
+          {isPrivate && (
+            <div class="alert alert-warning shadow-lg animate-pulse">
+              <FiLock class="w-5 h-5" />
+              <div>
+                <h4 class="font-bold">Private Deck Detected</h4>
+                <p class="text-sm">
+                  This appears to be a private Quizlet deck. Private decks
+                  cannot be imported due to Quizlet restrictions. Make sure the
+                  deck is public and try again.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Iframe - only shown if direct fetch fails */}
           {showIframe && iframeUrl && (
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">
-                  API Response (Copy the JSON text from the iframe below)
-                </span>
-              </label>
+            <div class="bg-base-100 rounded-xl shadow-lg p-6">
+              <h4 class="font-semibold text-lg mb-4 flex items-center gap-2">
+                <FiExternalLink class="w-5 h-5" />
+                API Response
+              </h4>
+
+              <div class="alert alert-warning mb-4">
+                <FiAlertTriangle class="w-4 h-4" />
+                <div>
+                  <p class="text-sm">
+                    Direct loading failed. Copy the JSON text from the iframe
+                    below.
+                  </p>
+                </div>
+              </div>
+
               <div class="relative">
                 <iframe
                   src={iframeUrl}
-                  class="w-full h-64 border border-base-300 rounded-lg"
+                  class="w-full h-64 border-2 border-dashed border-base-300 rounded-lg bg-base-50"
                   title="Quizlet API Data"
                 />
                 <button
-                  class="btn btn-sm btn-outline absolute top-2 right-2"
+                  class="btn btn-sm btn-outline absolute top-2 right-2 shadow-lg hover:scale-105 transition-transform"
                   onClick={reloadIframe}
                 >
+                  <FiRefreshCw class="w-4 h-4 mr-1" />
                   Reload
                 </button>
               </div>
@@ -736,52 +942,100 @@ export function MigrationModal({
           )}
 
           {/* JSON Textarea */}
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Paste JSON Response Here *</span>
-            </label>
-            <textarea
-              class="textarea textarea-bordered h-32"
-              placeholder='Paste the JSON starting with {"responses":[...'
-              value={jsonText}
-              onInput={(e) => setJsonText(e.currentTarget.value)}
-            />
-            {jsonText && (
-              <div class="label">
-                <span class="label-text-alt text-success">
-                  ✓ JSON loaded successfully
-                </span>
+          <div class="bg-base-100 rounded-xl shadow-lg p-6">
+            <h4 class="font-semibold text-lg mb-4 flex items-center gap-2">
+              <FiCode class="w-5 h-5" />
+              JSON Data
+            </h4>
+
+            <div class="form-control">
+              <div class="relative">
+                <textarea
+                  class={`textarea textarea-bordered h-40 font-mono text-sm transition-all duration-300 ${
+                    jsonText
+                      ? "textarea-success focus:textarea-success"
+                      : "textarea-error"
+                  }`}
+                  placeholder='Paste the JSON starting with {"responses":[...'
+                  value={jsonText}
+                  onInput={(e) => setJsonText(e.currentTarget.value)}
+                />
+                <div class="absolute top-2 right-2 text-xs text-base-content/50 bg-base-200 px-2 py-1 rounded">
+                  Required for import
+                </div>
               </div>
-            )}
+              {jsonText && (
+                <div class="label mt-2">
+                  <span class="label-text-alt text-success flex items-center gap-1 animate-bounce">
+                    <FiCheckCircle class="w-4 h-4" />
+                    JSON loaded successfully
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Error Display */}
           {error && (
-            <div class="alert alert-error">
-              <span>{error}</span>
+            <div class="alert alert-error shadow-lg animate-fade-in">
+              <FiXCircle class="w-5 h-5" />
+              <div>
+                <h4 class="font-bold">Import Error</h4>
+                <p class="text-sm">{error}</p>
+              </div>
             </div>
           )}
 
           {/* Action Buttons */}
-          <div class="modal-action">
-            <button type="button" class="btn" onClick={onClose}>
-              Cancel
-            </button>
+          <div class="modal-action justify-between">
             <button
               type="button"
-              class="btn btn-primary"
-              onClick={importData}
-              disabled={!jsonText.trim() || importing}
+              class="btn btn-ghost"
+              onClick={onClose}
+              disabled={importing}
             >
-              {importing ? (
-                <>
-                  <span class="loading loading-spinner loading-sm"></span>
-                  Importing...
-                </>
-              ) : (
-                "Import Decks"
-              )}
+              <FiX class="w-4 h-4 mr-2" />
+              Cancel
             </button>
+            <div class="flex gap-3">
+              {!deckName.trim() && (
+                <div class="text-sm text-error flex items-center gap-1">
+                  <FiAlertTriangle class="w-4 h-4" />
+                  Deck name required
+                </div>
+              )}
+              {!jsonText.trim() && (
+                <div class="text-sm text-error flex items-center gap-1">
+                  <FiAlertTriangle class="w-4 h-4" />
+                  JSON data required
+                </div>
+              )}
+              <button
+                type="button"
+                class={`btn btn-primary btn-lg transition-all duration-300 ${
+                  deckName.trim() && jsonText.trim() && !isPrivate
+                    ? "hover:scale-105 shadow-lg"
+                    : "btn-disabled"
+                }`}
+                onClick={importData}
+                disabled={
+                  !deckName.trim() || !jsonText.trim() || importing || isPrivate
+                }
+              >
+                {importing ? (
+                  <>
+                    <span class="loading loading-spinner loading-sm"></span>
+                    <span class="animate-pulse">Importing...</span>
+                  </>
+                ) : (
+                  <>
+                    <FiDownload class="w-5 h-5 mr-2" />
+                    Import Deck
+                    <FiArrowRight class="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

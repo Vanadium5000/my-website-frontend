@@ -1,5 +1,6 @@
 import { useState, useEffect } from "preact/hooks";
 import { api } from "../../api/client";
+import { Session, User } from "../../api/api";
 import {
   FaBell,
   FaBellSlash,
@@ -67,6 +68,10 @@ const NOTIFICATION_METHODS: NotificationMethod[] = [
 ];
 
 export function NotificationsSettings(props: NotificationsSettingsProps) {
+  // User data state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
+
   // Core state management
   const [subscriptions, setSubscriptions] = useState<
     NotificationSubscription[]
@@ -217,7 +222,29 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
     };
   };
 
+  /**
+   * Load user data to check email verification status
+   */
+  const loadUserData = async () => {
+    try {
+      setUserLoading(true);
+      const sessionResponse = await api.auth.apiGetSessionList();
+
+      if (!sessionResponse.data) {
+        throw new Error("No session data received");
+      }
+
+      setCurrentUser(sessionResponse.data.user);
+    } catch (err: any) {
+      console.error("Notifications user data load error:", err);
+      // Don't set error here, let the main loading handle it
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
   useEffect(() => {
+    loadUserData();
     initializeNotifications();
   }, []);
 
@@ -653,9 +680,7 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
     } catch (err: any) {
       console.error("Toggle subscription error:", err);
       setError(
-        err?.error?.message ||
-          err?.message ||
-          "Failed to update notification settings"
+        "Failed to update notification settings, MAKE SURE YOU'VE VERIFIED YOUR EMAIL"
       );
     } finally {
       setUpdating(null);
@@ -741,7 +766,7 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
   };
 
   // Loading state
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center">
@@ -754,6 +779,29 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
+        {/* Email Verification Banner */}
+        {currentUser && !currentUser.emailVerified && (
+          <div className="alert alert-warning mb-6">
+            <FaExclamationTriangle />
+            <div>
+              <h3 className="font-bold">Email Not Verified</h3>
+              <div className="text-sm mt-1">
+                Your email address is not verified. Email notifications may not
+                be delivered reliably. Please verify your email to ensure you
+                receive all notifications.
+                <a
+                  href={`/email-verification?email=${encodeURIComponent(
+                    currentUser.email
+                  )}`}
+                  className="btn btn-sm btn-info ml-2"
+                >
+                  Verify Email
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <a href="/settings" className="btn btn-ghost btn-sm">
@@ -774,14 +822,16 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
               <div className="text-sm mt-1 space-y-1">
                 <div>
                   <strong>Browser Support:</strong>{" "}
-                  <span className="text-success">Supported</span>
+                  <span className="text-green-700 font-semibold">
+                    Supported
+                  </span>
                 </div>
                 <div>
                   <strong>Permission:</strong>{" "}
                   <span
                     className={`font-semibold ${
                       pushPermission === "granted"
-                        ? "text-success"
+                        ? "text-green-700"
                         : pushPermission === "denied"
                         ? "text-error"
                         : "text-warning"
@@ -798,7 +848,7 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
                   <strong>Service Worker:</strong>{" "}
                   <span
                     className={`font-semibold ${
-                      serviceWorkerRegistered ? "text-success" : "text-error"
+                      serviceWorkerRegistered ? "text-green-700" : "text-error"
                     }`}
                   >
                     {serviceWorkerRegistered ? "Registered" : "Failed"}

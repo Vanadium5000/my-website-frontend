@@ -4,6 +4,7 @@ interface GameCardProps {
   technicalSpecs: string;
   backgroundImage: string;
   href: string;
+  extraButtons?: { label: string; href: string }[];
 }
 
 export function GameCard({
@@ -12,6 +13,7 @@ export function GameCard({
   technicalSpecs,
   backgroundImage,
   href,
+  extraButtons = [],
 }: GameCardProps) {
   return (
     <a href={href}>
@@ -28,13 +30,22 @@ export function GameCard({
               </div>
             )}
           </div>
-          <div className="card-actions">
+          <div className="card-actions flex flex-wrap gap-2">
             <a
               href={href}
               className="btn btn-success px-6 py-3 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary group-hover:shadow-lg group-hover:shadow-primary/50"
             >
               Play Now
             </a>
+            {extraButtons.map((button, index) => (
+              <a
+                key={index}
+                href={button.href}
+                className="btn btn-outline btn-primary px-6 py-3 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary group-hover:shadow-lg group-hover:shadow-primary/50"
+              >
+                {button.label}
+              </a>
+            ))}
           </div>
         </div>
         {/* Background Image - Right Side */}
