@@ -21,6 +21,7 @@ import {
   FaCrown,
   FaUser,
 } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 
 interface QuizspireSettings {
   winCondition: "time" | "correct_answers" | "score";
@@ -503,583 +504,50 @@ export function QuizspireHost() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col lg:flex-row gap-8 justify-center">
-        {/* Main Content */}
-        <div className="card bg-base-100 shadow-xl w-full lg:w-2/3">
-          <div className="card-body">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() =>
-                    route(
-                      (query.referrer && decodeURIComponent(query.referrer)) ||
-                        "/projects/quizspire"
-                    )
-                  }
-                >
-                  <FaArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </button>
-                <h1 className="text-2xl font-bold">Quizspire Host</h1>
-              </div>
-              {lobby && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-base-content/70">
-                    Lobby Code:
-                  </span>
+    <>
+      <Helmet>
+        <title>Quizspire Host - Create Quiz Games</title>
+        <meta
+          name="description"
+          content="Host interactive quiz games with Quizspire. Create multiplayer quiz sessions, manage players, and track scores in real-time. Perfect for educational gaming and competitive learning."
+        />
+        <meta
+          name="keywords"
+          content="quizspire host, quiz games, multiplayer quiz, educational games, real-time scoring"
+        />
+        <link rel="canonical" href="/projects/quizspire/host" />
+        <meta
+          property="og:title"
+          content="Quizspire Host - Create Quiz Games"
+        />
+        <meta
+          property="og:description"
+          content="Host interactive quiz games with Quizspire. Create multiplayer quiz sessions, manage players, and track scores in real-time. Perfect for educational gaming and competitive learning."
+        />
+        <meta property="og:image" content="/quizspire.png" />
+        <meta property="og:url" content="/projects/quizspire/host" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Quizspire Host - Create Quiz Games"
+        />
+        <meta
+          name="twitter:description"
+          content="Host interactive quiz games with Quizspire. Create multiplayer quiz sessions, manage players, and track scores in real-time. Perfect for educational gaming and competitive learning."
+        />
+        <meta name="twitter:image" content="/quizspire.png" />
+      </Helmet>
+      <div className="container mx-auto p-4">
+        <div className="flex flex-col lg:flex-row gap-8 justify-center">
+          {/* Main Content */}
+          <div className="card bg-base-100 shadow-xl w-full lg:w-2/3">
+            <div className="card-body">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
                   <button
-                    className="btn btn-outline btn-sm"
-                    onClick={copyLobbyCode}
-                  >
-                    <FaCopy className="w-4 h-4 mr-2" />
-                    {lobby.code}
-                  </button>
-                  {copySuccess && (
-                    <span className="text-sm text-success">Copied!</span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Error Message */}
-            {errorMessage && (
-              <div className="alert alert-error mb-4">
-                <FaExclamationTriangle className="h-5 w-5" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            {/* Phase Content */}
-            {phase === "lobby" && (
-              <div className="text-center py-12">
-                <h2 className="text-xl font-semibold mb-4">
-                  Create or Join a Lobby
-                </h2>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => createLobby(query.deckId)}
-                    disabled={!myUserId}
-                  >
-                    <FaPlay className="w-4 h-4 mr-2" />
-                    Create Lobby
-                  </button>
-                  <button
-                    className="btn btn-outline"
-                    onClick={() => {
-                      const code = prompt("Enter lobby code:");
-                      if (code) {
-                        if (!myUserId) {
-                          const username = prompt("Enter your username:");
-                          if (username) {
-                            joinLobby(code, username);
-                          }
-                        } else {
-                          joinLobby(code);
-                        }
-                      }
-                    }}
-                  >
-                    <FaUsers className="w-4 h-4 mr-2" />
-                    Join Lobby
-                  </button>
-                </div>
-                {!myUserId && (
-                  <p className="text-sm text-base-content/70 mt-4">
-                    You can join as a guest, but creating a lobby requires
-                    login.
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Settings Phase - Configure game parameters */}
-
-            {phase === "settings" && lobby && (
-              <div>
-                <h2 className="text-xl font-semibold mb-4">Game Settings</h2>
-                <div className="overflow-x-auto mb-6">
-                  <table className="table table-zebra">
-                    <thead>
-                      <tr>
-                        <th>Setting</th>
-                        <th>Value</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="font-medium">Win Condition</td>
-                        <td>
-                          <select
-                            className="select select-bordered select-sm"
-                            value={settings.winCondition}
-                            onChange={(e) =>
-                              setSettings((prev) => ({
-                                ...prev,
-                                winCondition: (e.target as HTMLInputElement)
-                                  .value as
-                                  | "time"
-                                  | "correct_answers"
-                                  | "score",
-                              }))
-                            }
-                            disabled={
-                              !lobby?.players?.find(
-                                (p) => p.userId === myUserId
-                              )?.isHost
-                            }
-                          >
-                            <option value="correct_answers">
-                              Correct Answers
-                            </option>
-                            <option value="score">Score Threshold</option>
-                            <option value="time">Time Limit</option>
-                          </select>
-                        </td>
-                      </tr>
-                      {settings.winCondition === "correct_answers" ? (
-                        <tr>
-                          <td className="font-medium">
-                            Correct Answers Threshold
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              className="input input-bordered input-sm"
-                              value={settings.correctAnswersThreshold}
-                              onChange={(e) =>
-                                setSettings((prev) => ({
-                                  ...prev,
-                                  correctAnswersThreshold:
-                                    parseInt(
-                                      (e.target as HTMLInputElement).value
-                                    ) || 10,
-                                }))
-                              }
-                              min="1"
-                              disabled={
-                                !lobby?.players?.find(
-                                  (p) => p.userId === myUserId
-                                )?.isHost
-                              }
-                            />
-                          </td>
-                        </tr>
-                      ) : settings.winCondition === "score" ? (
-                        <tr>
-                          <td className="font-medium">Score Threshold</td>
-                          <td>
-                            <input
-                              type="number"
-                              className="input input-bordered input-sm"
-                              value={settings.scoreThreshold}
-                              onChange={(e) =>
-                                setSettings((prev) => ({
-                                  ...prev,
-                                  scoreThreshold:
-                                    parseInt(
-                                      (e.target as HTMLInputElement).value
-                                    ) || 1000,
-                                }))
-                              }
-                              min="1"
-                              disabled={
-                                !lobby?.players?.find(
-                                  (p) => p.userId === myUserId
-                                )?.isHost
-                              }
-                            />
-                          </td>
-                        </tr>
-                      ) : (
-                        <tr>
-                          <td className="font-medium">Time Limit (seconds)</td>
-                          <td>
-                            <input
-                              type="number"
-                              className="input input-bordered input-sm"
-                              value={settings.timeLimit}
-                              onChange={(e) =>
-                                setSettings((prev) => ({
-                                  ...prev,
-                                  timeLimit:
-                                    parseInt(
-                                      (e.target as HTMLInputElement).value
-                                    ) || 300,
-                                }))
-                              }
-                              min="60"
-                              disabled={
-                                !lobby?.players?.find(
-                                  (p) => p.userId === myUserId
-                                )?.isHost
-                              }
-                            />
-                          </td>
-                        </tr>
-                      )}
-                      <tr>
-                        <td className="font-medium">
-                          Question Time Limit (seconds)
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            className="input input-bordered input-sm"
-                            value={settings.questionTimeLimit}
-                            onChange={(e) =>
-                              setSettings((prev) => ({
-                                ...prev,
-                                questionTimeLimit:
-                                  parseInt(
-                                    (e.target as HTMLInputElement).value
-                                  ) || 30,
-                              }))
-                            }
-                            min="5"
-                            max="120"
-                            disabled={
-                              !lobby?.players?.find(
-                                (p) => p.userId === myUserId
-                              )?.isHost
-                            }
-                          />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="font-medium">
-                          Reset on Incorrect Answer
-                        </td>
-                        <td>
-                          <input
-                            type="checkbox"
-                            className="toggle toggle-sm"
-                            checked={settings.resetOnIncorrect}
-                            onChange={(e) =>
-                              setSettings((prev) => ({
-                                ...prev,
-                                resetOnIncorrect: (e.target as HTMLInputElement)
-                                  .checked,
-                              }))
-                            }
-                            disabled={
-                              !lobby.players.find((p) => p.userId === myUserId)
-                                ?.isHost
-                            }
-                          />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="font-medium">Allow Late Join</td>
-                        <td>
-                          <input
-                            type="checkbox"
-                            className="toggle toggle-sm"
-                            checked={settings.allowLateJoin}
-                            onChange={(e) =>
-                              setSettings((prev) => ({
-                                ...prev,
-                                allowLateJoin: (e.target as HTMLInputElement)
-                                  .checked,
-                              }))
-                            }
-                            disabled={
-                              !lobby.players.find((p) => p.userId === myUserId)
-                                ?.isHost
-                            }
-                          />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="font-medium">Host Participates</td>
-                        <td>
-                          <input
-                            type="checkbox"
-                            className="toggle toggle-sm"
-                            checked={settings.hostParticipates}
-                            onChange={(e) =>
-                              setSettings((prev) => ({
-                                ...prev,
-                                hostParticipates: (e.target as HTMLInputElement)
-                                  .checked,
-                              }))
-                            }
-                            disabled={
-                              !lobby.players.find((p) => p.userId === myUserId)
-                                ?.isHost
-                            }
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="alert alert-info mb-4">
-                  <FaExclamationTriangle className="h-5 w-5" />
-                  <div>
-                    <div className="font-bold">Host Participates</div>
-                    <div>
-                      When disabled, the game ends immediately regardless of
-                      whether the host has answered the current question.
-                    </div>
-                  </div>
-                </div>
-
-                {lobby?.players?.find((p) => p.userId === myUserId)?.isHost ? (
-                  <div className="flex justify-center">
-                    <button
-                      className="btn btn-success btn-lg"
-                      onClick={startGame}
-                      disabled={
-                        lobby.players.length <
-                        (settings.hostParticipates ? 1 : 2)
-                      }
-                    >
-                      <FaPlay className="w-5 h-5 mr-2" />
-                      Start Game
-                    </button>
-                  </div>
-                ) : (
-                  <div className="text-center text-base-content/70">
-                    <FaCog className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p>Waiting for host to start the game...</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Playing Phase - Display question and answer options */}
-            {phase === "playing" && currentQuestion && (
-              <div>
-                <div className="text-center mb-6">
-                  <div className="text-2xl font-bold mb-2">
-                    Question {currentQuestion.questionIndex + 1}
-                  </div>
-                  <div className="text-lg text-warning font-semibold">
-                    Time Left: {timeLeft}s
-                  </div>
-                  {answerFeedback && (
-                    <div
-                      className={`alert ${
-                        answerFeedback.isCorrect
-                          ? "alert-success"
-                          : "alert-error"
-                      } mt-4`}
-                    >
-                      <span>
-                        {answerFeedback.isCorrect ? "Correct!" : "Incorrect!"}
-                        Points gained: {answerFeedback.pointsGained}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mb-8 p-6 bg-base-200 rounded-lg">
-                  <div className="text-center">
-                    {currentQuestion.question.map((element, index) => (
-                      <div key={index} className="mb-2">
-                        {renderContentElement(element)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {currentQuestion.options.map((option, index) => (
-                    <button
-                      key={index}
-                      className={`btn btn-lg h-auto py-4 ${
-                        selectedAnswer === index
-                          ? answerFeedback?.correctIndex === index
-                            ? "btn-success"
-                            : "btn-error"
-                          : selectedAnswer !== null
-                          ? answerFeedback?.correctIndex === index
-                            ? "btn-success"
-                            : "btn-disabled"
-                          : "btn-outline"
-                      }`}
-                      onClick={() => submitAnswer(index)}
-                      disabled={selectedAnswer !== null}
-                    >
-                      <div className="text-left w-full">
-                        {option.map((element, i) => (
-                          <div key={i} className="mb-1">
-                            {renderContentElement(element)}
-                          </div>
-                        ))}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Results Phase - Show question results and player answers */}
-
-            {phase === "results" && questionResults && (
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-center">
-                  Question {questionResults.questionIndex + 1} Results
-                </h2>
-
-                <div className="mb-6 p-4 bg-base-200 rounded-lg">
-                  <div className="text-center">
-                    <div className="text-lg font-semibold mb-2">
-                      Correct Answer:
-                    </div>
-                    <div className="text-success font-bold">
-                      {currentQuestion?.options[
-                        questionResults.correctIndex
-                      ]?.map((element, i) => (
-                        <div key={i}>{renderContentElement(element)}</div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {questionResults.results.map((result) => {
-                    const profile = getPlayerProfile(result.userId);
-                    return (
-                      <div
-                        key={result.userId}
-                        className={`flex items-center justify-between p-3 rounded-lg ${
-                          result.isGuest
-                            ? "bg-base-300 border border-info/20"
-                            : "bg-base-200"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <ProfilePicture
-                            name={profile.name}
-                            image={profile.image}
-                            widthClass="w-8"
-                          />
-                          <span className="font-medium flex items-center gap-2">
-                            {profile.name}
-                            {result.isGuest && (
-                              <FaUser className="w-3 h-3 text-info" />
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span
-                            className={`font-bold ${
-                              result.isCorrect ? "text-success" : "text-error"
-                            }`}
-                          >
-                            {result.isCorrect ? (
-                              <>
-                                <FaCheck className="inline w-4 h-4 mr-1" />{" "}
-                                Correct
-                              </>
-                            ) : (
-                              <>
-                                <FaTimes className="inline w-4 h-4 mr-1" />{" "}
-                                Incorrect
-                              </>
-                            )}
-                          </span>
-                          <span className="text-sm text-base-content/70">
-                            Score: {result.score}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Ended Phase - Display final results and winner */}
-            {phase === "ended" && gameEndData && (
-              <div className="text-center">
-                <div className="mb-6">
-                  <FaTrophy className="w-16 h-16 text-warning mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold mb-2">Game Over!</h2>
-                  <p className="text-base-content/70">{gameEndData.reason}</p>
-                </div>
-
-                <div className="mb-6">
-                  <h3 className="text-xl font-semibold mb-4">Winner</h3>
-                  <div className="flex items-center justify-center gap-4 p-4 bg-warning/10 rounded-lg">
-                    <ProfilePicture
-                      name={getPlayerProfile(gameEndData.winner.userId).name}
-                      image={getPlayerProfile(gameEndData.winner.userId).image}
-                      widthClass="w-12"
-                    />
-                    <div>
-                      <div className="text-lg font-bold flex items-center gap-2">
-                        {gameEndData.winner.username}
-                        {gameEndData.winner.isGuest && (
-                          <FaUser className="w-4 h-4 text-info" />
-                        )}
-                      </div>
-                      <div className="text-sm text-base-content/70">
-                        {gameEndData.winner.score} points •{" "}
-                        {gameEndData.winner.correctAnswers} correct
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-4">Final Scores</h3>
-                  <div className="space-y-2">
-                    {gameEndData.finalScores.map((score, index) => {
-                      const profile = getPlayerProfile(score.userId);
-                      return (
-                        <div
-                          key={score.userId}
-                          className={`flex items-center justify-between p-3 rounded-lg ${
-                            score.isGuest
-                              ? "bg-base-300 border border-info/20"
-                              : "bg-base-200"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="font-bold text-lg w-8">
-                              {index + 1}.
-                            </span>
-                            <ProfilePicture
-                              name={profile.name}
-                              image={profile.image}
-                              widthClass="w-8"
-                            />
-                            <span className="font-medium flex items-center gap-2">
-                              {profile.name}
-                              {score.isGuest && (
-                                <FaUser className="w-3 h-3 text-info" />
-                              )}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-bold">{score.score} pts</div>
-                            <div className="text-sm text-base-content/70">
-                              {score.correctAnswers} correct
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="flex gap-4 justify-center">
-                  {lobby?.players?.find((p) => p.userId === myUserId)
-                    ?.isHost && (
-                    <button className="btn btn-success" onClick={restartGame}>
-                      <FaPlay className="w-4 h-4 mr-2" />
-                      Restart Game
-                    </button>
-                  )}
-                  <button
-                    className="btn btn-primary"
+                    className="btn btn-ghost btn-sm"
                     onClick={() =>
                       route(
                         (query.referrer &&
@@ -1089,103 +557,682 @@ export function QuizspireHost() {
                     }
                   >
                     <FaArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Quizspire
+                    Back
                   </button>
+                  <h1 className="text-2xl font-bold">Quizspire Host</h1>
                 </div>
-              </div>
-            )}
-
-            {/* Sidebar - Player list and leaderboard */}
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="card bg-base-100 shadow-xl w-full lg:w-1/3">
-          <div className="card-body">
-            <h2 className="card-title mb-4">
-              <FaUsers className="w-5 h-5 mr-2" />
-              Players ({lobby?.players.length || 0})
-            </h2>
-
-            {lobby && (
-              <div className="space-y-3">
-                {lobby.players.map((player) =>
-                  renderPlayerItem(
-                    player,
-                    lobby?.players?.find((p) => p.userId === myUserId)
-                      ?.isHost && player.userId !== myUserId
-                  )
+                {lobby && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-base-content/70">
+                      Lobby Code:
+                    </span>
+                    <button
+                      className="btn btn-outline btn-sm"
+                      onClick={copyLobbyCode}
+                    >
+                      <FaCopy className="w-4 h-4 mr-2" />
+                      {lobby.code}
+                    </button>
+                    {copySuccess && (
+                      <span className="text-sm text-success">Copied!</span>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
 
-            {/* Leaderboard - Shows current standings during gameplay */}
-            {leaderboard.length > 0 && (
-              <div className="mt-6">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <FaTrophy className="w-4 h-4 text-warning" />
-                  Leaderboard
-                </h3>
-                <div className="space-y-2">
-                  {leaderboard.map((entry, index) => {
-                    const profile = getPlayerProfile(entry.userId);
-                    return (
-                      <div
-                        key={entry.userId}
-                        className={`flex items-center justify-between p-2 rounded ${
-                          entry.isGuest
-                            ? "bg-base-300 border border-info/20"
-                            : "bg-base-200"
-                        }`}
+              {/* Error Message */}
+              {errorMessage && (
+                <div className="alert alert-error mb-4">
+                  <FaExclamationTriangle className="h-5 w-5" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Phase Content */}
+              {phase === "lobby" && (
+                <div className="text-center py-12">
+                  <h2 className="text-xl font-semibold mb-4">
+                    Create or Join a Lobby
+                  </h2>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => createLobby(query.deckId)}
+                      disabled={!myUserId}
+                    >
+                      <FaPlay className="w-4 h-4 mr-2" />
+                      Create Lobby
+                    </button>
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => {
+                        const code = prompt("Enter lobby code:");
+                        if (code) {
+                          if (!myUserId) {
+                            const username = prompt("Enter your username:");
+                            if (username) {
+                              joinLobby(code, username);
+                            }
+                          } else {
+                            joinLobby(code);
+                          }
+                        }
+                      }}
+                    >
+                      <FaUsers className="w-4 h-4 mr-2" />
+                      Join Lobby
+                    </button>
+                  </div>
+                  {!myUserId && (
+                    <p className="text-sm text-base-content/70 mt-4">
+                      You can join as a guest, but creating a lobby requires
+                      login.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Settings Phase - Configure game parameters */}
+
+              {phase === "settings" && lobby && (
+                <div>
+                  <h2 className="text-xl font-semibold mb-4">Game Settings</h2>
+                  <div className="overflow-x-auto mb-6">
+                    <table className="table table-zebra">
+                      <thead>
+                        <tr>
+                          <th>Setting</th>
+                          <th>Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="font-medium">Win Condition</td>
+                          <td>
+                            <select
+                              className="select select-bordered select-sm"
+                              value={settings.winCondition}
+                              onChange={(e) =>
+                                setSettings((prev) => ({
+                                  ...prev,
+                                  winCondition: (e.target as HTMLInputElement)
+                                    .value as
+                                    | "time"
+                                    | "correct_answers"
+                                    | "score",
+                                }))
+                              }
+                              disabled={
+                                !lobby?.players?.find(
+                                  (p) => p.userId === myUserId
+                                )?.isHost
+                              }
+                            >
+                              <option value="correct_answers">
+                                Correct Answers
+                              </option>
+                              <option value="score">Score Threshold</option>
+                              <option value="time">Time Limit</option>
+                            </select>
+                          </td>
+                        </tr>
+                        {settings.winCondition === "correct_answers" ? (
+                          <tr>
+                            <td className="font-medium">
+                              Correct Answers Threshold
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className="input input-bordered input-sm"
+                                value={settings.correctAnswersThreshold}
+                                onChange={(e) =>
+                                  setSettings((prev) => ({
+                                    ...prev,
+                                    correctAnswersThreshold:
+                                      parseInt(
+                                        (e.target as HTMLInputElement).value
+                                      ) || 10,
+                                  }))
+                                }
+                                min="1"
+                                disabled={
+                                  !lobby?.players?.find(
+                                    (p) => p.userId === myUserId
+                                  )?.isHost
+                                }
+                              />
+                            </td>
+                          </tr>
+                        ) : settings.winCondition === "score" ? (
+                          <tr>
+                            <td className="font-medium">Score Threshold</td>
+                            <td>
+                              <input
+                                type="number"
+                                className="input input-bordered input-sm"
+                                value={settings.scoreThreshold}
+                                onChange={(e) =>
+                                  setSettings((prev) => ({
+                                    ...prev,
+                                    scoreThreshold:
+                                      parseInt(
+                                        (e.target as HTMLInputElement).value
+                                      ) || 1000,
+                                  }))
+                                }
+                                min="1"
+                                disabled={
+                                  !lobby?.players?.find(
+                                    (p) => p.userId === myUserId
+                                  )?.isHost
+                                }
+                              />
+                            </td>
+                          </tr>
+                        ) : (
+                          <tr>
+                            <td className="font-medium">
+                              Time Limit (seconds)
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className="input input-bordered input-sm"
+                                value={settings.timeLimit}
+                                onChange={(e) =>
+                                  setSettings((prev) => ({
+                                    ...prev,
+                                    timeLimit:
+                                      parseInt(
+                                        (e.target as HTMLInputElement).value
+                                      ) || 300,
+                                  }))
+                                }
+                                min="60"
+                                disabled={
+                                  !lobby?.players?.find(
+                                    (p) => p.userId === myUserId
+                                  )?.isHost
+                                }
+                              />
+                            </td>
+                          </tr>
+                        )}
+                        <tr>
+                          <td className="font-medium">
+                            Question Time Limit (seconds)
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              className="input input-bordered input-sm"
+                              value={settings.questionTimeLimit}
+                              onChange={(e) =>
+                                setSettings((prev) => ({
+                                  ...prev,
+                                  questionTimeLimit:
+                                    parseInt(
+                                      (e.target as HTMLInputElement).value
+                                    ) || 30,
+                                }))
+                              }
+                              min="5"
+                              max="120"
+                              disabled={
+                                !lobby?.players?.find(
+                                  (p) => p.userId === myUserId
+                                )?.isHost
+                              }
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="font-medium">
+                            Reset on Incorrect Answer
+                          </td>
+                          <td>
+                            <input
+                              type="checkbox"
+                              className="toggle toggle-sm"
+                              checked={settings.resetOnIncorrect}
+                              onChange={(e) =>
+                                setSettings((prev) => ({
+                                  ...prev,
+                                  resetOnIncorrect: (
+                                    e.target as HTMLInputElement
+                                  ).checked,
+                                }))
+                              }
+                              disabled={
+                                !lobby.players.find(
+                                  (p) => p.userId === myUserId
+                                )?.isHost
+                              }
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="font-medium">Allow Late Join</td>
+                          <td>
+                            <input
+                              type="checkbox"
+                              className="toggle toggle-sm"
+                              checked={settings.allowLateJoin}
+                              onChange={(e) =>
+                                setSettings((prev) => ({
+                                  ...prev,
+                                  allowLateJoin: (e.target as HTMLInputElement)
+                                    .checked,
+                                }))
+                              }
+                              disabled={
+                                !lobby.players.find(
+                                  (p) => p.userId === myUserId
+                                )?.isHost
+                              }
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="font-medium">Host Participates</td>
+                          <td>
+                            <input
+                              type="checkbox"
+                              className="toggle toggle-sm"
+                              checked={settings.hostParticipates}
+                              onChange={(e) =>
+                                setSettings((prev) => ({
+                                  ...prev,
+                                  hostParticipates: (
+                                    e.target as HTMLInputElement
+                                  ).checked,
+                                }))
+                              }
+                              disabled={
+                                !lobby.players.find(
+                                  (p) => p.userId === myUserId
+                                )?.isHost
+                              }
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="alert alert-info mb-4">
+                    <FaExclamationTriangle className="h-5 w-5" />
+                    <div>
+                      <div className="font-bold">Host Participates</div>
+                      <div>
+                        When disabled, the game ends immediately regardless of
+                        whether the host has answered the current question.
+                      </div>
+                    </div>
+                  </div>
+
+                  {lobby?.players?.find((p) => p.userId === myUserId)
+                    ?.isHost ? (
+                    <div className="flex justify-center">
+                      <button
+                        className="btn btn-success btn-lg"
+                        onClick={startGame}
+                        disabled={
+                          lobby.players.length <
+                          (settings.hostParticipates ? 1 : 2)
+                        }
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold w-6">{index + 1}.</span>
-                          <ProfilePicture
-                            name={profile.name}
-                            image={profile.image}
-                            widthClass="w-6"
-                          />
-                          <span className="text-sm flex items-center gap-1">
-                            {profile.name}
-                            {entry.isGuest && (
-                              <FaUser className="w-3 h-3 text-info" />
-                            )}
-                          </span>
+                        <FaPlay className="w-5 h-5 mr-2" />
+                        Start Game
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center text-base-content/70">
+                      <FaCog className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>Waiting for host to start the game...</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Playing Phase - Display question and answer options */}
+              {phase === "playing" && currentQuestion && (
+                <div>
+                  <div className="text-center mb-6">
+                    <div className="text-2xl font-bold mb-2">
+                      Question {currentQuestion.questionIndex + 1}
+                    </div>
+                    <div className="text-lg text-warning font-semibold">
+                      Time Left: {timeLeft}s
+                    </div>
+                    {answerFeedback && (
+                      <div
+                        className={`alert ${
+                          answerFeedback.isCorrect
+                            ? "alert-success"
+                            : "alert-error"
+                        } mt-4`}
+                      >
+                        <span>
+                          {answerFeedback.isCorrect ? "Correct!" : "Incorrect!"}
+                          Points gained: {answerFeedback.pointsGained}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mb-8 p-6 bg-base-200 rounded-lg">
+                    <div className="text-center">
+                      {currentQuestion.question.map((element, index) => (
+                        <div key={index} className="mb-2">
+                          {renderContentElement(element)}
                         </div>
-                        <div className="text-right text-sm">
-                          <div className="font-bold">{entry.score}</div>
-                          <div className="text-base-content/70">
-                            {entry.correctAnswers} correct
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {currentQuestion.options.map((option, index) => (
+                      <button
+                        key={index}
+                        className={`btn btn-lg h-auto py-4 ${
+                          selectedAnswer === index
+                            ? answerFeedback?.correctIndex === index
+                              ? "btn-success"
+                              : "btn-error"
+                            : selectedAnswer !== null
+                            ? answerFeedback?.correctIndex === index
+                              ? "btn-success"
+                              : "btn-disabled"
+                            : "btn-outline"
+                        }`}
+                        onClick={() => submitAnswer(index)}
+                        disabled={selectedAnswer !== null}
+                      >
+                        <div className="text-left w-full">
+                          {option.map((element, i) => (
+                            <div key={i} className="mb-1">
+                              {renderContentElement(element)}
+                            </div>
+                          ))}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Results Phase - Show question results and player answers */}
+
+              {phase === "results" && questionResults && (
+                <div>
+                  <h2 className="text-xl font-semibold mb-4 text-center">
+                    Question {questionResults.questionIndex + 1} Results
+                  </h2>
+
+                  <div className="mb-6 p-4 bg-base-200 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold mb-2">
+                        Correct Answer:
+                      </div>
+                      <div className="text-success font-bold">
+                        {currentQuestion?.options[
+                          questionResults.correctIndex
+                        ]?.map((element, i) => (
+                          <div key={i}>{renderContentElement(element)}</div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {questionResults.results.map((result) => {
+                      const profile = getPlayerProfile(result.userId);
+                      return (
+                        <div
+                          key={result.userId}
+                          className={`flex items-center justify-between p-3 rounded-lg ${
+                            result.isGuest
+                              ? "bg-base-300 border border-info/20"
+                              : "bg-base-200"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <ProfilePicture
+                              name={profile.name}
+                              image={profile.image}
+                              widthClass="w-8"
+                            />
+                            <span className="font-medium flex items-center gap-2">
+                              {profile.name}
+                              {result.isGuest && (
+                                <FaUser className="w-3 h-3 text-info" />
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span
+                              className={`font-bold ${
+                                result.isCorrect ? "text-success" : "text-error"
+                              }`}
+                            >
+                              {result.isCorrect ? (
+                                <>
+                                  <FaCheck className="inline w-4 h-4 mr-1" />{" "}
+                                  Correct
+                                </>
+                              ) : (
+                                <>
+                                  <FaTimes className="inline w-4 h-4 mr-1" />{" "}
+                                  Incorrect
+                                </>
+                              )}
+                            </span>
+                            <span className="text-sm text-base-content/70">
+                              Score: {result.score}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {lobby && lobby.players.length < 2 && (
-              <div className="alert alert-info mt-4">
-                <FaShare className="w-4 h-4" />
-                <span>Share the lobby code with friends to join!</span>
-              </div>
-            )}
+              {/* Ended Phase - Display final results and winner */}
+              {phase === "ended" && gameEndData && (
+                <div className="text-center">
+                  <div className="mb-6">
+                    <FaTrophy className="w-16 h-16 text-warning mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Game Over!</h2>
+                    <p className="text-base-content/70">{gameEndData.reason}</p>
+                  </div>
 
-            {phase !== "ended" && (
-              <div className="mt-6">
-                <button
-                  className="btn btn-outline btn-error w-full"
-                  onClick={leaveLobby}
-                >
-                  <FaArrowLeft className="w-4 h-4 mr-2" />
-                  Leave Lobby
-                </button>
-              </div>
-            )}
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold mb-4">Winner</h3>
+                    <div className="flex items-center justify-center gap-4 p-4 bg-warning/10 rounded-lg">
+                      <ProfilePicture
+                        name={getPlayerProfile(gameEndData.winner.userId).name}
+                        image={
+                          getPlayerProfile(gameEndData.winner.userId).image
+                        }
+                        widthClass="w-12"
+                      />
+                      <div>
+                        <div className="text-lg font-bold flex items-center gap-2">
+                          {gameEndData.winner.username}
+                          {gameEndData.winner.isGuest && (
+                            <FaUser className="w-4 h-4 text-info" />
+                          )}
+                        </div>
+                        <div className="text-sm text-base-content/70">
+                          {gameEndData.winner.score} points •{" "}
+                          {gameEndData.winner.correctAnswers} correct
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-4">Final Scores</h3>
+                    <div className="space-y-2">
+                      {gameEndData.finalScores.map((score, index) => {
+                        const profile = getPlayerProfile(score.userId);
+                        return (
+                          <div
+                            key={score.userId}
+                            className={`flex items-center justify-between p-3 rounded-lg ${
+                              score.isGuest
+                                ? "bg-base-300 border border-info/20"
+                                : "bg-base-200"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="font-bold text-lg w-8">
+                                {index + 1}.
+                              </span>
+                              <ProfilePicture
+                                name={profile.name}
+                                image={profile.image}
+                                widthClass="w-8"
+                              />
+                              <span className="font-medium flex items-center gap-2">
+                                {profile.name}
+                                {score.isGuest && (
+                                  <FaUser className="w-3 h-3 text-info" />
+                                )}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold">{score.score} pts</div>
+                              <div className="text-sm text-base-content/70">
+                                {score.correctAnswers} correct
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 justify-center">
+                    {lobby?.players?.find((p) => p.userId === myUserId)
+                      ?.isHost && (
+                      <button className="btn btn-success" onClick={restartGame}>
+                        <FaPlay className="w-4 h-4 mr-2" />
+                        Restart Game
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() =>
+                        route(
+                          (query.referrer &&
+                            decodeURIComponent(query.referrer)) ||
+                            "/projects/quizspire"
+                        )
+                      }
+                    >
+                      <FaArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Quizspire
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Sidebar - Player list and leaderboard */}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="card bg-base-100 shadow-xl w-full lg:w-1/3">
+            <div className="card-body">
+              <h2 className="card-title mb-4">
+                <FaUsers className="w-5 h-5 mr-2" />
+                Players ({lobby?.players.length || 0})
+              </h2>
+
+              {lobby && (
+                <div className="space-y-3">
+                  {lobby.players.map((player) =>
+                    renderPlayerItem(
+                      player,
+                      lobby?.players?.find((p) => p.userId === myUserId)
+                        ?.isHost && player.userId !== myUserId
+                    )
+                  )}
+                </div>
+              )}
+
+              {/* Leaderboard - Shows current standings during gameplay */}
+              {leaderboard.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <FaTrophy className="w-4 h-4 text-warning" />
+                    Leaderboard
+                  </h3>
+                  <div className="space-y-2">
+                    {leaderboard.map((entry, index) => {
+                      const profile = getPlayerProfile(entry.userId);
+                      return (
+                        <div
+                          key={entry.userId}
+                          className={`flex items-center justify-between p-2 rounded ${
+                            entry.isGuest
+                              ? "bg-base-300 border border-info/20"
+                              : "bg-base-200"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold w-6">{index + 1}.</span>
+                            <ProfilePicture
+                              name={profile.name}
+                              image={profile.image}
+                              widthClass="w-6"
+                            />
+                            <span className="text-sm flex items-center gap-1">
+                              {profile.name}
+                              {entry.isGuest && (
+                                <FaUser className="w-3 h-3 text-info" />
+                              )}
+                            </span>
+                          </div>
+                          <div className="text-right text-sm">
+                            <div className="font-bold">{entry.score}</div>
+                            <div className="text-base-content/70">
+                              {entry.correctAnswers} correct
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {lobby && lobby.players.length < 2 && (
+                <div className="alert alert-info mt-4">
+                  <FaShare className="w-4 h-4" />
+                  <span>Share the lobby code with friends to join!</span>
+                </div>
+              )}
+
+              {phase !== "ended" && (
+                <div className="mt-6">
+                  <button
+                    className="btn btn-outline btn-error w-full"
+                    onClick={leaveLobby}
+                  >
+                    <FaArrowLeft className="w-4 h-4 mr-2" />
+                    Leave Lobby
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

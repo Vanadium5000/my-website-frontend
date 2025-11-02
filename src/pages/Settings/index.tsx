@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "preact/hooks";
 import { api } from "../../api/client";
 import { Session, User } from "../../api/api";
@@ -87,6 +88,33 @@ export function Settings(props: SettingsPageProps) {
 
   return (
     <>
+      <Helmet>
+        <title>Settings - My Website</title>
+        <meta
+          name="description"
+          content="Manage your account settings including profile information, password, notifications, connected accounts, and session management."
+        />
+        <meta
+          name="keywords"
+          content="settings, account settings, profile settings, user preferences, account management"
+        />
+        <link rel="canonical" href="/settings" />
+        <meta property="og:title" content="Settings - My Website" />
+        <meta
+          property="og:description"
+          content="Manage your account settings including profile information, password, notifications, connected accounts, and session management."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/settings" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Settings - My Website" />
+        <meta
+          name="twitter:description"
+          content="Manage your account settings including profile information, password, notifications, connected accounts, and session management."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Account Settings</h1>

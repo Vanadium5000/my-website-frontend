@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /login
+Disallow: /signup
+Disallow: /email-verification
+Sitemap: https://mywebsite.com/sitemap.xml

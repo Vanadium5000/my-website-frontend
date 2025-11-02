@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "preact/hooks";
 import { api } from "../../api/client";
 import { Session } from "../../api/api";
@@ -191,6 +192,33 @@ export function SessionsSettings(props: SessionsProps) {
 
   return (
     <>
+      <Helmet>
+        <title>Active Sessions - My Website</title>
+        <meta
+          name="description"
+          content="View and manage your active login sessions across different devices and browsers. Monitor security and revoke access from suspicious sessions."
+        />
+        <meta
+          name="keywords"
+          content="active sessions, session management, device management, security, revoke sessions"
+        />
+        <link rel="canonical" href="/settings/sessions" />
+        <meta property="og:title" content="Active Sessions - My Website" />
+        <meta
+          property="og:description"
+          content="View and manage your active login sessions across different devices and browsers. Monitor security and revoke access from suspicious sessions."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/settings/sessions" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Active Sessions - My Website" />
+        <meta
+          name="twitter:description"
+          content="View and manage your active login sessions across different devices and browsers. Monitor security and revoke access from suspicious sessions."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

@@ -4,6 +4,7 @@ import { IoTimer } from "react-icons/io5";
 import { IoMdTrophy } from "react-icons/io";
 import { api } from "../../api/client";
 import { GoStop } from "react-icons/go";
+import { Helmet } from "react-helmet-async";
 
 type Range = {
   min1: number;
@@ -206,6 +207,39 @@ export function Arithmetic() {
   if (gameState === "start") {
     return (
       <>
+        <Helmet>
+          <title>Arithmetic Trainer - Math Learning Game</title>
+          <meta
+            name="description"
+            content="Challenge your mental arithmetic skills with this math learning game. Practice addition, subtraction, multiplication, and division with customizable difficulty and timed challenges."
+          />
+          <meta
+            name="keywords"
+            content="arithmetic, math game, mental math, addition, subtraction, multiplication, division, learning"
+          />
+          <link rel="canonical" href="/projects/arithmetic" />
+          <meta
+            property="og:title"
+            content="Arithmetic Trainer - Math Learning Game"
+          />
+          <meta
+            property="og:description"
+            content="Challenge your mental arithmetic skills with this math learning game. Practice addition, subtraction, multiplication, and division with customizable difficulty and timed challenges."
+          />
+          <meta property="og:image" content="/stragedy-rush.png" />
+          <meta property="og:url" content="/projects/arithmetic" />
+          <meta property="og:type" content="website" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta
+            name="twitter:title"
+            content="Arithmetic Trainer - Math Learning Game"
+          />
+          <meta
+            name="twitter:description"
+            content="Challenge your mental arithmetic skills with this math learning game. Practice addition, subtraction, multiplication, and division with customizable difficulty and timed challenges."
+          />
+          <meta name="twitter:image" content="/stragedy-rush.png" />
+        </Helmet>
         <div className="bg-base-100 mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full p-4">
           <h1 className="text-2xl font-bold mb-4">Arithmetic Game</h1>
           <p className="mb-4">

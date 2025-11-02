@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState } from "preact/hooks";
 import { api } from "../../api/client";
 import { useLocation } from "preact-iso";
@@ -103,6 +104,33 @@ export function PasswordSettings(props: PasswordSettingsProps) {
 
   return (
     <>
+      <Helmet>
+        <title>Password Settings - My Website</title>
+        <meta
+          name="description"
+          content="Change your account password securely. Update your login credentials and optionally revoke other active sessions."
+        />
+        <meta
+          name="keywords"
+          content="password settings, change password, account security, password update, session management"
+        />
+        <link rel="canonical" href="/settings/password" />
+        <meta property="og:title" content="Password Settings - My Website" />
+        <meta
+          property="og:description"
+          content="Change your account password securely. Update your login credentials and optionally revoke other active sessions."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/settings/password" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Password Settings - My Website" />
+        <meta
+          name="twitter:description"
+          content="Change your account password securely. Update your login credentials and optionally revoke other active sessions."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

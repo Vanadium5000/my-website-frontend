@@ -10,6 +10,7 @@ import DOMPurify from "dompurify"; // HTML SANITIZATION
 import Fuse from "fuse.js";
 import { IoSearch, IoDocumentText } from "react-icons/io5";
 import { BlogIndexSchema } from "../../api/api.js";
+import { Helmet } from "react-helmet-async";
 
 export type BlogPostType = BlogIndexSchema;
 export interface CommentType {
@@ -100,6 +101,18 @@ export function BlogHome() {
 
   return (
     <>
+      <Helmet>
+        <title>Blog - My Website</title>
+        <meta
+          name="description"
+          content="Explore articles and insights on web development, programming, and gaming. Stay updated with the latest tutorials, tips, and trends in technology."
+        />
+        <meta
+          name="keywords"
+          content="blog, web development, programming, gaming, tutorials, technology, insights, articles"
+        />
+        <link rel="canonical" href={`${window.location.origin}/blog`} />
+      </Helmet>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Blog Posts</h1>
         <div className="mb-4">

@@ -10,6 +10,7 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { fetchDeck } from "../../../utils/quizspire";
+import { Helmet } from "react-helmet-async";
 
 /**
  * Interface for a quiz question with multiple choice options
@@ -365,116 +366,147 @@ export function QuizspireLearn({ id }: { id: string }) {
   const currentQuestion = session.questions[session.currentQuestionIndex];
 
   return (
-    <div class="container mx-auto px-4 py-8">
-      <div class="max-w-2xl mx-auto">
-        {/* Header */}
-        <div class="flex items-center justify-between mb-6">
-          <button
-            class="btn btn-ghost"
-            onClick={() =>
-              route(
-                (query.referrer && decodeURIComponent(query.referrer)) ||
-                  "/projects/quizspire"
-              )
-            }
-          >
-            <FiArrowLeft class="w-4 h-4 mr-2" />
-            Back
-          </button>
-          <div class="text-center">
-            <h1 class="text-xl font-bold">{deck.title}</h1>
-            <p class="text-sm text-base-content/70">Learn Mode</p>
-          </div>
-          <div class="text-right">
-            <div class="text-sm font-medium">
-              {session.currentQuestionIndex + 1} / {session.questions.length}
-            </div>
-            <div class="text-xs text-base-content/50">
-              {correctAnswers} correct
-            </div>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div class="mb-8">
-          <progress
-            class="progress progress-primary w-full"
-            value={progress}
-            max="100"
-          ></progress>
-        </div>
-
-        {/* Question */}
-        <div class="card bg-base-100 shadow-xl mb-6">
-          <div class="card-body">
-            <h2 class="card-title text-xl mb-4">Match the definition:</h2>
+    <>
+      <Helmet>
+        <title>Quizspire Learn - Study Mode</title>
+        <meta
+          name="description"
+          content="Learn flashcards with Quizspire's interactive study mode. Match questions to answers with immediate feedback and progress tracking for effective memorization."
+        />
+        <meta
+          name="keywords"
+          content="quizspire learn, flashcards study, memorization, spaced repetition, learning mode"
+        />
+        <link rel="canonical" href={`/projects/quizspire/${id}/learn`} />
+        <meta property="og:title" content="Quizspire Learn - Study Mode" />
+        <meta
+          property="og:description"
+          content="Learn flashcards with Quizspire's interactive study mode. Match questions to answers with immediate feedback and progress tracking for effective memorization."
+        />
+        <meta property="og:image" content="/quizspire.png" />
+        <meta property="og:url" content={`/projects/quizspire/${id}/learn`} />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Quizspire Learn - Study Mode" />
+        <meta
+          name="twitter:description"
+          content="Learn flashcards with Quizspire's interactive study mode. Match questions to answers with immediate feedback and progress tracking for effective memorization."
+        />
+        <meta name="twitter:image" content="/quizspire.png" />
+      </Helmet>
+      <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+          {/* Header */}
+          <div class="flex items-center justify-between mb-6">
+            <button
+              class="btn btn-ghost"
+              onClick={() =>
+                route(
+                  (query.referrer && decodeURIComponent(query.referrer)) ||
+                    "/projects/quizspire"
+                )
+              }
+            >
+              <FiArrowLeft class="w-4 h-4 mr-2" />
+              Back
+            </button>
             <div class="text-center">
-              <div class="bg-base-200 rounded-lg p-6 mb-6">
-                <p class="text-2xl font-semibold">{currentQuestion.question}</p>
+              <h1 class="text-xl font-bold">{deck.title}</h1>
+              <p class="text-sm text-base-content/70">Learn Mode</p>
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-medium">
+                {session.currentQuestionIndex + 1} / {session.questions.length}
+              </div>
+              <div class="text-xs text-base-content/50">
+                {correctAnswers} correct
               </div>
             </div>
+          </div>
 
-            {/* Answer options */}
-            <div class="grid grid-cols-1 gap-3">
-              {currentQuestion.options.map((option, index) => {
-                let buttonClass =
-                  "btn btn-outline btn-block justify-start h-auto py-4";
+          {/* Progress bar */}
+          <div class="mb-8">
+            <progress
+              class="progress progress-primary w-full"
+              value={progress}
+              max="100"
+            ></progress>
+          </div>
 
-                if (showFeedback) {
-                  if (index === currentQuestion.correctIndex) {
-                    buttonClass += " btn-success";
+          {/* Question */}
+          <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+              <h2 class="card-title text-xl mb-4">Match the definition:</h2>
+              <div class="text-center">
+                <div class="bg-base-200 rounded-lg p-6 mb-6">
+                  <p class="text-2xl font-semibold">
+                    {currentQuestion.question}
+                  </p>
+                </div>
+              </div>
+
+              {/* Answer options */}
+              <div class="grid grid-cols-1 gap-3">
+                {currentQuestion.options.map((option, index) => {
+                  let buttonClass =
+                    "btn btn-outline btn-block justify-start h-auto py-4";
+
+                  if (showFeedback) {
+                    if (index === currentQuestion.correctIndex) {
+                      buttonClass += " btn-success";
+                    } else if (index === selectedAnswer) {
+                      buttonClass += " btn-error";
+                    }
                   } else if (index === selectedAnswer) {
-                    buttonClass += " btn-error";
+                    buttonClass += " btn-primary";
                   }
-                } else if (index === selectedAnswer) {
-                  buttonClass += " btn-primary";
-                }
 
-                return (
-                  <button
-                    key={index}
-                    class={buttonClass}
-                    onClick={() => handleAnswerSelect(index)}
-                    disabled={showFeedback}
-                  >
-                    <div class="flex items-center w-full">
-                      <span class="flex-shrink-0 w-8 h-8 rounded-full bg-base-300 flex items-center justify-center mr-3 font-medium">
-                        {String.fromCharCode(65 + index)}
-                      </span>
-                      <span class="text-left flex-1">{option}</span>
-                      {showFeedback &&
-                        index === currentQuestion.correctIndex && (
-                          <FiCheck class="w-5 h-5 ml-2 text-success" />
-                        )}
-                      {showFeedback &&
-                        index === selectedAnswer &&
-                        index !== currentQuestion.correctIndex && (
-                          <FiX class="w-5 h-5 ml-2 text-error" />
-                        )}
-                    </div>
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={index}
+                      class={buttonClass}
+                      onClick={() => handleAnswerSelect(index)}
+                      disabled={showFeedback}
+                    >
+                      <div class="flex items-center w-full">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-base-300 flex items-center justify-center mr-3 font-medium">
+                          {String.fromCharCode(65 + index)}
+                        </span>
+                        <span class="text-left flex-1">{option}</span>
+                        {showFeedback &&
+                          index === currentQuestion.correctIndex && (
+                            <FiCheck class="w-5 h-5 ml-2 text-success" />
+                          )}
+                        {showFeedback &&
+                          index === selectedAnswer &&
+                          index !== currentQuestion.correctIndex && (
+                            <FiX class="w-5 h-5 ml-2 text-error" />
+                          )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Next button */}
-        {showFeedback && (
-          <div class="text-center">
-            <button class="btn btn-primary btn-lg" onClick={handleNext}>
-              {session.currentQuestionIndex < session.questions.length - 1 ? (
-                <>
-                  Next Question
-                  <FiChevronRight class="w-5 h-5 ml-2" />
-                </>
-              ) : (
-                "View Results"
-              )}
-            </button>
-          </div>
-        )}
+          {/* Next button */}
+          {showFeedback && (
+            <div class="text-center">
+              <button class="btn btn-primary btn-lg" onClick={handleNext}>
+                {session.currentQuestionIndex < session.questions.length - 1 ? (
+                  <>
+                    Next Question
+                    <FiChevronRight class="w-5 h-5 ml-2" />
+                  </>
+                ) : (
+                  "View Results"
+                )}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

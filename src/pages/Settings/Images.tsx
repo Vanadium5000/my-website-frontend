@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect, useRef } from "preact/hooks";
 import { api } from "../../api/client";
 import { User } from "../../api/api";
@@ -267,6 +268,33 @@ export function ImagesSettings(props: ImagesSettingsProps) {
 
   return (
     <>
+      <Helmet>
+        <title>Uploaded Images - My Website</title>
+        <meta
+          name="description"
+          content="Manage your uploaded profile images. Upload new images, set profile pictures, and organize your image gallery."
+        />
+        <meta
+          name="keywords"
+          content="uploaded images, profile pictures, image gallery, avatar, photo management"
+        />
+        <link rel="canonical" href="/settings/images" />
+        <meta property="og:title" content="Uploaded Images - My Website" />
+        <meta
+          property="og:description"
+          content="Manage your uploaded profile images. Upload new images, set profile pictures, and organize your image gallery."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/settings/images" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Uploaded Images - My Website" />
+        <meta
+          name="twitter:description"
+          content="Manage your uploaded profile images. Upload new images, set profile pictures, and organize your image gallery."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

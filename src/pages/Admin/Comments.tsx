@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "preact/hooks";
 import { CommentCard } from "../../components/CommentCard";
 import { api } from "../../api/client";
@@ -59,6 +60,33 @@ export function AdminComments() {
 
   return (
     <>
+      <Helmet>
+        <title>Pending Comments - My Website</title>
+        <meta
+          name="description"
+          content="Admin panel for managing pending blog comments. Review, accept, or reject user comments before they are published."
+        />
+        <meta
+          name="keywords"
+          content="admin comments, pending comments, comment moderation, blog comments, content moderation"
+        />
+        <link rel="canonical" href="/admin/comments" />
+        <meta property="og:title" content="Pending Comments - My Website" />
+        <meta
+          property="og:description"
+          content="Admin panel for managing pending blog comments. Review, accept, or reject user comments before they are published."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/admin/comments" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Pending Comments - My Website" />
+        <meta
+          name="twitter:description"
+          content="Admin panel for managing pending blog comments. Review, accept, or reject user comments before they are published."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <a href="/admin" class="btn btn-ghost btn-sm">

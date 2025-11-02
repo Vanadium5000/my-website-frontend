@@ -3,10 +3,38 @@ import { GameCard } from "../../components/GameCard";
 import { ProjectCard } from "../../components/ProjectCard";
 import { FaChessKnight, FaCalculator } from "react-icons/fa";
 import { FiBookOpen } from "react-icons/fi";
+import { Helmet } from "react-helmet-async";
 
 export function Projects() {
   return (
     <>
+      <Helmet>
+        <title>Projects - My Website</title>
+        <meta
+          name="description"
+          content="Explore interactive projects and games including Chess, Arithmetic, Quizspire, and Tetris. Discover engaging web applications built with modern technologies."
+        />
+        <meta
+          name="keywords"
+          content="projects, games, interactive, chess, arithmetic, quizspire, tetris, web development"
+        />
+        <link rel="canonical" href="/projects" />
+        <meta property="og:title" content="Projects - My Website" />
+        <meta
+          property="og:description"
+          content="Explore interactive projects and games including Chess, Arithmetic, Quizspire, and Tetris. Discover engaging web applications built with modern technologies."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/projects" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Projects - My Website" />
+        <meta
+          name="twitter:description"
+          content="Explore interactive projects and games including Chess, Arithmetic, Quizspire, and Tetris. Discover engaging web applications built with modern technologies."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       {/* <h1 className="text-3xl font-bold text-center">Projects</h1> */}
 
       {/* <div className="container mx-auto p-4">

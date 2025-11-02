@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "preact/hooks";
 import { api } from "../../api/client";
 import { FaGithub, FaDiscord, FaFacebook, FaLink } from "react-icons/fa";
@@ -137,6 +138,33 @@ export function ConnectedAccountsSettings(props: ConnectedAccountsProps) {
 
   return (
     <>
+      <Helmet>
+        <title>Connected Accounts - My Website</title>
+        <meta
+          name="description"
+          content="Manage your connected social media accounts including Google, Twitter, GitHub, Discord, and Facebook. Link or unlink accounts for easier sign-in."
+        />
+        <meta
+          name="keywords"
+          content="connected accounts, social login, oauth, google, twitter, github, discord, facebook"
+        />
+        <link rel="canonical" href="/settings/accounts" />
+        <meta property="og:title" content="Connected Accounts - My Website" />
+        <meta
+          property="og:description"
+          content="Manage your connected social media accounts including Google, Twitter, GitHub, Discord, and Facebook. Link or unlink accounts for easier sign-in."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/settings/accounts" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Connected Accounts - My Website" />
+        <meta
+          name="twitter:description"
+          content="Manage your connected social media accounts including Google, Twitter, GitHub, Discord, and Facebook. Link or unlink accounts for easier sign-in."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

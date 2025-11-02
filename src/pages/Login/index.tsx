@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState } from "preact/hooks";
 import { api } from "../../api/client.js";
 import { useLocation } from "preact-iso";
@@ -78,6 +79,33 @@ export function Login() {
 
   return (
     <>
+      <Helmet>
+        <title>Login - My Website</title>
+        <meta
+          name="description"
+          content="Secure user authentication page. Sign in to your account to access games, leaderboards, and personalized features."
+        />
+        <meta
+          name="keywords"
+          content="login, sign in, authentication, user login, secure login, account access"
+        />
+        <link rel="canonical" href="/login" />
+        <meta property="og:title" content="Login - My Website" />
+        <meta
+          property="og:description"
+          content="Secure user authentication page. Sign in to your account to access games, leaderboards, and personalized features."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/login" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Login - My Website" />
+        <meta
+          name="twitter:description"
+          content="Secure user authentication page. Sign in to your account to access games, leaderboards, and personalized features."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
         <div className="card-body">
           <h1 className="text-center text-xl font-bold">Login</h1>

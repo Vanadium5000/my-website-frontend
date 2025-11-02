@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { ProfilePicture } from "../../components/ProfilePicture";
@@ -138,6 +139,36 @@ export function Profile({ id }: ProfileProps) {
 
   return (
     <>
+      <Helmet>
+        <title>Profile - My Website</title>
+        <meta
+          name="description"
+          content="View and manage your user profile, including game statistics, achievements, and personalization settings. Connect with other players and track your progress."
+        />
+        <meta
+          name="keywords"
+          content="profile, user profile, game statistics, achievements, personalization, user settings, player profile"
+        />
+        <link rel="canonical" href={`/profile${id ? `/${id}` : ""}`} />
+        <meta property="og:title" content="Profile - My Website" />
+        <meta
+          property="og:description"
+          content="View and manage your user profile, including game statistics, achievements, and personalization settings. Connect with other players and track your progress."
+        />
+        <meta property="og:image" content={profileUser?.image || "/logo.png"} />
+        <meta property="og:url" content={`/profile${id ? `/${id}` : ""}`} />
+        <meta property="og:type" content="profile" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Profile - My Website" />
+        <meta
+          name="twitter:description"
+          content="View and manage your user profile, including game statistics, achievements, and personalization settings. Connect with other players and track your progress."
+        />
+        <meta
+          name="twitter:image"
+          content={profileUser?.image || "/logo.png"}
+        />
+      </Helmet>
       <div
         className="h-[100%] flex items-center justify-center"
         id="profile-background"

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import {
   FaShieldAlt,
   FaUserShield,
@@ -9,6 +10,33 @@ import {
 export function AdminHome() {
   return (
     <>
+      <Helmet>
+        <title>Admin Panel - My Website</title>
+        <meta
+          name="description"
+          content="Administrative control panel for managing users, comments, connections, and profile verifications. Access administrative tools and moderation features."
+        />
+        <meta
+          name="keywords"
+          content="admin panel, administration, user management, moderation, admin tools, control panel"
+        />
+        <link rel="canonical" href="/admin" />
+        <meta property="og:title" content="Admin Panel - My Website" />
+        <meta
+          property="og:description"
+          content="Administrative control panel for managing users, comments, connections, and profile verifications. Access administrative tools and moderation features."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/admin" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Admin Panel - My Website" />
+        <meta
+          name="twitter:description"
+          content="Administrative control panel for managing users, comments, connections, and profile verifications. Access administrative tools and moderation features."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
           <FaShieldAlt />

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState } from "preact/hooks";
 import { api } from "../../api/client.js";
 import { useLocation } from "preact-iso";
@@ -100,6 +101,33 @@ export function Signup() {
 
   return (
     <>
+      <Helmet>
+        <title>Sign Up - My Website</title>
+        <meta
+          name="description"
+          content="Create a new account to access interactive games, leaderboards, and community features. Join the platform with secure registration."
+        />
+        <meta
+          name="keywords"
+          content="sign up, register, create account, new user, registration, join platform"
+        />
+        <link rel="canonical" href="/signup" />
+        <meta property="og:title" content="Sign Up - My Website" />
+        <meta
+          property="og:description"
+          content="Create a new account to access interactive games, leaderboards, and community features. Join the platform with secure registration."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/signup" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Sign Up - My Website" />
+        <meta
+          name="twitter:description"
+          content="Create a new account to access interactive games, leaderboards, and community features. Join the platform with secure registration."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="mx-auto w-1/4 max-lg:w-1/3 max-md:w-1/2 max-sm:w-full">
         <div className="card-body">
           <h1 className="text-center text-xl font-bold">Create Your Account</h1>

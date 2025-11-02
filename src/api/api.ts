@@ -71,6 +71,60 @@ export interface UnverifiedProfile {
   needsVerification: boolean;
 }
 
+export interface ConnectionsResponseSchema {
+  total: number;
+  connections: {
+    socketId: string;
+    userData:
+      | {
+          id: string;
+          createdAt: date | string | number;
+          updatedAt: date | string | number;
+          email?: string | null;
+          emailVerified?: boolean | null;
+          name?: string | null;
+          image?: string | null;
+          age?: number | null;
+          chessWins?: number | null;
+          chessLosses?: number | null;
+          draughtsWins?: number | null;
+          draughtsLosses?: number | null;
+          arithmeticScore?: number | null;
+          tetrisScore?: number | null;
+          verifiedName?: string | null;
+          verifiedImage?: string | null;
+          banned?: boolean | null;
+          role?: string | null;
+          banReason?: string | null;
+          banExpires?: (date | string | number) | null;
+          imagesStoredSize?: number | null;
+          lastUploadDay?: string | null;
+          imagesUploadedToday?: number | null;
+          pushSubscriptions?: {
+            keys: {
+              p256dh: string;
+              auth: string;
+            };
+            endpoint: string;
+          }[];
+          notificationSubscriptions?: {
+            eventType: string;
+            methods: ("email" | "push")[];
+            createdAt: date | string | number;
+          }[];
+        }
+      | undefined;
+    connectedAt: date | string | number;
+    route: string;
+    socketInfo: {
+      ip?: string;
+      userAgent?: string;
+      origin?: string;
+    };
+  }[];
+  timestamp: date | string | number;
+}
+
 export interface FlashcardDeckSchema {
   _id?: string;
   userId: string;
@@ -102,29 +156,6 @@ export interface FlashcardDeckSchema {
     )[];
   }[];
   createdAt: date | string | number;
-}
-
-export interface FlashcardSchema {
-  word: (
-    | {
-        text: string;
-        type: "text";
-      }
-    | {
-        mediaUrl: string;
-        type: "media";
-      }
-  )[];
-  definition: (
-    | {
-        text: string;
-        type: "text";
-      }
-    | {
-        mediaUrl: string;
-        type: "media";
-      }
-  )[];
 }
 
 export interface User {

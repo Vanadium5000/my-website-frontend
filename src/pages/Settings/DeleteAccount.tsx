@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState } from "preact/hooks";
 import { api } from "../../api/client";
 import { useLocation } from "preact-iso";
@@ -64,6 +65,33 @@ export function DeleteAccountSettings(props: DeleteAccountProps) {
 
   return (
     <>
+      <Helmet>
+        <title>Delete Account - My Website</title>
+        <meta
+          name="description"
+          content="Permanently delete your account and all associated data. This action cannot be undone and will remove all your content, settings, and access."
+        />
+        <meta
+          name="keywords"
+          content="delete account, account deletion, remove account, permanent deletion, account removal"
+        />
+        <link rel="canonical" href="/settings/delete" />
+        <meta property="og:title" content="Delete Account - My Website" />
+        <meta
+          property="og:description"
+          content="Permanently delete your account and all associated data. This action cannot be undone and will remove all your content, settings, and access."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/settings/delete" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Delete Account - My Website" />
+        <meta
+          name="twitter:description"
+          content="Permanently delete your account and all associated data. This action cannot be undone and will remove all your content, settings, and access."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

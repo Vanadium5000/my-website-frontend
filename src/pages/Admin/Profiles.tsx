@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../../api/client";
 import { FaUserShield, FaCheck, FaBan, FaUnlockAlt } from "react-icons/fa";
@@ -70,6 +71,36 @@ export function AdminProfiles() {
 
   return (
     <>
+      <Helmet>
+        <title>Profile Verification - My Website</title>
+        <meta
+          name="description"
+          content="Admin panel for verifying user profile changes including names and images. Review and approve or reject profile modifications."
+        />
+        <meta
+          name="keywords"
+          content="admin profiles, profile verification, user verification, profile moderation, admin panel"
+        />
+        <link rel="canonical" href="/admin/profiles" />
+        <meta property="og:title" content="Profile Verification - My Website" />
+        <meta
+          property="og:description"
+          content="Admin panel for verifying user profile changes including names and images. Review and approve or reject profile modifications."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/admin/profiles" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Profile Verification - My Website"
+        />
+        <meta
+          name="twitter:description"
+          content="Admin panel for verifying user profile changes including names and images. Review and approve or reject profile modifications."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <a href="/admin" className="btn btn-ghost btn-sm">

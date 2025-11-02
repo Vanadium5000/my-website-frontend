@@ -3,6 +3,7 @@ import { useLocation } from "preact-iso";
 import { api } from "../../../api/client";
 import { FiShuffle, FiCheck, FiX, FiRotateCcw, FiHome } from "react-icons/fi";
 import { FlashcardDeckSchema } from "../../../api/api";
+import { Helmet } from "react-helmet-async";
 
 type Deck = FlashcardDeckSchema;
 
@@ -341,115 +342,149 @@ export function QuizspireMatch({ deckId }: { deckId: string }) {
   }
 
   return (
-    <div class="container mx-auto px-4 py-8">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold mb-2">{deck.title} - Match Game</h1>
-        <p class="text-base-content/70">
-          Match the questions with their answers!
-        </p>
-      </div>
+    <>
+      <Helmet>
+        <title>Quizspire Match - Memory Game</title>
+        <meta
+          name="description"
+          content="Play Quizspire's matching game to memorize flashcards. Match question cards with their corresponding answer cards in this interactive memory challenge."
+        />
+        <meta
+          name="keywords"
+          content="quizspire match, memory game, flashcards matching, memorization game, concentration game"
+        />
+        <link rel="canonical" href={`/projects/quizspire/${deckId}/match`} />
+        <meta property="og:title" content="Quizspire Match - Memory Game" />
+        <meta
+          property="og:description"
+          content="Play Quizspire's matching game to memorize flashcards. Match question cards with their corresponding answer cards in this interactive memory challenge."
+        />
+        <meta property="og:image" content="/quizspire.png" />
+        <meta
+          property="og:url"
+          content={`/projects/quizspire/${deckId}/match`}
+        />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Quizspire Match - Memory Game" />
+        <meta
+          name="twitter:description"
+          content="Play Quizspire's matching game to memorize flashcards. Match question cards with their corresponding answer cards in this interactive memory challenge."
+        />
+        <meta name="twitter:image" content="/quizspire.png" />
+      </Helmet>
+      <div class="container mx-auto px-4 py-8">
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold mb-2">{deck.title} - Match Game</h1>
+          <p class="text-base-content/70">
+            Match the questions with their answers!
+          </p>
+        </div>
 
-      {/* Game Stats */}
-      <div class="flex justify-center mb-6">
-        <div class="stats stats-horizontal shadow">
-          <div class="stat">
-            <div class="stat-title">Attempts</div>
-            <div class="stat-value">{gameStats.attempts}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-title">Matches</div>
-            <div class="stat-value text-success">
-              {matchedPairs.size}/{cards.length / 2}
+        {/* Game Stats */}
+        <div class="flex justify-center mb-6">
+          <div class="stats stats-horizontal shadow">
+            <div class="stat">
+              <div class="stat-title">Attempts</div>
+              <div class="stat-value">{gameStats.attempts}</div>
             </div>
-          </div>
-          <div class="stat">
-            <div class="stat-title">Time</div>
-            <div class="stat-value countdown">
-              <span
-                style={`--value:${Math.floor(
-                  (Date.now() - gameStats.startTime) / 1000
-                )};`}
-              >
-                {Math.floor((Date.now() - gameStats.startTime) / 1000)}
-              </span>
+            <div class="stat">
+              <div class="stat-title">Matches</div>
+              <div class="stat-value text-success">
+                {matchedPairs.size}/{cards.length / 2}
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">Time</div>
+              <div class="stat-value countdown">
+                <span
+                  style={`--value:${Math.floor(
+                    (Date.now() - gameStats.startTime) / 1000
+                  )};`}
+                >
+                  {Math.floor((Date.now() - gameStats.startTime) / 1000)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Game Grid */}
-      <div
-        class="grid gap-4 mx-auto max-w-4xl"
-        style={`grid-template-columns: repeat(${gridCols}, minmax(0, 1fr)); grid-template-rows: repeat(${gridRows}, minmax(0, 1fr))`}
-      >
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            class={`card bg-base-100 shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl ${
-              card.isMatched
-                ? "bg-success/20 border-success"
-                : card.isFlipped
-                ? "bg-primary/20 border-primary"
-                : "hover:bg-base-200"
-            } ${card.isAnimating ? "animate-pulse" : ""}`}
-            onClick={() => handleCardClick(card)}
-          >
-            <div class="card-body p-4 min-h-[120px] flex items-center justify-center">
-              <div
-                class={`text-center transition-all duration-500 ${
-                  card.isFlipped || card.isMatched ? "opacity-100" : "opacity-0"
-                }`}
-              >
+        {/* Game Grid */}
+        <div
+          class="grid gap-4 mx-auto max-w-4xl"
+          style={`grid-template-columns: repeat(${gridCols}, minmax(0, 1fr)); grid-template-rows: repeat(${gridRows}, minmax(0, 1fr))`}
+        >
+          {cards.map((card) => (
+            <div
+              key={card.id}
+              class={`card bg-base-100 shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl ${
+                card.isMatched
+                  ? "bg-success/20 border-success"
+                  : card.isFlipped
+                  ? "bg-primary/20 border-primary"
+                  : "hover:bg-base-200"
+              } ${card.isAnimating ? "animate-pulse" : ""}`}
+              onClick={() => handleCardClick(card)}
+            >
+              <div class="card-body p-4 min-h-[120px] flex items-center justify-center">
                 <div
-                  class={`badge badge-outline mb-2 ${
-                    card.type === "question"
-                      ? "badge-primary"
-                      : "badge-secondary"
+                  class={`text-center transition-all duration-500 ${
+                    card.isFlipped || card.isMatched
+                      ? "opacity-100"
+                      : "opacity-0"
                   }`}
                 >
-                  {card.type === "question" ? "Question" : "Answer"}
+                  <div
+                    class={`badge badge-outline mb-2 ${
+                      card.type === "question"
+                        ? "badge-primary"
+                        : "badge-secondary"
+                    }`}
+                  >
+                    {card.type === "question" ? "Question" : "Answer"}
+                  </div>
+                  <div class="text-sm font-medium break-words">
+                    {card.content}
+                  </div>
                 </div>
-                <div class="text-sm font-medium break-words">
-                  {card.content}
-                </div>
-              </div>
 
-              {/* Card back */}
-              <div
-                class={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
-                  card.isFlipped || card.isMatched
-                    ? "opacity-0 rotate-y-180"
-                    : "opacity-100"
-                }`}
-              >
-                <div class="text-4xl opacity-50">
-                  {card.type === "question" ? "❓" : "💡"}
+                {/* Card back */}
+                <div
+                  class={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
+                    card.isFlipped || card.isMatched
+                      ? "opacity-0 rotate-y-180"
+                      : "opacity-100"
+                  }`}
+                >
+                  <div class="text-4xl opacity-50">
+                    {card.type === "question" ? "❓" : "💡"}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Action Buttons */}
-      <div class="flex justify-center gap-4 mt-8">
-        <button class="btn btn-outline" onClick={restartGame}>
-          <FiRotateCcw class="w-4 h-4 mr-2" />
-          Restart
-        </button>
-        <button
-          class="btn btn-ghost"
-          onClick={() =>
-            route(
-              (query.referrer && decodeURIComponent(query.referrer)) ||
-                `/projects/quizspire/${deckId}`
-            )
-          }
-        >
-          <FiHome class="w-4 h-4 mr-2" />
-          Back
-        </button>
+        {/* Action Buttons */}
+        <div class="flex justify-center gap-4 mt-8">
+          <button class="btn btn-outline" onClick={restartGame}>
+            <FiRotateCcw class="w-4 h-4 mr-2" />
+            Restart
+          </button>
+          <button
+            class="btn btn-ghost"
+            onClick={() =>
+              route(
+                (query.referrer && decodeURIComponent(query.referrer)) ||
+                  `/projects/quizspire/${deckId}`
+              )
+            }
+          >
+            <FiHome class="w-4 h-4 mr-2" />
+            Back
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

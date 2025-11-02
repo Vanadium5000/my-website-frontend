@@ -1,9 +1,37 @@
+import { Helmet } from "react-helmet-async";
 import { MdLeaderboard } from "react-icons/md";
 import { Leaderboard } from "../../components/Leaderboard.js";
 
 export function Leaderboards() {
   return (
     <>
+      <Helmet>
+        <title>Leaderboards - My Website</title>
+        <meta
+          name="description"
+          content="View competitive rankings and achievements across games including Chess, Draughts, Arithmetic, and Tetris. Track your progress and compare with other players."
+        />
+        <meta
+          name="keywords"
+          content="leaderboards, rankings, competitive gaming, chess, draughts, arithmetic, tetris, achievements, scores"
+        />
+        <link rel="canonical" href="/leaderboards" />
+        <meta property="og:title" content="Leaderboards - My Website" />
+        <meta
+          property="og:description"
+          content="View competitive rankings and achievements across games including Chess, Draughts, Arithmetic, and Tetris. Track your progress and compare with other players."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/leaderboards" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Leaderboards - My Website" />
+        <meta
+          name="twitter:description"
+          content="View competitive rankings and achievements across games including Chess, Draughts, Arithmetic, and Tetris. Track your progress and compare with other players."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold flex items-center gap-3">
           <MdLeaderboard />

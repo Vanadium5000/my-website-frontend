@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../../api/client";
 import {
@@ -9,6 +10,7 @@ import {
   FaGlobe,
 } from "react-icons/fa";
 import { ProfilePicture } from "../../components/ProfilePicture";
+import { ConnectionsResponseSchema } from "../../api/api";
 
 interface Connection {
   socketId: string;
@@ -29,11 +31,14 @@ interface Connection {
 }
 
 export function AdminConnections() {
-  const [connections, setConnections] = useState<Connection[]>([]);
+  const [connections, setConnections] = useState<
+    ConnectionsResponseSchema["connections"]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedConnection, setSelectedConnection] =
-    useState<Connection | null>(null);
+  const [selectedConnection, setSelectedConnection] = useState<
+    ConnectionsResponseSchema["connections"][0] | null
+  >(null);
 
   // Modals
   const [showEventModal, setShowEventModal] = useState(false);
@@ -169,6 +174,39 @@ export function AdminConnections() {
 
   return (
     <>
+      <Helmet>
+        <title>Connection Management - My Website</title>
+        <meta
+          name="description"
+          content="Admin panel for managing WebSocket connections. Monitor active users, send events and notifications, and manage real-time connections."
+        />
+        <meta
+          name="keywords"
+          content="admin connections, websocket management, real-time connections, user monitoring, connection management"
+        />
+        <link rel="canonical" href="/admin/connections" />
+        <meta
+          property="og:title"
+          content="Connection Management - My Website"
+        />
+        <meta
+          property="og:description"
+          content="Admin panel for managing WebSocket connections. Monitor active users, send events and notifications, and manage real-time connections."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/admin/connections" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Connection Management - My Website"
+        />
+        <meta
+          name="twitter:description"
+          content="Admin panel for managing WebSocket connections. Monitor active users, send events and notifications, and manage real-time connections."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <a href="/admin" className="btn btn-ghost btn-sm">

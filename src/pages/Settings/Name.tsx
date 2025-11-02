@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "preact/hooks";
 import { api } from "../../api/client";
 import { User } from "../../api/api";
@@ -103,6 +104,33 @@ export function NameSettings(props: NameSettingsProps) {
 
   return (
     <>
+      <Helmet>
+        <title>Name Settings - My Website</title>
+        <meta
+          name="description"
+          content="Update your display name and manage your profile information. Changes require verification before becoming publicly visible."
+        />
+        <meta
+          name="keywords"
+          content="name settings, display name, profile name, user name, account name"
+        />
+        <link rel="canonical" href="/settings/name" />
+        <meta property="og:title" content="Name Settings - My Website" />
+        <meta
+          property="og:description"
+          content="Update your display name and manage your profile information. Changes require verification before becoming publicly visible."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/settings/name" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Name Settings - My Website" />
+        <meta
+          name="twitter:description"
+          content="Update your display name and manage your profile information. Changes require verification before becoming publicly visible."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-8">

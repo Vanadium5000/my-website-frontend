@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../../api/client";
 import {
@@ -202,6 +203,33 @@ export function AdminUsers() {
 
   return (
     <>
+      <Helmet>
+        <title>User Management - My Website</title>
+        <meta
+          name="description"
+          content="Admin panel for managing users. Ban/unban users, change passwords, add custom fields, and perform administrative user operations."
+        />
+        <meta
+          name="keywords"
+          content="admin users, user management, ban users, user administration, account management"
+        />
+        <link rel="canonical" href="/admin/users" />
+        <meta property="og:title" content="User Management - My Website" />
+        <meta
+          property="og:description"
+          content="Admin panel for managing users. Ban/unban users, change passwords, add custom fields, and perform administrative user operations."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/admin/users" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="User Management - My Website" />
+        <meta
+          name="twitter:description"
+          content="Admin panel for managing users. Ban/unban users, change passwords, add custom fields, and perform administrative user operations."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <a href="/admin" class="btn btn-ghost btn-sm">

@@ -32,6 +32,7 @@ import {
 } from "react-icons/fi";
 import { highlightSearchTerms } from "../../../utils/highlight";
 import { getApiImageUrl } from "../../../components/ProfilePicture";
+import { Helmet } from "react-helmet-async";
 
 import { FlashcardDeckSchema } from "../../../api/api";
 import { useLocation } from "preact-iso";
@@ -164,12 +165,47 @@ export function Quizspire() {
   }
 
   return (
-    <div class="container mx-auto px-4 py-8">
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold mb-4">Quizspire</h1>
-        <p class="text-lg text-base-content/70">
-          Master your flashcards with various study modes.
-        </p>
+    <>
+      <Helmet>
+        <title>Quizspire - Interactive Quiz Platform</title>
+        <meta
+          name="description"
+          content="Master your flashcards with Quizspire's interactive study modes including flashcards, learn, test, match, and Tetris games. Create and manage custom flashcard decks for effective learning."
+        />
+        <meta
+          name="keywords"
+          content="quizspire, flashcards, learning, study modes, quiz, education, interactive learning"
+        />
+        <link rel="canonical" href="/projects/quizspire" />
+        <meta
+          property="og:title"
+          content="Quizspire - Interactive Quiz Platform"
+        />
+        <meta
+          property="og:description"
+          content="Master your flashcards with Quizspire's interactive study modes including flashcards, learn, test, match, and Tetris games. Create and manage custom flashcard decks for effective learning."
+        />
+        <meta property="og:image" content="/quizspire.png" />
+        <meta property="og:url" content="/projects/quizspire" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Quizspire - Interactive Quiz Platform"
+        />
+        <meta
+          name="twitter:description"
+          content="Master your flashcards with Quizspire's interactive study modes including flashcards, learn, test, match, and Tetris games. Create and manage custom flashcard decks for effective learning."
+        />
+        <meta name="twitter:image" content="/quizspire.png" />
+      </Helmet>
+      <div class="container mx-auto px-4 py-8">
+        <div class="mb-8">
+          <h1 class="text-4xl font-bold mb-4">Quizspire</h1>
+          <p class="text-lg text-base-content/70">
+            Master your flashcards with various study modes.
+          </p>
+        </div>
       </div>
 
       <div class="flex flex-col sm:flex-row gap-4 mb-6">
@@ -515,7 +551,7 @@ export function Quizspire() {
           onImportSuccess={fetchDecks}
         />
       )}
-    </div>
+    </>
   );
 }
 

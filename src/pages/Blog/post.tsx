@@ -7,6 +7,7 @@ import { PostCard, CommentType } from "./index.js";
 // Code highlighting
 import "prismjs/themes/prism-dark.min.css";
 import DOMPurify from "dompurify"; // HTML SANITIZATION
+import { Helmet } from "react-helmet-async";
 
 interface FullBlogPostType {
   blog: {
@@ -126,8 +127,36 @@ export function BlogPost({ id }: { id: string }) {
     );
   }
 
+  const postTitle = blogPost.blog.title;
+  const postSnippet = blogPost.blog.snippet;
+  const postContent = blogPost.blog.content
+    .replace(/<[^>]*>/g, "")
+    .substring(0, 160); // Strip HTML and limit to 160 chars
+  const canonicalUrl = `${window.location.origin}/blog/${id}`;
+
   return (
     <>
+      <Helmet>
+        <title>{postTitle} - My Website</title>
+        <meta name="description" content={postSnippet || postContent} />
+        <meta
+          name="keywords"
+          content="blog, web development, programming, gaming, tutorial, article"
+        />
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph */}
+        <meta property="og:title" content={postTitle} />
+        <meta property="og:description" content={postSnippet || postContent} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="My Website" />
+
+        {/* Twitter Cards */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={postTitle} />
+        <meta name="twitter:description" content={postSnippet || postContent} />
+      </Helmet>
       <div class="card card-body max-w-full">
         <div class="text-center justify-center">
           <PostCard postData={blogPost.blog} />

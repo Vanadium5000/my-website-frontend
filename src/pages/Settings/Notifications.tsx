@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "preact/hooks";
 import { api } from "../../api/client";
 import { Session, User } from "../../api/api";
@@ -777,336 +778,322 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Email Verification Banner */}
-        {currentUser && !currentUser.emailVerified && (
-          <div className="alert alert-warning mb-6">
-            <FaExclamationTriangle />
-            <div>
-              <h3 className="font-bold">Email Not Verified</h3>
-              <div className="text-sm mt-1">
-                Your email address is not verified. Email notifications may not
-                be delivered reliably. Please verify your email to ensure you
-                receive all notifications.
-                <a
-                  href={`/email-verification?email=${encodeURIComponent(
-                    currentUser.email
-                  )}`}
-                  className="btn btn-sm btn-info ml-2"
-                >
-                  Verify Email
-                </a>
+    <>
+      <Helmet>
+        <title>Notifications Settings - My Website</title>
+        <meta
+          name="description"
+          content="Configure your notification preferences for email and browser push notifications. Manage alerts for match updates and other platform activities."
+        />
+        <meta
+          name="keywords"
+          content="notifications, notification settings, email notifications, push notifications, alerts, preferences"
+        />
+        <link rel="canonical" href="/settings/notifications" />
+        <meta
+          property="og:title"
+          content="Notifications Settings - My Website"
+        />
+        <meta
+          property="og:description"
+          content="Configure your notification preferences for email and browser push notifications. Manage alerts for match updates and other platform activities."
+        />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="/settings/notifications" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Notifications Settings - My Website"
+        />
+        <meta
+          name="twitter:description"
+          content="Configure your notification preferences for email and browser push notifications. Manage alerts for match updates and other platform activities."
+        />
+        <meta name="twitter:image" content="/logo.png" />
+      </Helmet>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Email Verification Banner */}
+          {currentUser && !currentUser.emailVerified && (
+            <div className="alert alert-warning mb-6">
+              <FaExclamationTriangle />
+              <div>
+                <h3 className="font-bold">Email Not Verified</h3>
+                <div className="text-sm mt-1">
+                  Your email address is not verified. Email notifications may
+                  not be delivered reliably. Please verify your email to ensure
+                  you receive all notifications.
+                  <a
+                    href={`/email-verification?email=${encodeURIComponent(
+                      currentUser.email
+                    )}`}
+                    className="btn btn-sm btn-info ml-2"
+                  >
+                    Verify Email
+                  </a>
+                </div>
               </div>
             </div>
+          )}
+
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <a href="/settings" className="btn btn-ghost btn-sm">
+              ← Back to Settings
+            </a>
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <FaBell />
+              Notification Settings
+            </h1>
           </div>
-        )}
 
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <a href="/settings" className="btn btn-ghost btn-sm">
-            ← Back to Settings
-          </a>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <FaBell />
-            Notification Settings
-          </h1>
-        </div>
+          {/* iOS Web App Requirement Banner */}
+          {(() => {
+            // const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isIOS = "I DONT KNOW";
+            return isIOS ? (
+              <div className="alert alert-info mb-6">
+                <FaInfoCircle />
+                <div>
+                  <h3 className="font-bold">iOS Push Notifications</h3>
+                  <div className="text-sm mt-1">
+                    <p className="mb-2">
+                      On iOS devices, push notifications only work when this
+                      website is added to your home screen as a web app.
+                    </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary font-semibold">1.</span>
+                        <span>Tap the share button</span>
+                        {/* <span className="text-lg">📤</span> */}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary font-semibold">→</span>
+                        <span>Select "Add to Home Screen"</span>
+                        {/* <span className="text-lg">🏠</span> */}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary font-semibold">→</span>
+                        <span>Open the web app from your home screen</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary font-semibold">→</span>
+                        <span>Enable notifications when prompted</span>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs opacity-75">
+                      Push notifications won't work in Safari or other browsers
+                      on iOS.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null;
+          })()}
 
-        {/* iOS Web App Requirement Banner */}
-        {(() => {
-          // const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-          const isIOS = "I DONT KNOW";
-          return isIOS ? (
+          {/* Push Notification Status */}
+          {pushSupported && (
             <div className="alert alert-info mb-6">
               <FaInfoCircle />
               <div>
-                <h3 className="font-bold">iOS Push Notifications</h3>
-                <div className="text-sm mt-1">
-                  <p className="mb-2">
-                    On iOS devices, push notifications only work when this
-                    website is added to your home screen as a web app.
-                  </p>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-primary font-semibold">1.</span>
-                      <span>Tap the share button</span>
-                      {/* <span className="text-lg">📤</span> */}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-primary font-semibold">→</span>
-                      <span>Select "Add to Home Screen"</span>
-                      {/* <span className="text-lg">🏠</span> */}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-primary font-semibold">→</span>
-                      <span>Open the web app from your home screen</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-primary font-semibold">→</span>
-                      <span>Enable notifications when prompted</span>
-                    </div>
+                <h3 className="font-bold">Push Notification Status</h3>
+                <div className="text-sm mt-1 space-y-1">
+                  <div>
+                    <strong>Browser Support:</strong>{" "}
+                    <span className="text-green-700 font-semibold">
+                      Supported
+                    </span>
                   </div>
-                  <p className="mt-2 text-xs opacity-75">
-                    Push notifications won't work in Safari or other browsers on
-                    iOS.
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : null;
-        })()}
-
-        {/* Push Notification Status */}
-        {pushSupported && (
-          <div className="alert alert-info mb-6">
-            <FaInfoCircle />
-            <div>
-              <h3 className="font-bold">Push Notification Status</h3>
-              <div className="text-sm mt-1 space-y-1">
-                <div>
-                  <strong>Browser Support:</strong>{" "}
-                  <span className="text-green-700 font-semibold">
-                    Supported
-                  </span>
-                </div>
-                <div>
-                  <strong>Permission:</strong>{" "}
-                  <span
-                    className={`font-semibold ${
-                      pushPermission === "granted"
-                        ? "text-green-700"
-                        : pushPermission === "denied"
-                        ? "text-error"
-                        : "text-warning"
-                    }`}
-                  >
-                    {pushPermission === "granted"
-                      ? "Granted"
-                      : pushPermission === "denied"
-                      ? "Blocked"
-                      : "Not Requested"}
-                  </span>
-                </div>
-                <div>
-                  <strong>Service Worker:</strong>{" "}
-                  <span
-                    className={`font-semibold ${
-                      serviceWorkerRegistered ? "text-green-700" : "text-error"
-                    }`}
-                  >
-                    {serviceWorkerRegistered ? "Registered" : "Failed"}
-                  </span>
-                  {!serviceWorkerRegistered && (
-                    <button
-                      className="btn btn-xs btn-primary ml-2"
-                      onClick={async () => {
-                        try {
-                          setError(null);
-                          await registerServiceWorker();
-                          setSuccess("Service Worker registered successfully!");
-                          setTimeout(() => setSuccess(null), 3000);
-                        } catch (err) {
-                          setError(
-                            "Failed to register service worker. Check the browser console for details."
-                          );
-                        }
-                      }}
+                  <div>
+                    <strong>Permission:</strong>{" "}
+                    <span
+                      className={`font-semibold ${
+                        pushPermission === "granted"
+                          ? "text-green-700"
+                          : pushPermission === "denied"
+                          ? "text-error"
+                          : "text-warning"
+                      }`}
                     >
-                      Retry Registration
-                    </button>
+                      {pushPermission === "granted"
+                        ? "Granted"
+                        : pushPermission === "denied"
+                        ? "Blocked"
+                        : "Not Requested"}
+                    </span>
+                  </div>
+                  <div>
+                    <strong>Service Worker:</strong>{" "}
+                    <span
+                      className={`font-semibold ${
+                        serviceWorkerRegistered
+                          ? "text-green-700"
+                          : "text-error"
+                      }`}
+                    >
+                      {serviceWorkerRegistered ? "Registered" : "Failed"}
+                    </span>
+                    {!serviceWorkerRegistered && (
+                      <button
+                        className="btn btn-xs btn-primary ml-2"
+                        onClick={async () => {
+                          try {
+                            setError(null);
+                            await registerServiceWorker();
+                            setSuccess(
+                              "Service Worker registered successfully!"
+                            );
+                            setTimeout(() => setSuccess(null), 3000);
+                          } catch (err) {
+                            setError(
+                              "Failed to register service worker. Check the browser console for details."
+                            );
+                          }
+                        }}
+                      >
+                        Retry Registration
+                      </button>
+                    )}
+                  </div>
+                  {pushPermission === "denied" && (
+                    <div className="mt-2 text-xs">
+                      <FaExclamationTriangle className="inline mr-1" />
+                      Browser notifications are blocked. You can enable them in
+                      your browser settings to receive push notifications.
+                    </div>
                   )}
                 </div>
-                {pushPermission === "denied" && (
-                  <div className="mt-2 text-xs">
-                    <FaExclamationTriangle className="inline mr-1" />
-                    Browser notifications are blocked. You can enable them in
-                    your browser settings to receive push notifications.
-                  </div>
-                )}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* VAPID Key Warning - Most Important */}
-        {VAPID_PUBLIC_KEY === null && (
-          <div className="alert alert-error mb-6">
-            <FaExclamationTriangle />
-            <div>
-              <h3 className="font-bold">Push Notifications Unavailable</h3>
-              <div className="text-sm mt-1 space-y-2">
-                <p>
-                  <strong>⚠️ VAPID Key Missing:</strong> Push notifications are
-                  disabled because no valid VAPID public key is configured.
-                </p>
+          {/* VAPID Key Warning - Most Important */}
+          {VAPID_PUBLIC_KEY === null && (
+            <div className="alert alert-error mb-6">
+              <FaExclamationTriangle />
+              <div>
+                <h3 className="font-bold">Push Notifications Unavailable</h3>
+                <div className="text-sm mt-1 space-y-2">
+                  <p>
+                    <strong>⚠️ VAPID Key Missing:</strong> Push notifications
+                    are disabled because no valid VAPID public key is
+                    configured.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Browser Support Warnings */}
-        {VAPID_PUBLIC_KEY !== null && !pushSupported && (
-          <div className="alert alert-warning mb-6">
-            <FaExclamationTriangle />
-            <div>
-              <h3 className="font-bold">Browser Not Supported</h3>
-              <div className="text-sm">
-                Your browser doesn't support push notifications. Browser push
-                notifications will not be available. Email notifications are
-                still supported.
+          {/* Browser Support Warnings */}
+          {VAPID_PUBLIC_KEY !== null && !pushSupported && (
+            <div className="alert alert-warning mb-6">
+              <FaExclamationTriangle />
+              <div>
+                <h3 className="font-bold">Browser Not Supported</h3>
+                <div className="text-sm">
+                  Your browser doesn't support push notifications. Browser push
+                  notifications will not be available. Email notifications are
+                  still supported.
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Notification Settings Table */}
-        <div className="card bg-base-100 shadow-xl mb-6">
-          <div className="card-body">
-            <h2 className="card-title text-xl mb-4">
-              Notification Preferences
-            </h2>
-            <p className="text-sm opacity-70 mb-6">
-              Configure how you want to be notified about different events on
-              the platform.
-            </p>
-
-            <div className="overflow-x-auto">
-              <table className="table table-zebra">
-                <thead>
-                  <tr>
-                    <th>Event</th>
-                    <th>Description</th>
-                    {NOTIFICATION_METHODS.map((method) => (
-                      <th key={method.key} className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          {method.icon}
-                          {method.displayName}
-                          {!method.supported && (
-                            <span className="text-xs text-error">
-                              (Not supported)
-                            </span>
-                          )}
-                          {method.key === "push" &&
-                            pushPermission === "denied" && (
-                              <span className="text-xs text-error">
-                                (Blocked)
-                              </span>
-                            )}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {NOTIFICATION_EVENTS.map((event) => (
-                    <tr key={event.key}>
-                      <td className="font-semibold">{event.displayName}</td>
-                      <td className="text-sm opacity-80 max-w-xs">
-                        {event.description}
-                      </td>
-
-                      {NOTIFICATION_METHODS.map((method) => {
-                        const actionKey = `${event.key}-${method.key}`;
-                        const subscribed = isSubscribed(event.key, method.key);
-                        const isUpdating = updating === actionKey;
-
-                        return (
-                          <td key={method.key} className="text-center">
-                            <button
-                              className={`btn btn-sm ${
-                                subscribed
-                                  ? "btn-success"
-                                  : "btn-outline btn-neutral"
-                              } ${
-                                isUpdating || registeringPush ? "loading" : ""
-                              }`}
-                              onClick={() =>
-                                toggleSubscription(event.key, method.key)
-                              }
-                              disabled={
-                                isUpdating ||
-                                !method.supported ||
-                                (method.key === "push" &&
-                                  pushPermission === "denied") ||
-                                registeringPush
-                              }
-                            >
-                              {!isUpdating && !registeringPush && (
-                                <>
-                                  {subscribed ? (
-                                    <>
-                                      <FaBellSlash className="mr-1" />
-                                      On
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaBell className="mr-1" />
-                                      Off
-                                    </>
-                                  )}
-                                </>
-                              )}
-                            </button>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Active Subscriptions Summary */}
-        {subscriptions.length > 0 && (
+          {/* Notification Settings Table */}
           <div className="card bg-base-100 shadow-xl mb-6">
             <div className="card-body">
-              <h2 className="card-title text-xl">Active Notifications</h2>
-              <p className="text-sm opacity-70 mb-4">
-                Overview of your current notification subscriptions.
+              <h2 className="card-title text-xl mb-4">
+                Notification Preferences
+              </h2>
+              <p className="text-sm opacity-70 mb-6">
+                Configure how you want to be notified about different events on
+                the platform.
               </p>
 
               <div className="overflow-x-auto">
-                <table className="table">
+                <table className="table table-zebra">
                   <thead>
                     <tr>
                       <th>Event</th>
-                      <th>Methods</th>
-                      <th>Created</th>
+                      <th>Description</th>
+                      {NOTIFICATION_METHODS.map((method) => (
+                        <th key={method.key} className="text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            {method.icon}
+                            {method.displayName}
+                            {!method.supported && (
+                              <span className="text-xs text-error">
+                                (Not supported)
+                              </span>
+                            )}
+                            {method.key === "push" &&
+                              pushPermission === "denied" && (
+                                <span className="text-xs text-error">
+                                  (Blocked)
+                                </span>
+                              )}
+                          </div>
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {subscriptions.map((subscription) => (
-                      <tr key={subscription.id}>
-                        <td className="font-semibold">
-                          {subscription.eventType
-                            .replace("_", " ")
-                            .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    {NOTIFICATION_EVENTS.map((event) => (
+                      <tr key={event.key}>
+                        <td className="font-semibold">{event.displayName}</td>
+                        <td className="text-sm opacity-80 max-w-xs">
+                          {event.description}
                         </td>
-                        <td>
-                          <div className="flex gap-2">
-                            {subscription.methods.map((method) => (
-                              <div
-                                key={method}
-                                className="flex items-center gap-2 badge badge-outline"
-                              >
-                                {
-                                  NOTIFICATION_METHODS.find(
-                                    (m) => m.key === method
-                                  )?.icon
+
+                        {NOTIFICATION_METHODS.map((method) => {
+                          const actionKey = `${event.key}-${method.key}`;
+                          const subscribed = isSubscribed(
+                            event.key,
+                            method.key
+                          );
+                          const isUpdating = updating === actionKey;
+
+                          return (
+                            <td key={method.key} className="text-center">
+                              <button
+                                className={`btn btn-sm ${
+                                  subscribed
+                                    ? "btn-success"
+                                    : "btn-outline btn-neutral"
+                                } ${
+                                  isUpdating || registeringPush ? "loading" : ""
+                                }`}
+                                onClick={() =>
+                                  toggleSubscription(event.key, method.key)
                                 }
-                                {getMethodDisplayName(method)}
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="text-sm opacity-80">
-                          {new Date(
-                            subscription.createdAt
-                          ).toLocaleDateString()}
-                        </td>
+                                disabled={
+                                  isUpdating ||
+                                  !method.supported ||
+                                  (method.key === "push" &&
+                                    pushPermission === "denied") ||
+                                  registeringPush
+                                }
+                              >
+                                {!isUpdating && !registeringPush && (
+                                  <>
+                                    {subscribed ? (
+                                      <>
+                                        <FaBellSlash className="mr-1" />
+                                        On
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaBell className="mr-1" />
+                                        Off
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                              </button>
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
@@ -1114,48 +1101,105 @@ export function NotificationsSettings(props: NotificationsSettingsProps) {
               </div>
             </div>
           </div>
-        )}
 
-        {/* Information Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="alert alert-info">
-            <FaInfoCircle />
-            <div>
-              <h3 className="font-bold">Browser Notifications</h3>
-              <div className="text-sm mt-1">
-                Push notifications require permission and a modern browser.
-                You'll be prompted to allow notifications when enabling them.
+          {/* Active Subscriptions Summary */}
+          {subscriptions.length > 0 && (
+            <div className="card bg-base-100 shadow-xl mb-6">
+              <div className="card-body">
+                <h2 className="card-title text-xl">Active Notifications</h2>
+                <p className="text-sm opacity-70 mb-4">
+                  Overview of your current notification subscriptions.
+                </p>
+
+                <div className="overflow-x-auto">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Event</th>
+                        <th>Methods</th>
+                        <th>Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subscriptions.map((subscription) => (
+                        <tr key={subscription.id}>
+                          <td className="font-semibold">
+                            {subscription.eventType
+                              .replace("_", " ")
+                              .replace(/\b\w/g, (l) => l.toUpperCase())}
+                          </td>
+                          <td>
+                            <div className="flex gap-2">
+                              {subscription.methods.map((method) => (
+                                <div
+                                  key={method}
+                                  className="flex items-center gap-2 badge badge-outline"
+                                >
+                                  {
+                                    NOTIFICATION_METHODS.find(
+                                      (m) => m.key === method
+                                    )?.icon
+                                  }
+                                  {getMethodDisplayName(method)}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="text-sm opacity-80">
+                            {new Date(
+                              subscription.createdAt
+                            ).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Information Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="alert alert-info">
+              <FaInfoCircle />
+              <div>
+                <h3 className="font-bold">Browser Notifications</h3>
+                <div className="text-sm mt-1">
+                  Push notifications require permission and a modern browser.
+                  You'll be prompted to allow notifications when enabling them.
+                </div>
+              </div>
+            </div>
+
+            <div className="alert alert-info">
+              <FaEnvelope />
+              <div>
+                <h3 className="font-bold">Email Notifications</h3>
+                <div className="text-sm mt-1">
+                  Email notifications are sent to your registered email address.
+                  Make sure your email is verified for reliable delivery.
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="alert alert-info">
-            <FaEnvelope />
-            <div>
-              <h3 className="font-bold">Email Notifications</h3>
-              <div className="text-sm mt-1">
-                Email notifications are sent to your registered email address.
-                Make sure your email is verified for reliable delivery.
-              </div>
+          {/* Feedback Messages */}
+          {error && (
+            <div className="alert alert-error mt-6">
+              <FaExclamationTriangle />
+              <span>{error}</span>
             </div>
-          </div>
+          )}
+
+          {success && (
+            <div className="alert alert-success mt-6">
+              <FaBell />
+              <span>{success}</span>
+            </div>
+          )}
         </div>
-
-        {/* Feedback Messages */}
-        {error && (
-          <div className="alert alert-error mt-6">
-            <FaExclamationTriangle />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="alert alert-success mt-6">
-            <FaBell />
-            <span>{success}</span>
-          </div>
-        )}
       </div>
-    </div>
+    </>
   );
 }

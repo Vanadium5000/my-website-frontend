@@ -17,6 +17,7 @@ import {
   FaFlag,
   FaHourglassHalf,
 } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
 
 export function ChessGame() {
   const chess = useMemo(() => new Chess(), []); // Stable chess instance
@@ -416,274 +417,311 @@ export function ChessGame() {
   console.log("Your color", yourColor);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-8 text-center">Multiplayer Chess</h1>
-      <div className="flex flex-col lg:flex-row gap-8 justify-center">
-        {/* Chessboard */}
-        <div className="card bg-base-100 shadow-xl w-full lg:w-1/2">
-          <div className="card-body p-0">
-            <Chessboard
-              position={fen}
-              onPieceDrop={onDrop}
-              arePiecesDraggable={draggable}
-              isDraggablePiece={({ piece }) => {
-                // FIXME: The code below doesn't work
-                const isDraggable =
-                  yourColor &&
-                  piece[0].toLowerCase() ===
-                    (yourColor && yourColor[0].toLowerCase()) &&
-                  isYourTurn() &&
-                  !pending;
+    <>
+      <Helmet>
+        <title>Chess - Strategic Board Game</title>
+        <meta
+          name="description"
+          content="Play multiplayer chess with real-time gameplay, move validation, and strategic board game mechanics. Challenge opponents in this classic strategic game."
+        />
+        <meta
+          name="keywords"
+          content="chess, multiplayer, strategy game, board game, real-time, competitive"
+        />
+        <link rel="canonical" href="/projects/chess" />
+        <meta property="og:title" content="Chess - Strategic Board Game" />
+        <meta
+          property="og:description"
+          content="Play multiplayer chess with real-time gameplay, move validation, and strategic board game mechanics. Challenge opponents in this classic strategic game."
+        />
+        <meta property="og:image" content="/chess-board.png" />
+        <meta property="og:url" content="/projects/chess" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Chess - Strategic Board Game" />
+        <meta
+          name="twitter:description"
+          content="Play multiplayer chess with real-time gameplay, move validation, and strategic board game mechanics. Challenge opponents in this classic strategic game."
+        />
+        <meta name="twitter:image" content="/chess-board.png" />
+      </Helmet>
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-8 text-center">
+          Multiplayer Chess
+        </h1>
+        <div className="flex flex-col lg:flex-row gap-8 justify-center">
+          {/* Chessboard */}
+          <div className="card bg-base-100 shadow-xl w-full lg:w-1/2">
+            <div className="card-body p-0">
+              <Chessboard
+                position={fen}
+                onPieceDrop={onDrop}
+                arePiecesDraggable={draggable}
+                isDraggablePiece={({ piece }) => {
+                  // FIXME: The code below doesn't work
+                  const isDraggable =
+                    yourColor &&
+                    piece[0].toLowerCase() ===
+                      (yourColor && yourColor[0].toLowerCase()) &&
+                    isYourTurn() &&
+                    !pending;
 
-                return true;
-              }}
-              boardOrientation={yourColor || "white"}
-              showPromotionDialog={true}
-            />
-          </div>
-        </div>
-
-        {/* Sidebar: Game Info */}
-        <div className="card bg-base-100 shadow-2xl w-full lg:w-1/3">
-          <div className="card-body">
-            <h2 className="card-title mb-4">Game Info</h2>
-
-            {/* Status Alert */}
-            <div className="alert alert-info mb-4">
-              <FaExclamationTriangle className="h-5 w-5" />
-              <span>{status}</span>
+                  return true;
+                }}
+                boardOrientation={yourColor || "white"}
+                showPromotionDialog={true}
+              />
             </div>
+          </div>
 
-            {errorMessage && (
-              <div className="alert alert-error mb-4">
+          {/* Sidebar: Game Info */}
+          <div className="card bg-base-100 shadow-2xl w-full lg:w-1/3">
+            <div className="card-body">
+              <h2 className="card-title mb-4">Game Info</h2>
+
+              {/* Status Alert */}
+              <div className="alert alert-info mb-4">
                 <FaExclamationTriangle className="h-5 w-5" />
-                <span>{errorMessage}</span>
+                <span>{status}</span>
               </div>
-            )}
 
-            {/* Players */}
-            <div className="flex flex-col gap-2 mb-4">
-              <a
-                href={`/profile/${myUserId}`}
-                className="flex items-center gap-1 hover:text-info"
-              >
-                <ProfilePicture
-                  name={myName}
-                  image={myImage}
-                  widthClass="w-6"
-                />
-                <div className="font-bold flex items-center gap-1">
-                  <strong>You:</strong> {myName || "Loading..."}
+              {errorMessage && (
+                <div className="alert alert-error mb-4">
+                  <FaExclamationTriangle className="h-5 w-5" />
+                  <span>{errorMessage}</span>
                 </div>
-              </a>
-              {opponentUser ? (
+              )}
+
+              {/* Players */}
+              <div className="flex flex-col gap-2 mb-4">
                 <a
-                  href={`/profile/${opponentUser.id}`}
+                  href={`/profile/${myUserId}`}
                   className="flex items-center gap-1 hover:text-info"
                 >
                   <ProfilePicture
-                    name={opponentUser.name}
-                    image={opponentUser.image}
+                    name={myName}
+                    image={myImage}
                     widthClass="w-6"
                   />
                   <div className="font-bold flex items-center gap-1">
-                    <strong>Opponent:</strong> {opponentUser.name}
+                    <strong>You:</strong> {myName || "Loading..."}
                   </div>
                 </a>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <FaUser className="h-5 w-5" />
-                  <span>
-                    <strong>Opponent:</strong>{" "}
-                    {opponent ? "Loading..." : "Waiting..."}
-                  </span>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <FaChessPawn className="h-5 w-5" />
-                <span>
-                  <strong>Your Color:</strong>{" "}
-                  {yourColor
-                    ? yourColor.charAt(0).toUpperCase() + yourColor.slice(1)
-                    : "Not assigned"}
-                </span>
-              </div>
-            </div>
-
-            {/* Times */}
-            {phase === "playing" && (
-              <div className="grid grid-cols-1 gap-3 mb-4">
-                <div
-                  className={
-                    "card shadow-lg " +
-                    (isYourTurn()
-                      ? "bg-success text-success-content"
-                      : "bg-base-300 text-base-content")
-                  }
-                >
-                  <div className="card-body p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FaClock className="h-5 w-5" />
-                        <span className="font-semibold">Your Time</span>
-                      </div>
-                      <span className="text-lg font-mono">
-                        {formatTime(
-                          yourColor === "white" ? whiteTime : blackTime
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={
-                    "card shadow-lg " +
-                    (isYourTurn()
-                      ? "bg-base-300 text-base-content"
-                      : "bg-success text-success-content")
-                  }
-                >
-                  <div className="card-body p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FaClock className="h-5 w-5" />
-                        <span className="font-semibold">Opponent's Time</span>
-                      </div>
-                      <span className="text-lg font-mono">
-                        {formatTime(
-                          yourColor === "white" ? blackTime : whiteTime
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Turn Indicator */}
-            {phase === "playing" && (
-              <div
-                className={`alert ${
-                  isYourTurn() ? "alert-success" : "alert-warning"
-                } mb-4`}
-              >
-                <FaChessKing className="h-5 w-5" />
-                <span>{isYourTurn() ? "Your Turn" : "Opponent's Turn"}</span>
-              </div>
-            )}
-
-            {/* Draw Offer Alert */}
-            {drawOfferPending && (
-              <div className="alert alert-info mb-4">
-                <FaHandshake className="h-5 w-5" />
-                <span>Draw offer sent, waiting for opponent...</span>
-              </div>
-            )}
-
-            {/* Game Actions */}
-            {phase === "playing" && (
-              <div className="flex flex-col gap-2 mb-4">
-                <button
-                  onClick={offerDraw}
-                  disabled={drawOfferPending}
-                  className="btn btn-outline btn-info"
-                >
-                  <FaHandshake className="h-5 w-5 mr-2" />
-                  {drawOfferPending ? "Draw Offered" : "Offer Draw"}
-                </button>
-                <button onClick={resign} className="btn btn-outline btn-error">
-                  <FaFlag className="h-5 w-5 mr-2" />
-                  Resign
-                </button>
-              </div>
-            )}
-
-            {/* Bidding */}
-            {phase === "bidding" && !bidSent && (
-              <div className="form-control mb-4">
-                <label className="label">
-                  <span className="label-text">Bid Time (seconds, min 60)</span>
-                </label>
-                <div className="join">
-                  <input
-                    type="number"
-                    value={biddingTime}
-                    onInput={(e) =>
-                      setBiddingTime(
-                        parseInt((e.target as HTMLInputElement).value, 10) || 60
-                      )
-                    }
-                    min="60"
-                    step="1"
-                    className="input input-bordered join-item w-full"
-                  />
-                  <button
-                    onClick={() => sendBid(biddingTime)}
-                    className="btn btn-primary join-item"
+                {opponentUser ? (
+                  <a
+                    href={`/profile/${opponentUser.id}`}
+                    className="flex items-center gap-1 hover:text-info"
                   >
-                    Submit Bid
-                  </button>
-                </div>
-                {biddingCountdown !== null && (
-                  <div className="alert alert-warning mt-2">
-                    <FaHourglassHalf className="h-5 w-5" />
-                    <span>Time left to bid: {biddingCountdown}s</span>
+                    <ProfilePicture
+                      name={opponentUser.name}
+                      image={opponentUser.image}
+                      widthClass="w-6"
+                    />
+                    <div className="font-bold flex items-center gap-1">
+                      <strong>Opponent:</strong> {opponentUser.name}
+                    </div>
+                  </a>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <FaUser className="h-5 w-5" />
+                    <span>
+                      <strong>Opponent:</strong>{" "}
+                      {opponent ? "Loading..." : "Waiting..."}
+                    </span>
                   </div>
                 )}
+                <div className="flex items-center gap-2">
+                  <FaChessPawn className="h-5 w-5" />
+                  <span>
+                    <strong>Your Color:</strong>{" "}
+                    {yourColor
+                      ? yourColor.charAt(0).toUpperCase() + yourColor.slice(1)
+                      : "Not assigned"}
+                  </span>
+                </div>
               </div>
-            )}
 
-            {/* Utilities */}
-            <div className="flex flex-col gap-2">
-              <button onClick={copyFen} className="btn btn-outline">
-                <FaCopy className="h-5 w-5 mr-2" />
-                Copy FEN
-              </button>
-              {copySuccess && (
-                <div className="alert alert-success text-sm">
-                  FEN copied to clipboard!
+              {/* Times */}
+              {phase === "playing" && (
+                <div className="grid grid-cols-1 gap-3 mb-4">
+                  <div
+                    className={
+                      "card shadow-lg " +
+                      (isYourTurn()
+                        ? "bg-success text-success-content"
+                        : "bg-base-300 text-base-content")
+                    }
+                  >
+                    <div className="card-body p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FaClock className="h-5 w-5" />
+                          <span className="font-semibold">Your Time</span>
+                        </div>
+                        <span className="text-lg font-mono">
+                          {formatTime(
+                            yourColor === "white" ? whiteTime : blackTime
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className={
+                      "card shadow-lg " +
+                      (isYourTurn()
+                        ? "bg-base-300 text-base-content"
+                        : "bg-success text-success-content")
+                    }
+                  >
+                    <div className="card-body p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FaClock className="h-5 w-5" />
+                          <span className="font-semibold">Opponent's Time</span>
+                        </div>
+                        <span className="text-lg font-mono">
+                          {formatTime(
+                            yourColor === "white" ? blackTime : whiteTime
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
-              {/* Add more utilities as needed, e.g., Export PGN */}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Draw Offer Modal */}
-      {showDrawModal && (
-        <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Draw Offer</h3>
-            <p className="py-4">
-              {drawOfferUser ? (
-                <a
-                  href={`/profile/${drawOfferUser.id}`}
-                  className="flex items-center gap-1 inline-flex"
+              {/* Turn Indicator */}
+              {phase === "playing" && (
+                <div
+                  className={`alert ${
+                    isYourTurn() ? "alert-success" : "alert-warning"
+                  } mb-4`}
                 >
-                  <ProfilePicture
-                    name={drawOfferUser.name}
-                    image={drawOfferUser.image}
-                    widthClass="w-6"
-                  />
-                  <span className="font-bold">{drawOfferUser.name}</span>
-                </a>
-              ) : (
-                "Your opponent"
-              )}{" "}
-              has offered a draw. Do you accept?
-            </p>
-            <div className="modal-action">
-              <button onClick={declineDraw} className="btn btn-outline">
-                Decline
-              </button>
-              <button onClick={acceptDraw} className="btn btn-primary">
-                Accept Draw
-              </button>
+                  <FaChessKing className="h-5 w-5" />
+                  <span>{isYourTurn() ? "Your Turn" : "Opponent's Turn"}</span>
+                </div>
+              )}
+
+              {/* Draw Offer Alert */}
+              {drawOfferPending && (
+                <div className="alert alert-info mb-4">
+                  <FaHandshake className="h-5 w-5" />
+                  <span>Draw offer sent, waiting for opponent...</span>
+                </div>
+              )}
+
+              {/* Game Actions */}
+              {phase === "playing" && (
+                <div className="flex flex-col gap-2 mb-4">
+                  <button
+                    onClick={offerDraw}
+                    disabled={drawOfferPending}
+                    className="btn btn-outline btn-info"
+                  >
+                    <FaHandshake className="h-5 w-5 mr-2" />
+                    {drawOfferPending ? "Draw Offered" : "Offer Draw"}
+                  </button>
+                  <button
+                    onClick={resign}
+                    className="btn btn-outline btn-error"
+                  >
+                    <FaFlag className="h-5 w-5 mr-2" />
+                    Resign
+                  </button>
+                </div>
+              )}
+
+              {/* Bidding */}
+              {phase === "bidding" && !bidSent && (
+                <div className="form-control mb-4">
+                  <label className="label">
+                    <span className="label-text">
+                      Bid Time (seconds, min 60)
+                    </span>
+                  </label>
+                  <div className="join">
+                    <input
+                      type="number"
+                      value={biddingTime}
+                      onInput={(e) =>
+                        setBiddingTime(
+                          parseInt((e.target as HTMLInputElement).value, 10) ||
+                            60
+                        )
+                      }
+                      min="60"
+                      step="1"
+                      className="input input-bordered join-item w-full"
+                    />
+                    <button
+                      onClick={() => sendBid(biddingTime)}
+                      className="btn btn-primary join-item"
+                    >
+                      Submit Bid
+                    </button>
+                  </div>
+                  {biddingCountdown !== null && (
+                    <div className="alert alert-warning mt-2">
+                      <FaHourglassHalf className="h-5 w-5" />
+                      <span>Time left to bid: {biddingCountdown}s</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Utilities */}
+              <div className="flex flex-col gap-2">
+                <button onClick={copyFen} className="btn btn-outline">
+                  <FaCopy className="h-5 w-5 mr-2" />
+                  Copy FEN
+                </button>
+                {copySuccess && (
+                  <div className="alert alert-success text-sm">
+                    FEN copied to clipboard!
+                  </div>
+                )}
+                {/* Add more utilities as needed, e.g., Export PGN */}
+              </div>
             </div>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Draw Offer Modal */}
+        {showDrawModal && (
+          <div className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">Draw Offer</h3>
+              <p className="py-4">
+                {drawOfferUser ? (
+                  <a
+                    href={`/profile/${drawOfferUser.id}`}
+                    className="flex items-center gap-1 inline-flex"
+                  >
+                    <ProfilePicture
+                      name={drawOfferUser.name}
+                      image={drawOfferUser.image}
+                      widthClass="w-6"
+                    />
+                    <span className="font-bold">{drawOfferUser.name}</span>
+                  </a>
+                ) : (
+                  "Your opponent"
+                )}{" "}
+                has offered a draw. Do you accept?
+              </p>
+              <div className="modal-action">
+                <button onClick={declineDraw} className="btn btn-outline">
+                  Decline
+                </button>
+                <button onClick={acceptDraw} className="btn btn-primary">
+                  Accept Draw
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
