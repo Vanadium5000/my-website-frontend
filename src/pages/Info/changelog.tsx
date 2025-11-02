@@ -1,5 +1,5 @@
 import { BsFileEarmarkText } from "react-icons/bs";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 export function Changelog() {
   return (

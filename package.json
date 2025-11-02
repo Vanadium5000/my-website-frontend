@@ -1,38 +1,38 @@
 {
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"preview": "vite preview",
-		"generate": "swagger-typescript-api generate --path http://localhost:3000/openapi/json --output ./src/api --name api.ts"
-	},
-	"dependencies": {
-		"@tailwindcss/typography": "^0.5.16",
-		"@tailwindcss/vite": "^4.1.12",
-		"chess.js": "^1.4.0",
-		"daisyui": "^5.0.50",
-		"dompurify": "^3.3.0",
-		"fuse.js": "^7.1.0",
-		"fuzzysort": "^3.1.0",
-		"preact": "^10.26.9",
-		"preact-iso": "^2.10.0",
-		"prismjs": "^1.30.0",
-		"react-chessboard": "4.7.3",
-		"react-helmet-async": "^2.0.5",
-		"react-icons": "^5.5.0",
-		"socket.io-client": "^4.8.1",
-		"tailwindcss": "^4.1.12"
-	},
-	"devDependencies": {
-		"@preact/preset-vite": "^2.10.2",
-		"eslint": "^9.34.0",
-		"eslint-config-preact": "^2.0.0",
-		"swagger-typescript-api": "^13.2.8",
-		"typescript": "^5.9.2",
-		"vite": "^7.0.4"
-	},
-	"eslintConfig": {
-		"extends": "preact"
-	}
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "generate": "swagger-typescript-api generate --path http://localhost:3000/openapi/json --output ./src/api --name api.ts"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/vite": "^4.1.12",
+    "chess.js": "^1.4.0",
+    "daisyui": "^5.0.50",
+    "dompurify": "^3.3.0",
+    "fuse.js": "^7.1.0",
+    "fuzzysort": "^3.1.0",
+    "preact": "^10.26.9",
+    "preact-iso": "^2.10.0",
+    "prismjs": "^1.30.0",
+    "react-chessboard": "4.7.3",
+    "react-helmet": "^6.1.0",
+    "react-icons": "^5.5.0",
+    "socket.io-client": "^4.8.1",
+    "tailwindcss": "^4.1.12"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.2",
+    "eslint": "^9.34.0",
+    "eslint-config-preact": "^2.0.0",
+    "swagger-typescript-api": "^13.2.8",
+    "typescript": "^5.9.2",
+    "vite": "^7.0.4"
+  },
+  "eslintConfig": {
+    "extends": "preact"
+  }
 }

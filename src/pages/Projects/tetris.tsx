@@ -1,7 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { api } from "../../api/client";
 import { useLocation } from "preact-iso";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 export function Tetris({
   intermediateCallback,

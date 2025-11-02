@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import { useEffect, useState } from "preact/hooks";
 import { api } from "../../api/client";
 import { FaUserShield, FaCheck, FaBan, FaUnlockAlt } from "react-icons/fa";

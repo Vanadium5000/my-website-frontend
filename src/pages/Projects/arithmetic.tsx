@@ -4,7 +4,7 @@ import { IoTimer } from "react-icons/io5";
 import { IoMdTrophy } from "react-icons/io";
 import { api } from "../../api/client";
 import { GoStop } from "react-icons/go";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 type Range = {
   min1: number;

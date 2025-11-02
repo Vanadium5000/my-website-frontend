@@ -10,7 +10,7 @@ import DOMPurify from "dompurify"; // HTML SANITIZATION
 import Fuse from "fuse.js";
 import { IoSearch, IoDocumentText } from "react-icons/io5";
 import { BlogIndexSchema } from "../../api/api.js";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 export type BlogPostType = BlogIndexSchema;
 export interface CommentType {

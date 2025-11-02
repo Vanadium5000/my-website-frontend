@@ -10,7 +10,7 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { fetchDeck } from "../../../utils/quizspire";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 /**
  * Interface for a quiz question with multiple choice options

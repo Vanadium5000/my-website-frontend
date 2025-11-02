@@ -32,7 +32,7 @@ import {
 } from "react-icons/fi";
 import { highlightSearchTerms } from "../../../utils/highlight";
 import { getApiImageUrl } from "../../../components/ProfilePicture";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 import { FlashcardDeckSchema } from "../../../api/api";
 import { useLocation } from "preact-iso";

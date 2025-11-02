@@ -17,7 +17,7 @@ import {
   FaFlag,
   FaHourglassHalf,
 } from "react-icons/fa";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 export function ChessGame() {
   const chess = useMemo(() => new Chess(), []); // Stable chess instance

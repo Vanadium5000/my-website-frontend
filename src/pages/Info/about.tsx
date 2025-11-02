@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import logo from "../../assets/logo.png";
 import { useSpawnToast } from "../../components/technical/ToastProvider";
 

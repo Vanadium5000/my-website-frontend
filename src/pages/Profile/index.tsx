@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import { useState, useEffect } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { ProfilePicture } from "../../components/ProfilePicture";

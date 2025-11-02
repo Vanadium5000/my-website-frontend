@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import { useState } from "preact/hooks";
 import { api } from "../../api/client.js";
 import { useLocation } from "preact-iso";

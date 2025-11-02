@@ -3,7 +3,7 @@ import { GameCard } from "../../components/GameCard";
 import { ProjectCard } from "../../components/ProjectCard";
 import { FaChessKnight, FaCalculator } from "react-icons/fa";
 import { FiBookOpen } from "react-icons/fi";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 export function Projects() {
   return (

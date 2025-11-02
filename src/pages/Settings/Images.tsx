@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import { useState, useEffect, useRef } from "preact/hooks";
 import { api } from "../../api/client";
 import { User } from "../../api/api";

@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import { BsEnvelope, BsGithub, BsTwitter, BsDiscord } from "react-icons/bs";
 
 export function Contact() {

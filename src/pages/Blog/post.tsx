@@ -7,7 +7,7 @@ import { PostCard, CommentType } from "./index.js";
 // Code highlighting
 import "prismjs/themes/prism-dark.min.css";
 import DOMPurify from "dompurify"; // HTML SANITIZATION
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 interface FullBlogPostType {
   blog: {

@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import { MdLeaderboard } from "react-icons/md";
 import { Leaderboard } from "../../components/Leaderboard.js";
 

@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import { useEffect, useState } from "preact/hooks";
 import { CommentCard } from "../../components/CommentCard";
 import { api } from "../../api/client";

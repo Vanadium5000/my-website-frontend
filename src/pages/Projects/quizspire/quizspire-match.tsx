@@ -3,7 +3,7 @@ import { useLocation } from "preact-iso";
 import { api } from "../../../api/client";
 import { FiShuffle, FiCheck, FiX, FiRotateCcw, FiHome } from "react-icons/fi";
 import { FlashcardDeckSchema } from "../../../api/api";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 type Deck = FlashcardDeckSchema;
 

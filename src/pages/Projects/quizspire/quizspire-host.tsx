@@ -21,7 +21,7 @@ import {
   FaCrown,
   FaUser,
 } from "react-icons/fa";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 
 interface QuizspireSettings {
   winCondition: "time" | "correct_answers" | "score";
