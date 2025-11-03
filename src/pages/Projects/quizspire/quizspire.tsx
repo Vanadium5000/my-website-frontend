@@ -967,7 +967,7 @@ export function MigrationModal({
                   title="Quizlet API Data"
                 />
                 <button
-                  class="btn btn-sm btn-outline absolute top-2 right-2 shadow-lg hover:scale-105 transition-transform"
+                  class="btn btn-sm btn-info absolute top-2 right-2 shadow-lg hover:scale-105 transition-transform"
                   onClick={reloadIframe}
                 >
                   <FiRefreshCw class="w-4 h-4 mr-1" />

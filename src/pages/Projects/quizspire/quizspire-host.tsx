@@ -584,7 +584,10 @@ export function QuizspireHost() {
               {errorMessage && (
                 <div className="alert alert-error mb-4">
                   <FaExclamationTriangle className="h-5 w-5" />
-                  <span>{errorMessage}</span>
+                  <span>
+                    {errorMessage} - make sure you've navigated to the page from
+                    the correct deck & the deck has valid cards.
+                  </span>
                 </div>
               )}
 
@@ -1168,15 +1171,16 @@ export function QuizspireHost() {
 
               {lobby && (
                 <div className="space-y-3">
-                  {lobby.players.map((player) =>
-                    renderPlayerItem(
-                      player,
-                      lobby?.players &&
-                        lobby?.players?.find((p) => p.userId === myUserId)
-                          ?.isHost &&
-                        player.userId !== myUserId
-                    )
-                  )}
+                  {lobby?.players &&
+                    lobby.players.map((player) =>
+                      renderPlayerItem(
+                        player,
+                        lobby?.players &&
+                          lobby?.players?.find((p) => p.userId === myUserId)
+                            ?.isHost &&
+                          player.userId !== myUserId
+                      )
+                    )}
                 </div>
               )}
 

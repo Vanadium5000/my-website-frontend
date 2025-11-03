@@ -129,6 +129,7 @@ export function QuizspireTetris({ id }: { id: string }) {
    * Shows a question every 5 drops and waits for correct answer.
    */
   const intermediateCallback = async (): Promise<void> => {
+    console.log("RUNNING INTERMEDIATE CALLBACK");
     return new Promise((resolve) => {
       setDropCount((prev) => {
         const newCount = prev + 1;
@@ -220,48 +221,71 @@ export function QuizspireTetris({ id }: { id: string }) {
       {/* Question Modal */}
       {showQuestion && currentQuestion && (
         <div class="modal modal-open">
-          <div class="modal-box max-w-md">
-            <h3 class="font-bold text-lg mb-4">Quiz Question!</h3>
-            <p class="text-lg mb-6">{currentQuestion.question}</p>
+          <div class="modal-box max-w-2xl w-full mx-4">
+            {/* Header */}
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-2xl">❓</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-xl text-primary">Quiz Question!</h3>
+                <p class="text-sm text-base-content/60">
+                  Answer correctly to continue playing
+                </p>
+              </div>
+            </div>
 
-            <div class="space-y-3">
+            {/* Question */}
+            <div class="bg-base-200/50 rounded-lg p-6 mb-6 border border-base-300">
+              <p class="text-lg md:text-xl font-medium leading-relaxed whitespace-normal break-words">
+                {currentQuestion.question}
+              </p>
+            </div>
+
+            {/* Answer Options */}
+            <div class="space-y-3 mb-6">
               {currentQuestion.answers.map((answer: string, index: number) => (
                 <button
                   key={index}
-                  class="btn btn-outline w-full text-left justify-start"
+                  class="btn btn-outline w-full min-h-fit h-auto py-4 px-6 text-left justify-start hover:btn-primary hover:border-primary transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handleAnswer(answer)}
                   disabled={questionFeedback.show}
                 >
-                  {answer}
+                  <div class="flex items-start gap-3 w-full">
+                    <span class="badge badge-outline badge-lg group-hover:badge-primary flex-shrink-0 mt-0.5">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                    <span class="whitespace-normal break-words leading-relaxed text-sm md:text-base">
+                      {answer}
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
 
             {/* Feedback Animation */}
             {questionFeedback.show && (
-              <div
-                class={`mt-6 text-center transition-all duration-500 ${
-                  questionFeedback.correct ? "text-success" : "text-error"
-                }`}
-              >
+              <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div
-                  class={`inline-flex items-center gap-2 text-2xl font-bold ${
-                    questionFeedback.correct
-                      ? "animate-bounce"
-                      : "animate-pulse"
-                  }`}
+                  class={`alert ${
+                    questionFeedback.correct ? "alert-success" : "alert-error"
+                  } shadow-lg`}
                 >
-                  {questionFeedback.correct ? (
-                    <>
-                      <FiCheck class="w-8 h-8" />
-                      Correct!
-                    </>
-                  ) : (
-                    <>
-                      <FiX class="w-8 h-8" />
-                      Try Again!
-                    </>
-                  )}
+                  <div
+                    class={`inline-flex items-center gap-3 text-lg font-semibold animate-pulse`}
+                  >
+                    {questionFeedback.correct ? (
+                      <>
+                        <FiCheck class="w-6 h-6 animate-bounce" />
+                        <span>Correct! Well done!</span>
+                      </>
+                    ) : (
+                      <>
+                        <FiX class="w-6 h-6 animate-bounce" />
+                        <span>Not quite right. Try again!</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

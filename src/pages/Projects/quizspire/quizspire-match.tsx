@@ -79,7 +79,7 @@ export function QuizspireMatch({ deckId }: { deckId: string }) {
    */
   const initializeGame = (deckData: Deck) => {
     const gameCards: GameCard[] = [];
-    const usedCards = Math.min(deckData.cards.length, 18); // Max 18 pairs (36 cards) for 6x6 grid
+    const usedCards = Math.min(deckData.cards.length, 8); // Max 8 pairs (16 cards) for 4x4 grid
 
     // Create question and answer cards
     for (let i = 0; i < usedCards; i++) {
@@ -277,7 +277,7 @@ export function QuizspireMatch({ deckId }: { deckId: string }) {
 
   // Calculate grid dimensions based on card count
   const totalCards = cards.length;
-  const gridCols = Math.min(6, Math.ceil(Math.sqrt(totalCards)));
+  const gridCols = Math.min(4, Math.ceil(Math.sqrt(totalCards)));
   const gridRows = Math.ceil(totalCards / gridCols);
 
   if (gameCompleted) {
@@ -411,13 +411,13 @@ export function QuizspireMatch({ deckId }: { deckId: string }) {
 
         {/* Game Grid */}
         <div
-          class="grid gap-4 mx-auto max-w-4xl"
+          class="grid gap-4 mx-auto"
           style={`grid-template-columns: repeat(${gridCols}, minmax(0, 1fr)); grid-template-rows: repeat(${gridRows}, minmax(0, 1fr))`}
         >
           {cards.map((card) => (
             <div
               key={card.id}
-              class={`card bg-base-100 shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl ${
+              class={`card bg-base-100 shadow cursor-pointer transition-all duration-300 ${
                 card.isMatched
                   ? "bg-success/20 border-success"
                   : card.isFlipped
