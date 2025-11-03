@@ -36,7 +36,7 @@ export function Login() {
       });
 
       // Redirect to home page, as login didn't fail
-      route("/");
+      window.location.href = "/";
     } catch (error) {
       const errorMessage = error?.error?.message || "ERROR: LOGIN FAILED";
 

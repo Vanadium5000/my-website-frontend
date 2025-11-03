@@ -51,13 +51,15 @@ export function Signup() {
 
         // If email is not verified, redirect to email verification page
         if (!user.emailVerified) {
-          route(`/email-verification?email=${encodeURIComponent(email)}`);
+          window.location.href = `/email-verification?email=${encodeURIComponent(
+            email
+          )}`;
           return;
         }
       }
 
       // If email is already verified, redirect to home page
-      route("/");
+      window.location.href = "/";
     } catch (error) {
       console.log(error);
       const errorMessage = error?.error?.message || "ERROR: REGISTER FAILED";

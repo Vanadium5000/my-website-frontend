@@ -491,7 +491,7 @@ export function QuizspireHost() {
   if (phase === "connecting") {
     return (
       <div className="container mx-auto p-4">
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-full">
           <div className="text-center">
             <span className="loading loading-spinner loading-lg"></span>
             <p className="mt-4 text-base-content/70">
@@ -663,6 +663,7 @@ export function QuizspireHost() {
                                 }))
                               }
                               disabled={
+                                lobby?.players &&
                                 !lobby?.players?.find(
                                   (p) => p.userId === myUserId
                                 )?.isHost
@@ -697,6 +698,7 @@ export function QuizspireHost() {
                                 }
                                 min="1"
                                 disabled={
+                                  lobby?.players &&
                                   !lobby?.players?.find(
                                     (p) => p.userId === myUserId
                                   )?.isHost
@@ -723,6 +725,7 @@ export function QuizspireHost() {
                                 }
                                 min="1"
                                 disabled={
+                                  lobby?.players &&
                                   !lobby?.players?.find(
                                     (p) => p.userId === myUserId
                                   )?.isHost
@@ -751,6 +754,7 @@ export function QuizspireHost() {
                                 }
                                 min="60"
                                 disabled={
+                                  lobby?.players &&
                                   !lobby?.players?.find(
                                     (p) => p.userId === myUserId
                                   )?.isHost
@@ -780,6 +784,7 @@ export function QuizspireHost() {
                               min="5"
                               max="120"
                               disabled={
+                                lobby?.players &&
                                 !lobby?.players?.find(
                                   (p) => p.userId === myUserId
                                 )?.isHost
@@ -805,7 +810,8 @@ export function QuizspireHost() {
                                 }))
                               }
                               disabled={
-                                !lobby.players.find(
+                                lobby?.players &&
+                                !lobby?.players?.find(
                                   (p) => p.userId === myUserId
                                 )?.isHost
                               }
@@ -827,7 +833,8 @@ export function QuizspireHost() {
                                 }))
                               }
                               disabled={
-                                !lobby.players.find(
+                                lobby?.players &&
+                                !lobby?.players?.find(
                                   (p) => p.userId === myUserId
                                 )?.isHost
                               }
@@ -850,7 +857,8 @@ export function QuizspireHost() {
                                 }))
                               }
                               disabled={
-                                !lobby.players.find(
+                                lobby?.players &&
+                                !lobby?.players?.find(
                                   (p) => p.userId === myUserId
                                 )?.isHost
                               }
@@ -872,15 +880,16 @@ export function QuizspireHost() {
                     </div>
                   </div>
 
-                  {lobby?.players?.find((p) => p.userId === myUserId)
-                    ?.isHost ? (
+                  {lobby?.players &&
+                  lobby?.players?.find((p) => p.userId === myUserId)?.isHost ? (
                     <div className="flex justify-center">
                       <button
                         className="btn btn-success btn-lg"
                         onClick={startGame}
                         disabled={
-                          lobby.players.length <
-                          (settings.hostParticipates ? 1 : 2)
+                          lobby?.players &&
+                          lobby?.players?.length <
+                            (settings.hostParticipates ? 1 : 2)
                         }
                       >
                         <FaPlay className="w-5 h-5 mr-2" />
@@ -1117,13 +1126,17 @@ export function QuizspireHost() {
                   </div>
 
                   <div className="flex gap-4 justify-center">
-                    {lobby?.players?.find((p) => p.userId === myUserId)
-                      ?.isHost && (
-                      <button className="btn btn-success" onClick={restartGame}>
-                        <FaPlay className="w-4 h-4 mr-2" />
-                        Restart Game
-                      </button>
-                    )}
+                    {lobby?.players &&
+                      lobby?.players?.find((p) => p.userId === myUserId)
+                        ?.isHost && (
+                        <button
+                          className="btn btn-success"
+                          onClick={restartGame}
+                        >
+                          <FaPlay className="w-4 h-4 mr-2" />
+                          Restart Game
+                        </button>
+                      )}
                     <button
                       className="btn btn-primary"
                       onClick={() =>
@@ -1150,7 +1163,7 @@ export function QuizspireHost() {
             <div className="card-body">
               <h2 className="card-title mb-4">
                 <FaUsers className="w-5 h-5 mr-2" />
-                Players ({lobby?.players.length || 0})
+                Players ({lobby?.players?.length || 0})
               </h2>
 
               {lobby && (
@@ -1158,8 +1171,10 @@ export function QuizspireHost() {
                   {lobby.players.map((player) =>
                     renderPlayerItem(
                       player,
-                      lobby?.players?.find((p) => p.userId === myUserId)
-                        ?.isHost && player.userId !== myUserId
+                      lobby?.players &&
+                        lobby?.players?.find((p) => p.userId === myUserId)
+                          ?.isHost &&
+                        player.userId !== myUserId
                     )
                   )}
                 </div>
@@ -1211,7 +1226,7 @@ export function QuizspireHost() {
                 </div>
               )}
 
-              {lobby && lobby.players.length < 2 && (
+              {lobby && lobby?.players && lobby.players.length < 2 && (
                 <div className="alert alert-info mt-4">
                   <FaShare className="w-4 h-4" />
                   <span>Share the lobby code with friends to join!</span>
