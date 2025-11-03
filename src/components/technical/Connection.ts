@@ -67,6 +67,8 @@ export function Connection() {
 
       socket.on("connect_error", (error: Error) => {
         console.error("[Connection Socket] Connection error:", error.message);
+        // Swap to start with polling on next attempt (allows upgrade to WebSocket later if possible)
+        socket.io.opts.transports = ["polling", "websocket"];
       });
 
       socket.on("error", (error: any) => {
@@ -110,6 +112,7 @@ export function Connection() {
         path: transportPath,
         transports: ["websocket", "polling"],
         withCredentials: true,
+        tryAllTransports: true,
         // Additional security options
         timeout: 20000, // 20 second connection timeout
         reconnection: true,

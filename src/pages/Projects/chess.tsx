@@ -94,6 +94,7 @@ export function ChessGame() {
           path: transportPath,
           transports: ["websocket", "polling"],
           withCredentials: true,
+          tryAllTransports: true,
         });
 
         setSocket(newSocket);
@@ -281,6 +282,9 @@ export function ChessGame() {
         newSocket.on("connect_error", (error) => {
           setErrorMessage(`Connection error: ${error.message}`);
           console.error("Connect error:", error);
+
+          // Swap to start with polling on next attempt (allows upgrade to WebSocket later if possible)
+          socket.io.opts.transports = ["polling", "websocket"];
         });
 
         newSocket.on("disconnect", (reason) => {

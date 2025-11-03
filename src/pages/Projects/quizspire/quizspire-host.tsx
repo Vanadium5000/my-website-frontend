@@ -199,6 +199,7 @@ export function QuizspireHost() {
           path: transportPath,
           transports: ["websocket", "polling"],
           withCredentials: true,
+          tryAllTransports: true,
         });
 
         setSocket(newSocket);
@@ -309,6 +310,9 @@ export function QuizspireHost() {
         newSocket.on("connect_error", (error) => {
           logSocketReceive("connect_error", error);
           setErrorMessage(`Connection error: ${error.message}`);
+
+          // Swap to start with polling on next attempt (allows upgrade to WebSocket later if possible)
+          socket.io.opts.transports = ["polling", "websocket"];
         });
 
         newSocket.on("disconnect", (reason) => {
