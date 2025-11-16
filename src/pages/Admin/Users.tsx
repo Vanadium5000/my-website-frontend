@@ -109,7 +109,7 @@ export function AdminUsers() {
     try {
       // Using updateUser with custom data
       // HACK: The OpenAPI specification wants data as string when only JSON works
-      const customData = customField;
+      const customData = JSON.parse(customField);
       await api.auth.updateUser({
         userId: selectedUser.id!,
         data: customData as any,

@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && bun run scripts/postbuild.ts",
     "preview": "vite preview",
     "generate": "swagger-typescript-api generate --path http://localhost:3000/openapi/json --output ./src/api --name api.ts"
   },

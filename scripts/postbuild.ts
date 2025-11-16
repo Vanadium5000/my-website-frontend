@@ -1,14 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/ico" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light dark" />
-    <title>My Website</title>
-    
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Path to dist/index.html
+const indexPath: string = path.join(__dirname, "..", "dist", "index.html");
+let html: string = fs.readFileSync(indexPath, "utf8");
+
+// Find the script tag
+const scriptRegex: RegExp =
+  /<script\s+type="module"\s+crossorigin\s+src="([^"]+)"\s*><\/script>/;
+const match: RegExpMatchArray | null = html.match(scriptRegex);
+if (!match) throw new Error("Script tag not found");
+
+const jsSrc: string = match[1]; // e.g., /assets/index-BJvvF0mC.js
+const jsPath: string = path.join(__dirname, "..", "dist", jsSrc);
+const jsContent: string = fs.readFileSync(jsPath, "utf8");
+const base64: string = Buffer.from(jsContent, "utf8").toString("base64");
+const base64Path: string = path.join(
+  __dirname,
+  "..",
+  "dist",
+  "assets",
+  "fallback.js.base64"
+);
+fs.writeFileSync(base64Path, base64);
+
+// Inline script to add
+const inlineScript: string = `
     <!-- Inline script for fallback logic (runs before DOM loads) -->
     <script>
       function loadFallback() {
@@ -56,10 +77,16 @@
             });
           });
       }
-    </script><script type="module" crossorigin src="/assets/index-ClO-B9He.js" onerror="loadFallback()"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CK4qRBGO.css">
-  </head>
-  <body>
-    <div id="app"></div>
-  </body>
-</html>
+    </script>`;
+
+// Replace the script tag with inline + modified script
+html = html.replace(
+  scriptRegex,
+  inlineScript +
+    '<script type="module" crossorigin src="' +
+    jsSrc +
+    '" onerror="loadFallback()"></script>'
+);
+
+// Write back
+fs.writeFileSync(indexPath, html);
