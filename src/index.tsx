@@ -19,6 +19,7 @@ import { QuizspireTetris } from "./pages/Projects/quizspire/quizspire-tetris.js"
 import { QuizspireMatch } from "./pages/Projects/quizspire/quizspire-match.js";
 import { QuizspireHost } from "./pages/Projects/quizspire/quizspire-host.js";
 import { Tetris } from "./pages/Projects/tetris.js";
+import { DrFrost } from "./pages/Projects/drfrost-solver.js";
 import { Signup } from "./pages/Signup/index.js";
 import { EmailVerification } from "./pages/EmailVerification/index.js";
 import { AdminHome } from "./pages/Admin/index";
@@ -77,6 +78,7 @@ export function App() {
                 component={QuizspireTest}
               />
               <Route path="/projects/tetris" component={Tetris} />
+              <Route path="/projects/drfrost-solver" component={DrFrost} />
               <Route
                 path="/projects/quizspire/:id/tetris"
                 component={QuizspireTetris}
